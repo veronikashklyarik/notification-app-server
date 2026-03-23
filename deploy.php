@@ -7,6 +7,8 @@ require 'recipe/laravel.php';
 
 set('repository', 'git@github.com:veronikashklyarik/notification-app-server.git');
 
+set('keep_releases', 3);
+
 add('shared_files', ['.env']);
 add('shared_dirs', ['storage']);
 add('writable_dirs', []);
