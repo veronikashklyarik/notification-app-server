@@ -24,6 +24,8 @@ host('64.227.122.5')
     ->set('writable_chmod_mode', '0775')
     ->set('deploy_path', '/var/www/notifyr');
 
+// Tasks
+
 desc('Install & build npm packages');
 task('npm:build', function () {
     run('cd {{release_path}} && npm ci && npm run build');
@@ -31,4 +33,5 @@ task('npm:build', function () {
 
 // Hooks
 
+after('artisan:migrate', 'npm:build');
 after('deploy:failed', 'deploy:unlock');
