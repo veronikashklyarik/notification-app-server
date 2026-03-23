@@ -12,26 +12,26 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-gray-50 antialiased">
+<body class="bg-gray-50 md:bg-gray-50 mobile-gradient-bg antialiased">
 
     {{-- Navigation --}}
-    <nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <nav class="bg-white border-b border-gray-100 md:border-gray-200 sticky top-0 z-50">
         <div class="max-w-6xl mx-auto px-4 sm:px-6">
             <div class="flex items-center justify-between h-16">
 
                 {{-- Logo --}}
-                <div class="flex items-center gap-8">
-                    <a href="{{ route('notifications.index') }}" class="flex items-center gap-2">
-                        <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-                            <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <div class="flex items-center gap-6 md:gap-8">
+                    <a href="{{ route('notifications.index') }}" class="flex items-center gap-2.5 md:gap-2">
+                        <div class="w-10 h-10 md:w-8 md:h-8 bg-indigo-600 rounded-2xl md:rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 md:w-5 md:h-5 text-white" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
                             </svg>
                         </div>
-                        <span class="font-semibold text-gray-900 text-lg">Notifyr</span>
+                        <span class="font-bold text-gray-900 text-xl md:text-lg">Notifyr</span>
                     </a>
 
-                    {{-- Main Navigation --}}
-                    <div class="hidden sm:flex items-center gap-1">
+                    {{-- Desktop Navigation --}}
+                    <div class="hidden md:flex items-center gap-1">
                         <a href="{{ route('notifications.index') }}"
                            class="px-3 py-2 rounded-md text-sm font-medium transition-colors
                                   {{ request()->routeIs('notifications.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
@@ -45,19 +45,19 @@
                     </div>
                 </div>
 
-                {{-- User Menu --}}
-                <div class="relative" x-data="{ open: false }">
+                {{-- Desktop User Menu --}}
+                <div class="hidden md:block relative" x-data="{ open: false }">
                     <button @click="open = !open" @click.outside="open = false"
-                            class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+                            class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-100 transition-all duration-200">
                         <div class="w-8 h-8 rounded-full overflow-hidden bg-indigo-100 flex items-center justify-center flex-shrink-0">
                             @if(auth()->user()->avatar_url)
                                 <img src="{{ auth()->user()->avatar_url }}" alt="Avatar" class="w-full h-full object-cover">
                             @else
-                                <span class="text-indigo-600 font-semibold text-sm">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</span>
+                                <span class="text-indigo-700 font-semibold text-sm">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</span>
                             @endif
                         </div>
-                        <span class="hidden sm:block text-sm font-medium text-gray-700">{{ auth()->user()->name }}</span>
-                        <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <span class="text-sm font-medium text-gray-700">{{ auth()->user()->name }}</span>
+                        <svg class="w-4 h-4 text-gray-400 transition-transform" :class="{ 'rotate-180': open }" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                         </svg>
                     </button>
@@ -94,17 +94,30 @@
                     </div>
                 </div>
 
+                {{-- Mobile User Avatar (No Dropdown) --}}
+                <div class="md:hidden">
+                    <a href="{{ route('profile.edit') }}" class="block">
+                        <div class="w-10 h-10 rounded-full overflow-hidden bg-indigo-100 flex items-center justify-center ring-2 ring-indigo-100">
+                            @if(auth()->user()->avatar_url)
+                                <img src="{{ auth()->user()->avatar_url }}" alt="Avatar" class="w-full h-full object-cover">
+                            @else
+                                <span class="text-indigo-700 font-bold text-sm">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</span>
+                            @endif
+                        </div>
+                    </a>
+                </div>
+
             </div>
         </div>
     </nav>
 
     {{-- Page Content --}}
-    <main class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6 md:py-8 pb-24 md:pb-8 min-h-[calc(100vh-4rem)]">
 
         {{-- Flash Messages --}}
         @if(session('status'))
-            <div class="mb-6 flex items-center gap-3 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-xl text-sm">
-                <svg class="w-5 h-5 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <div class="mb-5 md:mb-6 flex items-center gap-3 bg-gradient-to-br from-green-50 to-emerald-50 md:bg-green-50 border-2 md:border border-green-200 text-green-800 px-4 md:px-4 py-3.5 md:py-3 rounded-2xl md:rounded-xl text-sm font-medium md:font-normal shadow-lg shadow-green-500/10 md:shadow-none slide-up">
+                <svg class="w-5 h-5 text-green-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 {{ session('status') }}
@@ -112,8 +125,8 @@
         @endif
 
         @if(session('error'))
-            <div class="mb-6 flex items-center gap-3 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-xl text-sm">
-                <svg class="w-5 h-5 text-red-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <div class="mb-5 md:mb-6 flex items-center gap-3 bg-gradient-to-br from-red-50 to-rose-50 md:bg-red-50 border-2 md:border border-red-200 text-red-800 px-4 md:px-4 py-3.5 md:py-3 rounded-2xl md:rounded-xl text-sm font-medium md:font-normal shadow-lg shadow-red-500/10 md:shadow-none slide-up">
+                <svg class="w-5 h-5 text-red-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
                 </svg>
                 {{ session('error') }}
@@ -122,6 +135,65 @@
 
         {{ $slot }}
     </main>
+
+    {{-- Mobile Bottom Navigation --}}
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 safe-area-bottom">
+        <div class="flex items-center justify-around px-2 py-2 max-w-lg mx-auto">
+            {{-- Notifications Tab --}}
+            <a href="{{ route('notifications.index') }}"
+               class="flex flex-col items-center justify-center flex-1 py-2 px-3 rounded-xl transition-all duration-200 {{ request()->routeIs('notifications.*') ? 'bg-indigo-50' : 'hover:bg-gray-50' }}">
+                @if(request()->routeIs('notifications.*'))
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center mb-1 shadow-lg shadow-indigo-500/30">
+                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2C10.3431 2 9 3.34315 9 5V5.56049C7.03024 6.13128 5.5 7.89215 5.5 10V13.5L3.5 15.5V16.5H20.5V15.5L18.5 13.5V10C18.5 7.89215 16.9698 6.13128 15 5.56049V5C15 3.34315 13.6569 2 12 2ZM10 18.5C10 19.8807 11.1193 21 12.5 21C13.8807 21 15 19.8807 15 18.5H10Z"/>
+                        </svg>
+                    </div>
+                    <span class="text-xs font-bold text-indigo-700">Notifications</span>
+                @else
+                    <svg class="w-6 h-6 text-gray-400 mb-1" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                    </svg>
+                    <span class="text-xs font-medium text-gray-500">Notifications</span>
+                @endif
+            </a>
+
+            {{-- History Tab --}}
+            <a href="{{ route('history.index') }}"
+               class="flex flex-col items-center justify-center flex-1 py-2 px-3 rounded-xl transition-all duration-200 {{ request()->routeIs('history.*') ? 'bg-indigo-50' : 'hover:bg-gray-50' }}">
+                @if(request()->routeIs('history.*'))
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center mb-1 shadow-lg shadow-indigo-500/30">
+                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.58 20 4 16.42 4 12C4 7.58 7.58 4 12 4C16.42 4 20 7.58 20 12C20 16.42 16.42 20 12 20ZM12.5 7H11V13L16.25 16.15L17 14.92L12.5 12.25V7Z"/>
+                        </svg>
+                    </div>
+                    <span class="text-xs font-bold text-indigo-700">History</span>
+                @else
+                    <svg class="w-6 h-6 text-gray-400 mb-1" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span class="text-xs font-medium text-gray-500">History</span>
+                @endif
+            </a>
+
+            {{-- Profile Tab --}}
+            <a href="{{ route('profile.edit') }}"
+               class="flex flex-col items-center justify-center flex-1 py-2 px-3 rounded-xl transition-all duration-200 {{ request()->routeIs('profile.*') ? 'bg-indigo-50' : 'hover:bg-gray-50' }}">
+                @if(request()->routeIs('profile.*'))
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center mb-1 shadow-lg shadow-indigo-500/30">
+                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z"/>
+                        </svg>
+                    </div>
+                    <span class="text-xs font-bold text-indigo-700">Profile</span>
+                @else
+                    <svg class="w-6 h-6 text-gray-400 mb-1" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                    </svg>
+                    <span class="text-xs font-medium text-gray-500">Profile</span>
+                @endif
+            </a>
+        </div>
+    </nav>
 
 </body>
 </html>

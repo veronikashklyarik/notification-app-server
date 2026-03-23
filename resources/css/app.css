@@ -29,3 +29,126 @@
         color-scheme: light;
     }
 }
+
+@layer utilities {
+    /* Safe area support for iOS */
+    .safe-area-bottom {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    /* Grain texture overlay */
+    .grain-texture::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        opacity: 0.03;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    /* Mobile gradient background */
+    @media (max-width: 768px) {
+        .mobile-gradient-bg {
+            background: #fafbfc;
+        }
+
+        .active\:scale-98:active {
+            transform: scale(0.98);
+        }
+
+        .active\:scale-95:active {
+            transform: scale(0.95);
+        }
+
+        .mobile-header-gradient {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        }
+
+        .mobile-card-shadow {
+            box-shadow:
+                0 1px 3px rgba(0, 0, 0, 0.05),
+                0 10px 25px -5px rgba(99, 102, 241, 0.08),
+                0 0 0 1px rgba(0, 0, 0, 0.02);
+        }
+
+        .mobile-card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .mobile-card-hover:active {
+            transform: scale(0.98);
+            box-shadow:
+                0 1px 2px rgba(0, 0, 0, 0.05),
+                0 5px 15px -3px rgba(99, 102, 241, 0.1);
+        }
+
+        /* Floating animation */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-4px); }
+        }
+
+        .float-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        /* Shimmer effect */
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        .shimmer {
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(255, 255, 255, 0.3) 50%,
+                transparent 100%
+            );
+            background-size: 200% 100%;
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        /* Slide up animation */
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide-up {
+            animation: slideUp 0.5s ease-out forwards;
+        }
+
+        .slide-up-delay-1 {
+            opacity: 0;
+            animation: slideUp 0.5s ease-out 0.1s forwards;
+        }
+
+        .slide-up-delay-2 {
+            opacity: 0;
+            animation: slideUp 0.5s ease-out 0.2s forwards;
+        }
+
+        .slide-up-delay-3 {
+            opacity: 0;
+            animation: slideUp 0.5s ease-out 0.3s forwards;
+        }
+
+        /* Button pulse effect */
+        @keyframes pulse-subtle {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
+            50% { box-shadow: 0 0 0 8px rgba(99, 102, 241, 0); }
+        }
+
+        .button-pulse {
+            animation: pulse-subtle 2s ease-in-out infinite;
+        }
+    }
+}

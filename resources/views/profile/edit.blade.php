@@ -1,15 +1,16 @@
 <x-layouts.app title="Profile">
 
-    <div class="mb-8">
-        <h1 class="text-2xl font-semibold text-gray-900">Profile</h1>
-        <p class="text-gray-500 text-sm mt-1">Manage your account information and password.</p>
+    {{-- Page Header --}}
+    <div class="mb-6 md:mb-8">
+        <h1 class="text-2xl font-bold md:font-semibold text-gray-900">Profile</h1>
+        <p class="text-gray-500 text-sm mt-1.5 md:mt-1">Manage your account information and password.</p>
     </div>
 
     <div class="grid gap-6 max-w-2xl">
 
         {{-- Profile Info --}}
-        <div class="bg-white rounded-2xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-5">Account information</h2>
+        <div class="bg-white rounded-3xl md:rounded-2xl border md:border border-gray-100 md:border-gray-200 p-6 shadow-sm md:shadow-none">
+            <h2 class="text-base font-bold md:font-semibold text-gray-900 mb-5">Account information</h2>
 
             <form method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data" class="space-y-5">
                 @csrf
@@ -96,15 +97,15 @@
                 </div>
 
                 <button type="submit"
-                        class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors">
+                        class="w-full md:w-auto h-12 md:h-auto px-4 md:px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-98 md:active:scale-100 text-white text-sm font-bold md:font-medium rounded-2xl md:rounded-lg transition-all shadow-lg shadow-indigo-500/30 md:shadow-none">
                     Save changes
                 </button>
             </form>
         </div>
 
         {{-- Change Password --}}
-        <div class="bg-white rounded-2xl border border-gray-200 p-6">
-            <h2 class="text-base font-semibold text-gray-900 mb-1">Change password</h2>
+        <div class="bg-white rounded-3xl md:rounded-2xl border md:border border-gray-100 md:border-gray-200 p-6 shadow-sm md:shadow-none">
+            <h2 class="text-base font-bold md:font-semibold text-gray-900 mb-1">Change password</h2>
             <p class="text-sm text-gray-500 mb-5">Leave blank to keep your current password.</p>
 
             <form method="POST" action="{{ route('profile.update') }}" class="space-y-5">
@@ -137,12 +138,26 @@
                 </div>
 
                 <button type="submit"
-                        class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors">
+                        class="w-full md:w-auto h-12 md:h-auto px-4 md:px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-98 md:active:scale-100 text-white text-sm font-bold md:font-medium rounded-2xl md:rounded-lg transition-all shadow-lg shadow-indigo-500/30 md:shadow-none">
                     Update password
                 </button>
             </form>
         </div>
 
+    </div>
+
+    {{-- Mobile Sign Out Button --}}
+    <div class="md:hidden mt-8 max-w-2xl">
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit"
+                    class="w-full flex items-center justify-center gap-2.5 h-12 bg-white border-2 border-red-200 hover:bg-red-50 active:bg-red-100 text-red-600 font-bold rounded-2xl transition-all active:scale-98 shadow-sm">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                </svg>
+                Sign out
+            </button>
+        </form>
     </div>
 
     <script>
