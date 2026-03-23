@@ -20,17 +20,17 @@ class NotificationHistoryFactory extends Factory
      */
     public function definition(): array
     {
-        $action = fake()->randomElement(HistoryAction::cases());
+        $action = $this->faker->randomElement(HistoryAction::cases());
 
         return [
             'notification_id' => Notification::factory(),
             'user_id' => User::factory(),
             'action' => $action,
-            'comment' => fake()->optional()->sentence(),
+            'comment' => $this->faker->optional()->sentence(),
             'postponed_until' => $action === HistoryAction::Postponed
-                ? fake()->dateTimeBetween('now', '+7 days')
+                ? $this->faker->dateTimeBetween('now', '+7 days')
                 : null,
-            'due_at' => fake()->dateTimeBetween('-30 days', 'now'),
+            'due_at' => $this->faker->dateTimeBetween('-30 days', 'now'),
         ];
     }
 
@@ -52,7 +52,7 @@ class NotificationHistoryFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'action' => HistoryAction::Postponed,
-            'postponed_until' => fake()->dateTimeBetween('now', '+7 days'),
+            'postponed_until' => $this->faker->dateTimeBetween('now', '+7 days'),
         ]);
     }
 }

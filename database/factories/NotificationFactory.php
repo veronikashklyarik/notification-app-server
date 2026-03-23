@@ -19,21 +19,21 @@ class NotificationFactory extends Factory
      */
     public function definition(): array
     {
-        $scheduleType = fake()->randomElement(ScheduleType::cases());
+        $scheduleType = $this->faker->randomElement(ScheduleType::cases());
 
         return [
             'user_id' => User::factory(),
-            'name' => fake()->sentence(3),
-            'description' => fake()->optional()->paragraph(),
+            'name' => $this->faker->sentence(3),
+            'description' => $this->faker->optional()->paragraph(),
             'schedule_type' => $scheduleType,
-            'week_days' => $scheduleType === ScheduleType::WeekDays ? fake()->randomElements([1, 2, 3, 4, 5, 6, 7], fake()->numberBetween(2, 5)) : null,
-            'every_n_days' => $scheduleType === ScheduleType::EveryNDays ? fake()->numberBetween(2, 14) : null,
-            'cyclical_value' => $scheduleType === ScheduleType::Cyclical ? fake()->numberBetween(1, 6) : null,
-            'cyclical_unit' => $scheduleType === ScheduleType::Cyclical ? fake()->randomElement(['weeks', 'months']) : null,
+            'week_days' => $scheduleType === ScheduleType::WeekDays ? $this->faker->randomElements([1, 2, 3, 4, 5, 6, 7], $this->faker->numberBetween(2, 5)) : null,
+            'every_n_days' => $scheduleType === ScheduleType::EveryNDays ? $this->faker->numberBetween(2, 14) : null,
+            'cyclical_value' => $scheduleType === ScheduleType::Cyclical ? $this->faker->numberBetween(1, 6) : null,
+            'cyclical_unit' => $scheduleType === ScheduleType::Cyclical ? $this->faker->randomElement(['weeks', 'months']) : null,
             'times' => $scheduleType !== ScheduleType::AsNeeded ? ['09:00'] : null,
             'starts_at' => now(),
             'ends_at' => null,
-            'next_due_at' => fake()->dateTimeBetween('now', '+30 days'),
+            'next_due_at' => $this->faker->dateTimeBetween('now', '+30 days'),
             'is_active' => true,
         ];
     }
