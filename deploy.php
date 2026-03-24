@@ -13,7 +13,7 @@ set('keep_releases', 3);
 
 add('shared_files', ['.env']);
 add('shared_dirs', ['storage']);
-add('writable_dirs', []);
+add('writable_dirs', ['bootstrap/cache']);
 add('crontab:jobs', [
     '* * * * * cd {{current_path}} && {{bin/php}} artisan schedule:run >> /dev/null 2>&1',
 ]);
@@ -42,3 +42,4 @@ task('npm:build', function () {
 
 after('artisan:migrate', 'npm:build');
 after('deploy:failed', 'deploy:unlock');
+after('deploy:success', 'crontab:sync');
