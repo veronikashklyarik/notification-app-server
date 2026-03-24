@@ -99,6 +99,11 @@ return [
             ],
         ],
 
+        'session' => [
+            'driver' => 'redis',
+            'connection' => 'session',
+        ],
+
     ],
 
     /*
