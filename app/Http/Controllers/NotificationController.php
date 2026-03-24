@@ -6,7 +6,6 @@ use App\Http\Requests\StoreNotificationRequest;
 use App\Http\Requests\UpdateNotificationRequest;
 use App\Models\Notification;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 
 class NotificationController extends Controller
@@ -38,21 +37,9 @@ class NotificationController extends Controller
     public function store(StoreNotificationRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        $userTimezone = auth()->user()->timezone ?? 'UTC';
         $data['user_id'] = auth()->id();
 
-        $startsAt = isset($data['starts_at'])
-            ? Carbon::parse($data['starts_at'], $userTimezone)->startOfDay()
-            : now($userTimezone)->startOfDay();
-
-        $data['starts_at'] = $startsAt->toDateString();
-
-        // Set next_due_at to the start date at the first scheduled time
-        $times = ! empty($data['times']) ? $data['times'] : ['09:00'];
-        sort($times);
-        [$h, $m] = explode(':', $times[0]);
-        $data['next_due_at'] = $startsAt->copy()->setTime((int) $h, (int) $m, 0)->utc();
-
+        // Create the notification (next_due_at calculated automatically in model's booted() method)
         Notification::query()->create($data);
 
         return redirect()->route('notifications.index')
@@ -88,17 +75,10 @@ class NotificationController extends Controller
      */
     public function update(UpdateNotificationRequest $request, Notification $notification): RedirectResponse
     {
-        $data = $request->validated();
+        $this->authorizeNotification($notification);
 
-        if (isset($data['starts_at'])) {
-            $data['starts_at'] = Carbon::parse($data['starts_at'])->toDateString();
-        }
-
-        if (isset($data['ends_at'])) {
-            $data['ends_at'] = Carbon::parse($data['ends_at'])->toDateString();
-        }
-
-        $notification->update($data);
+        // Update notification (next_due_at recalculated automatically in model's booted() method)
+        $notification->update($request->validated());
 
         return redirect()->route('notifications.show', $notification)
             ->with('status', 'Notification updated successfully.');

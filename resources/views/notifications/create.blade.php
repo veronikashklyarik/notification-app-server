@@ -1,18 +1,18 @@
 <x-layouts.app title="New Notification">
 
-    <div class="mb-8">
+    <div class="mb-6 md:mb-8">
         <nav class="flex items-center gap-2 text-sm text-gray-500 mb-4">
             <a href="{{ route('notifications.index') }}" class="hover:text-indigo-600 transition-colors">Notifications</a>
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
             </svg>
-            <span class="text-gray-900">New</span>
+            <span class="text-gray-900 font-medium">New</span>
         </nav>
-        <h1 class="text-2xl font-semibold text-gray-900">New notification</h1>
-        <p class="text-gray-500 text-sm mt-1">Set up a new recurring reminder.</p>
+        <h1 class="text-2xl font-bold md:font-semibold text-gray-900">New notification</h1>
+        <p class="text-gray-500 text-sm mt-1.5 md:mt-1">Set up a new recurring reminder.</p>
     </div>
 
-    <div class="bg-white rounded-2xl border border-gray-200 p-6 max-w-2xl">
+    <div class="bg-white rounded-3xl md:rounded-2xl border md:border border-gray-100 md:border-gray-200 p-6 max-w-2xl shadow-sm md:shadow-none">
         <form method="POST" action="{{ route('notifications.store') }}" class="space-y-6"
               x-data="notificationForm(
                   '{{ old('schedule_type', 'every_day') }}',
@@ -135,14 +135,15 @@
             </div>
 
             {{-- Duration --}}
-            <div class="grid grid-cols-2 gap-4">
+            <div class="space-y-4 md:space-y-0 md:grid md:grid-cols-2 md:gap-4">
                 <div>
                     <label for="starts_at" class="block text-sm font-medium text-gray-700 mb-1.5">
                         Start Date
                     </label>
                     <input type="date" id="starts_at" name="starts_at"
                            value="{{ old('starts_at') }}"
-                           class="w-full px-3.5 py-2.5 text-sm rounded-lg border border-gray-300 transition-colors outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100">
+                           lang="en"
+                           class="w-full h-12 md:h-auto px-3.5 py-2.5 text-base md:text-sm rounded-2xl md:rounded-lg border-2 md:border border-gray-200 md:border-gray-300 transition-colors outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100">
                 </div>
                 <div>
                     <label for="ends_at" class="block text-sm font-medium text-gray-700 mb-1.5">
@@ -151,17 +152,18 @@
                     </label>
                     <input type="date" id="ends_at" name="ends_at"
                            value="{{ old('ends_at') }}"
-                           class="w-full px-3.5 py-2.5 text-sm rounded-lg border border-gray-300 transition-colors outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100">
+                           lang="en"
+                           class="w-full h-12 md:h-auto px-3.5 py-2.5 text-base md:text-sm rounded-2xl md:rounded-lg border-2 md:border border-gray-200 md:border-gray-300 transition-colors outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100">
                 </div>
             </div>
 
-            <div class="flex items-center gap-3 pt-2">
+            <div class="flex flex-col md:flex-row items-stretch md:items-center gap-3 pt-2">
                 <button type="submit"
-                        class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors">
-                    Create notification
+                        class="w-full md:w-auto h-12 md:h-auto px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-98 md:active:scale-100 text-white text-sm font-bold md:font-medium rounded-2xl md:rounded-lg transition-all shadow-lg shadow-indigo-500/30 md:shadow-none">
+                    Create
                 </button>
                 <a href="{{ route('notifications.index') }}"
-                   class="px-5 py-2.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
+                   class="w-full md:w-auto h-12 md:h-auto flex items-center justify-center px-5 py-2.5 text-sm font-bold md:font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 active:bg-gray-200 md:active:bg-gray-100 rounded-2xl md:rounded-lg transition-all active:scale-98 md:active:scale-100">
                     Cancel
                 </a>
             </div>

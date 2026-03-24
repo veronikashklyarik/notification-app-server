@@ -59,9 +59,9 @@
                                 {{ $entry->due_at?->copy()->setTimezone($userTimezone)->format('M j, Y') ?? '—' }}
                             </td>
                             <td class="px-6 py-4 text-gray-400 text-xs">
-                                @php $createdAt = $entry->created_at->copy()->setTimezone($userTimezone) @endphp
-                                <span title="{{ $createdAt->format('M j, Y H:i') }}">
-                                    {{ $createdAt->diffForHumans() }}
+                                @php $createdAt = $entry->created_at @endphp
+                                <span title="{{ $createdAt->copy()->setTimezone($userTimezone)->format('M j, Y H:i') }}">
+                                    {{ $createdAt->diffForHumans(parts: 2) }}
                                 </span>
                             </td>
                         </tr>

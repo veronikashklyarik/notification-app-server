@@ -1,7 +1,9 @@
 <?php
+
 namespace Deployer;
 
 require 'recipe/laravel.php';
+require 'contrib/crontab.php';
 
 // Config
 
@@ -12,6 +14,9 @@ set('keep_releases', 3);
 add('shared_files', ['.env']);
 add('shared_dirs', ['storage']);
 add('writable_dirs', []);
+add('crontab:jobs', [
+    '* * * * * cd {{current_path}} && {{bin/php}} artisan schedule:run >> /dev/null 2>&1',
+]);
 
 // Hosts
 

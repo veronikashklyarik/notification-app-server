@@ -4,8 +4,10 @@ namespace App\Models;
 
 use App\Enums\ScheduleType;
 use Database\Factories\NotificationFactory;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\MassPrunable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -30,7 +32,7 @@ use Illuminate\Support\Carbon;
 class Notification extends Model
 {
     /** @use HasFactory<NotificationFactory> */
-    use HasFactory, SoftDeletes;
+    use HasFactory, MassPrunable, SoftDeletes;
 
     /**
      * Get the attributes that should be cast.
@@ -47,7 +49,48 @@ class Notification extends Model
             'ends_at' => 'date',
             'next_due_at' => 'datetime',
             'is_active' => 'boolean',
+            'every_n_days' => 'integer',
+            'cyclical_value' => 'integer',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(function (Notification $notification) {
+            // Get timezone from the notification's user, fallback to authenticated user, then UTC
+            $userTimezone = $notification->user?->timezone
+                ?? auth()->user()?->timezone
+                ?? 'UTC';
+
+            $fields = ['starts_at', 'ends_at', 'times', 'schedule_type', 'week_days', 'is_active', 'every_n_days', 'cyclical_value', 'cyclical_unit'];
+
+            if ($notification->isDirty('starts_at') && $notification->starts_at) {
+                $notification->starts_at = Carbon::parse($notification->starts_at, $userTimezone)
+                    ->startOfDay()
+                    ->utc();
+            }
+
+            if ($notification->isDirty('ends_at') && $notification->ends_at) {
+                $notification->ends_at = Carbon::parse($notification->ends_at, $userTimezone)
+                    ->endOfDay()
+                    ->utc();
+            }
+
+            if ($notification->isDirty($fields)) {
+                $notification->next_due_at = $notification->calculateNextDueAt($userTimezone);
+            }
+        });
+
+        static::deleting(function (Notification $notification) {
+            if (method_exists($notification, 'isForceDeleting') && ! $notification->isForceDeleting()) {
+                $notification->history()->update(['notification_id' => null]);
+            }
+        });
+    }
+
+    public function prunable(): Builder
+    {
+        return self::onlyTrashed()->where('deleted_at', '<=', now()->subMonth());
     }
 
     /**
@@ -78,13 +121,13 @@ class Notification extends Model
         $schedule = match ($this->schedule_type) {
             ScheduleType::EveryDay => 'Every day',
             ScheduleType::WeekDays => $this->weekDaysLabel(),
-            ScheduleType::EveryNDays => 'Every ' . ($this->every_n_days ?? 1) . ' ' . (($this->every_n_days ?? 1) === 1 ? 'day' : 'days'),
-            ScheduleType::Cyclical => 'Every ' . ($this->cyclical_value ?? 1) . ' ' . ($this->cyclical_unit ?? 'weeks'),
+            ScheduleType::EveryNDays => 'Every '.($this->every_n_days ?? 1).' '.(($this->every_n_days ?? 1) === 1 ? 'day' : 'days'),
+            ScheduleType::Cyclical => 'Every '.($this->cyclical_value ?? 1).' '.($this->cyclical_unit ?? 'weeks'),
             ScheduleType::AsNeeded => 'As needed',
         };
 
         if ($this->schedule_type !== ScheduleType::AsNeeded && ! empty($this->times)) {
-            $schedule .= ' at ' . implode(', ', $this->times);
+            $schedule .= ' at '.implode(', ', $this->times);
         }
 
         return $schedule;
@@ -99,22 +142,27 @@ class Notification extends Model
             return null;
         }
 
+        $now = now($timezone);
+        $start = $this->starts_at->copy()->setTimezone($timezone)->startOfDay();
+
+        $base = $now->gt($start) ? $now : $start;
         $times = $this->getEffectiveTimes();
-        $base = ($this->next_due_at ?? now())->copy()->setTimezone($timezone);
 
-        // Try a later time slot on the same date
-        foreach ($times as $time) {
-            $candidate = $this->applyTime($base->copy(), $time);
+        // Check if today is a valid day for the schedule
+        if ($this->isValidScheduleDay($base)) {
+            // Try to find a time today that's in the future
+            foreach ($times as $time) {
+                $candidate = $this->applyTime($base->copy(), $time);
 
-            if ($candidate->gt($base)) {
-                return $this->checkEndsAt($candidate, $timezone)?->utc();
+                if ($candidate->gt($now)) {
+                    return $this->checkEndsAt($candidate, $timezone)?->utc();
+                }
             }
         }
 
-        // All time slots today are past — advance to the next eligible date
+        // Today is not valid or all times today are past — get next eligible date
         $nextDate = $this->getNextOccurrenceDate($base, $timezone);
-
-        if ($nextDate === null) {
+        if (! $nextDate) {
             return null;
         }
 
@@ -128,8 +176,26 @@ class Notification extends Model
      */
     public function advanceNextDueAt(string $timezone = 'UTC'): void
     {
-        $this->next_due_at = $this->calculateNextDueAt($timezone);
+        $nextAt = $this->calculateNextDueAt($timezone);
+        if ($nextAt === null) {
+            $this->is_active = false;
+        }
+        $this->next_due_at = $nextAt;
         $this->save();
+    }
+
+    /**
+     * Check if a given date is valid for this notification's schedule type.
+     */
+    private function isValidScheduleDay(Carbon $date): bool
+    {
+        return match ($this->schedule_type) {
+            ScheduleType::EveryDay => true,
+            ScheduleType::WeekDays => in_array($date->isoWeekday(), $this->week_days ?? []),
+            ScheduleType::EveryNDays => true, // Will be validated by getNextOccurrenceDate
+            ScheduleType::Cyclical => true, // Will be validated by getNextOccurrenceDate
+            ScheduleType::AsNeeded => false,
+        };
     }
 
     /**

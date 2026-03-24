@@ -48,13 +48,6 @@
             </div>
             <h3 class="text-xl font-bold text-gray-900 mb-2">No notifications yet</h3>
             <p class="text-sm text-gray-500 mb-6 max-w-xs mx-auto leading-relaxed">Create your first recurring notification to get started with reminders.</p>
-            <a href="{{ route('notifications.create') }}"
-               class="inline-flex items-center justify-center gap-2 w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-lg shadow-indigo-500/30 transition-all active:scale-95">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
-                Create notification
-            </a>
         </div>
 
         {{-- Desktop Empty State --}}
@@ -66,10 +59,6 @@
             </div>
             <h3 class="text-base font-semibold text-gray-900 mb-1">No notifications yet</h3>
             <p class="text-sm text-gray-500 mb-5">Create your first recurring notification to get started.</p>
-            <a href="{{ route('notifications.create') }}"
-               class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors">
-                Create notification
-            </a>
         </div>
     @else
         {{-- Mobile Card View --}}
@@ -78,29 +67,43 @@
                 <div class="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 relative slide-up"
                      style="animation-delay: {{ ($index + 2) * 0.1 }}s">
 
+                    {{-- Status Badge at Top --}}
+                    <div class="px-5 pt-4 pb-3">
+                        @if($notification->is_active)
+                            <div class="inline-flex items-center gap-2.5 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full shadow-lg shadow-green-500/30 relative overflow-hidden">
+                                {{-- Animated glow overlay --}}
+                                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
+                                <div class="relative flex items-center gap-2.5">
+                                    {{-- Pulsing dot --}}
+                                    <div class="relative flex items-center justify-center">
+                                        <span class="absolute w-2.5 h-2.5 bg-white rounded-full animate-ping opacity-75"></span>
+                                        <span class="relative w-2.5 h-2.5 bg-white rounded-full shadow-sm"></span>
+                                    </div>
+                                    <span class="text-xs font-bold text-white uppercase tracking-wider">Active</span>
+                                </div>
+                            </div>
+                        @else
+                            <div class="inline-flex items-center gap-2.5 px-4 py-2 bg-gray-100 rounded-full border border-gray-200">
+                                <span class="w-2.5 h-2.5 bg-gray-400 rounded-full"></span>
+                                <span class="text-xs font-bold text-gray-600 uppercase tracking-wider">Inactive</span>
+                            </div>
+                        @endif
+                    </div>
+
                     {{-- Card Content --}}
                     <a href="{{ route('notifications.show', $notification) }}"
-                       class="block p-5 active:bg-gray-50 transition-colors">
+                       class="block px-5 pb-5 active:bg-gray-50 transition-colors">
 
-                        {{-- Header with name and status --}}
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="flex-1 min-w-0 pr-3">
-                                <h3 class="font-bold text-gray-900 text-lg mb-1.5 leading-tight">
-                                    {{ $notification->name }}
-                                </h3>
-                                @if($notification->description)
-                                    <p class="text-gray-500 text-sm line-clamp-2 leading-relaxed">
-                                        {{ $notification->description }}
-                                    </p>
-                                @endif
-                            </div>
-                            <div class="flex-shrink-0 mt-0.5">
-                                @if($notification->is_active)
-                                    <div class="w-3 h-3 bg-green-500 rounded-full shadow-lg shadow-green-500/50 animate-pulse"></div>
-                                @else
-                                    <div class="w-3 h-3 bg-gray-300 rounded-full"></div>
-                                @endif
-                            </div>
+                        {{-- Header with name --}}
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-900 text-lg mb-1.5 leading-tight">
+                                {{ $notification->name }}
+                            </h3>
+                            @if($notification->description)
+                                <p class="text-gray-500 text-sm line-clamp-2 leading-relaxed">
+                                    {{ $notification->description }}
+                                </p>
+                            @endif
                         </div>
 
                         {{-- Info Grid --}}
@@ -118,7 +121,9 @@
 
                             {{-- Next Due --}}
                             @if($notification->next_due_at)
-                                @php $nextDue = $notification->next_due_at->copy()->setTimezone($userTimezone) @endphp
+                                @php
+                                    $nextDue = $notification->next_due_at;
+                                @endphp
                                 <div class="bg-gradient-to-br from-amber-50 to-amber-100/50 rounded-2xl p-3.5">
                                     <div class="flex items-center gap-2 mb-2">
                                         <svg class="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
@@ -126,8 +131,8 @@
                                         </svg>
                                         <span class="text-xs font-semibold text-amber-900/70 uppercase tracking-wider">Next</span>
                                     </div>
-                                    <p class="text-sm font-bold text-amber-900 leading-tight truncate" title="{{ $nextDue->format('M j, Y H:i') }}">
-                                        {{ $nextDue->diffForHumans() }}
+                                    <p class="text-sm font-bold text-amber-900 leading-tight truncate" title="{{ $nextDue->copy()->setTimezone($userTimezone)->format('M j, Y H:i') }}">
+                                        {{ $nextDue->diffForHumans(parts: 2) }}
                                     </p>
                                 </div>
                             @else
@@ -136,19 +141,6 @@
                                 </div>
                             @endif
                         </div>
-
-                        {{-- Status Badge --}}
-                        @if($notification->is_active)
-                            <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-green-50 rounded-full">
-                                <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
-                                <span class="text-xs font-bold text-green-700">Active</span>
-                            </div>
-                        @else
-                            <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-full">
-                                <span class="w-1.5 h-1.5 bg-gray-400 rounded-full"></span>
-                                <span class="text-xs font-bold text-gray-600">Inactive</span>
-                            </div>
-                        @endif
                     </a>
 
                     {{-- Action Buttons --}}
@@ -212,9 +204,11 @@
                             </td>
                             <td class="px-6 py-4 text-gray-500 hidden lg:table-cell">
                                 @if($notification->next_due_at)
-                                    @php $nextDue = $notification->next_due_at->copy()->setTimezone($userTimezone) @endphp
-                                    <span title="{{ $nextDue->format('M j, Y H:i') }}">
-                                        {{ $nextDue->diffForHumans() }}
+                                    @php
+                                        $nextDue = $notification->next_due_at;
+                                    @endphp
+                                    <span title="{{ $nextDue->copy()->setTimezone($userTimezone)->format('M j, Y H:i') }}">
+                                        {{ $nextDue->diffForHumans(parts: 2) }}
                                     </span>
                                 @else
                                     <span class="text-gray-300">—</span>

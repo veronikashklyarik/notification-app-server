@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('notification_history', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('notification_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('notification_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('action');
             $table->text('comment')->nullable();

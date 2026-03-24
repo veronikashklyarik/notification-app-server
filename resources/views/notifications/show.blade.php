@@ -78,9 +78,11 @@
         <div class="bg-white rounded-xl border border-gray-200 p-4">
             <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Next due</p>
             @if($notification->next_due_at)
-                @php $nextDue = $notification->next_due_at->copy()->setTimezone($userTimezone) @endphp
-                <p class="text-sm font-medium text-gray-900">{{ $nextDue->format('M j, Y') }}</p>
-                <p class="text-xs text-gray-400 mt-0.5">{{ $nextDue->format('H:i') }} · {{ $nextDue->diffForHumans() }}</p>
+                @php
+                    $nextDue = $notification->next_due_at;
+                @endphp
+                <p class="text-sm font-medium text-gray-900">{{ $nextDue->copy()->setTimezone($userTimezone)->format('M j, Y') }}</p>
+                <p class="text-xs text-gray-400 mt-0.5">{{ $nextDue->copy()->setTimezone($userTimezone)->format('H:i') }} · {{ $nextDue->diffForHumans(parts: 2) }}</p>
             @else
                 <p class="text-sm text-gray-400">—</p>
             @endif

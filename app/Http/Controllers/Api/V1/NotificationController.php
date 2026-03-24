@@ -13,7 +13,6 @@ use App\Models\NotificationHistory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Carbon;
 
 class NotificationController extends Controller
 {
@@ -24,7 +23,6 @@ class NotificationController extends Controller
     {
         $notifications = $request->user()
             ->reminders()
-//            ->when($request->boolean('active_only', false), fn ($query) => $query->where('is_active', true))
             ->latest()
             ->paginate(15);
 
@@ -37,25 +35,10 @@ class NotificationController extends Controller
     public function store(StoreNotificationRequest $request): JsonResponse
     {
         $data = $request->validated();
-        $userTimezone = $request->user()->timezone ?? 'UTC';
         $data['user_id'] = $request->user()->id;
 
-        $startsAt = isset($data['starts_at'])
-            ? Carbon::parse($data['starts_at'], $userTimezone)->startOfDay()
-            : now($userTimezone)->startOfDay();
-
-        $data['starts_at'] = $startsAt->toDateString();
-
-        if (isset($data['ends_at'])) {
-            $data['ends_at'] = Carbon::parse($data['ends_at'])->toDateString();
-        }
-
-        // Set next_due_at to the start date at the first scheduled time
-        $times = ! empty($data['times']) ? $data['times'] : ['09:00'];
-        sort($times);
-        [$h, $m] = explode(':', $times[0]);
-        $data['next_due_at'] = $startsAt->copy()->setTime((int) $h, (int) $m, 0)->utc();
-
+        // Dates will be converted to UTC in the model's booted() method
+        // next_due_at will be calculated automatically in the model's booted() method
         $notification = Notification::query()->create($data);
 
         return response()->json(new NotificationResource($notification), 201);
@@ -76,17 +59,8 @@ class NotificationController extends Controller
      */
     public function update(UpdateNotificationRequest $request, Notification $notification): JsonResponse
     {
-        $data = $request->validated();
-
-        if (isset($data['starts_at'])) {
-            $data['starts_at'] = Carbon::parse($data['starts_at'])->toDateString();
-        }
-
-        if (isset($data['ends_at'])) {
-            $data['ends_at'] = Carbon::parse($data['ends_at'])->toDateString();
-        }
-
-        $notification->update($data);
+        // Dates converted to UTC and next_due_at recalculated automatically in model's booted() method
+        $notification->update($request->validated());
 
         return response()->json(new NotificationResource($notification));
     }
