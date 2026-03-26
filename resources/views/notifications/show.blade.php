@@ -99,21 +99,9 @@
                 </p>
                 @php
                     $startsAt = $notification->starts_at ?? $notification->created_at->startOfDay();
-                    $totalYears = $startsAt->diffInYears($endsAt);
-                    $totalMonths = $startsAt->diffInMonths($endsAt);
-                    $totalWeeks = $startsAt->diffInWeeks($endsAt);
-                    $totalDays = $startsAt->diffInDays($endsAt) + 1;
+                    $totalDays = (int)$startsAt->diffInDays($endsAt) + 1;
 
-                    if ($totalYears >= 1) {
-                        $years = round($totalDays / 365.25, 1);
-                        $durationLabel = $years . ' ' . ($years == 1 ? 'year' : 'years');
-                    } elseif ($totalMonths >= 1) {
-                        $durationLabel = $totalMonths . ' ' . ($totalMonths == 1 ? 'month' : 'months');
-                    } elseif ($totalWeeks >= 1) {
-                        $durationLabel = $totalWeeks . ' ' . ($totalWeeks == 1 ? 'week' : 'weeks');
-                    } else {
-                        $durationLabel = $totalDays . ' ' . ($totalDays === 1 ? 'day' : 'days');
-                    }
+                    $durationLabel = $totalDays . ' ' . ($totalDays === 1 ? 'day' : 'days');
                 @endphp
                 <p class="text-xs text-gray-400 mt-0.5">{{ $durationLabel }} total</p>
             </div>
