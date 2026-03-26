@@ -38,8 +38,14 @@ task('npm:build', function () {
     run('cd {{release_path}} && npm ci && npm run build');
 });
 
+desc('Restart PHP-FPM to clear OPcache');
+task('php:fpm:restart', function () {
+    run('sudo systemctl restart php8.4-fpm');
+});
+
 // Hooks
 
 after('artisan:migrate', 'npm:build');
 after('deploy:failed', 'deploy:unlock');
 after('deploy:success', 'crontab:sync');
+after('deploy:success', 'php:fpm:restart');
