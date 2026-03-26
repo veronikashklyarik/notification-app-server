@@ -99,13 +99,18 @@
                 </p>
                 @php
                     $startsAt = $notification->starts_at ?? $notification->created_at->startOfDay();
-                    $totalDays = (int) $startsAt->diffInDays($endsAt) + 1;
-                    if ($totalDays >= 365) {
-                        $durationLabel = round($totalDays / 365, 1) . ' ' . (round($totalDays / 365, 1) == 1 ? 'year' : 'years');
-                    } elseif ($totalDays >= 30) {
-                        $durationLabel = round($totalDays / 30) . ' ' . (round($totalDays / 30) == 1 ? 'month' : 'months');
-                    } elseif ($totalDays >= 7) {
-                        $durationLabel = round($totalDays / 7) . ' ' . (round($totalDays / 7) == 1 ? 'week' : 'weeks');
+                    $totalYears = $startsAt->diffInYears($endsAt);
+                    $totalMonths = $startsAt->diffInMonths($endsAt);
+                    $totalWeeks = $startsAt->diffInWeeks($endsAt);
+                    $totalDays = $startsAt->diffInDays($endsAt) + 1;
+
+                    if ($totalYears >= 1) {
+                        $years = round($totalDays / 365.25, 1);
+                        $durationLabel = $years . ' ' . ($years == 1 ? 'year' : 'years');
+                    } elseif ($totalMonths >= 1) {
+                        $durationLabel = $totalMonths . ' ' . ($totalMonths == 1 ? 'month' : 'months');
+                    } elseif ($totalWeeks >= 1) {
+                        $durationLabel = $totalWeeks . ' ' . ($totalWeeks == 1 ? 'week' : 'weeks');
                     } else {
                         $durationLabel = $totalDays . ' ' . ($totalDays === 1 ? 'day' : 'days');
                     }

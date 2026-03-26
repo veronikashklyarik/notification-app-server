@@ -128,6 +128,7 @@ class Notification extends Model
     {
         return $this->events()
             ->where('status', EventStatus::Pending)
+            ->where('scheduled_at', '>', now())
             ->orderBy('scheduled_at')
             ->first();
     }

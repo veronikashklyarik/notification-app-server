@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('notification_events', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignId('notification_id')->nullable()->nullOnDelete();
+            $table->foreignId('notification_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->timestamp('scheduled_at');
             $table->string('status')->default('pending');
