@@ -2,18 +2,18 @@
 
 namespace App\Http\Requests\Api\V1;
 
-use App\Enums\HistoryAction;
+use App\Enums\EventStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class RecordNotificationActionRequest extends FormRequest
+class UpdateEventRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return $this->user()->id === $this->route('notification')->user_id;
+        return $this->user()->id === $this->route('event')->user_id;
     }
 
     /**
@@ -24,9 +24,9 @@ class RecordNotificationActionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'action' => ['required', Rule::enum(HistoryAction::class)],
+            'status' => ['required', Rule::enum(EventStatus::class), Rule::notIn([EventStatus::Pending->value])],
             'comment' => ['nullable', 'string', 'max:1000'],
-            'postponed_until' => ['nullable', 'required_if:action,Postponed', 'date', 'after:now'],
+            'postponed_until' => ['nullable', 'required_if:status,postponed', 'date', 'after:now'],
         ];
     }
 }

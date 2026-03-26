@@ -3,7 +3,7 @@
 use App\Http\Controllers\Api\V1\Auth\LoginController;
 use App\Http\Controllers\Api\V1\Auth\LogoutController;
 use App\Http\Controllers\Api\V1\Auth\RegisterController;
-use App\Http\Controllers\Api\V1\HistoryController;
+use App\Http\Controllers\Api\V1\EventController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -29,9 +29,10 @@ Route::prefix('v1')->group(function (): void {
             'destroy' => 'api.v1.notifications.destroy',
         ]);
 
-        Route::post('notifications/{notification}/actions', [NotificationController::class, 'recordAction'])
-            ->name('api.v1.notifications.actions');
+        Route::get('notifications/{notification}/events', [NotificationController::class, 'events'])
+            ->name('api.v1.notifications.events');
 
-        Route::get('history', [HistoryController::class, 'index'])->name('api.v1.history.index');
+        Route::get('events', [EventController::class, 'index'])->name('api.v1.events.index');
+        Route::patch('events/{event}', [EventController::class, 'update'])->name('api.v1.events.update');
     });
 });

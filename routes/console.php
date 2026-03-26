@@ -12,3 +12,5 @@ Artisan::command('inspire', function () {
 Schedule::command('model:prune', [
     '--model' => [Notification::class],
 ])->monthly();
+
+Schedule::command('app:maintain-notification-events')->daily();

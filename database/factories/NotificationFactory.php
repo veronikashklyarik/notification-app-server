@@ -33,7 +33,6 @@ class NotificationFactory extends Factory
             'times' => $scheduleType !== ScheduleType::AsNeeded ? ['09:00'] : null,
             'starts_at' => now(),
             'ends_at' => null,
-            'next_due_at' => $this->faker->dateTimeBetween('now', '+30 days'),
             'is_active' => true,
         ];
     }

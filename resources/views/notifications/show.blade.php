@@ -74,15 +74,13 @@
             @endif
         </div>
 
-        {{-- Next due --}}
+        {{-- Next event --}}
         <div class="bg-white rounded-xl border border-gray-200 p-4">
-            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Next due</p>
-            @if($notification->next_due_at)
-                @php
-                    $nextDue = $notification->next_due_at;
-                @endphp
-                <p class="text-sm font-medium text-gray-900">{{ $nextDue->copy()->setTimezone($userTimezone)->format('M j, Y') }}</p>
-                <p class="text-xs text-gray-400 mt-0.5">{{ $nextDue->copy()->setTimezone($userTimezone)->format('H:i') }} · {{ $nextDue->diffForHumans(parts: 2) }}</p>
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Next event</p>
+            @php $nextEvent = $notification->next_event; @endphp
+            @if($nextEvent)
+                <p class="text-sm font-medium text-gray-900">{{ $nextEvent->scheduled_at->copy()->setTimezone($userTimezone)->format('M j, Y') }}</p>
+                <p class="text-xs text-gray-400 mt-0.5">{{ $nextEvent->scheduled_at->copy()->setTimezone($userTimezone)->format('H:i') }} · {{ $nextEvent->scheduled_at->diffForHumans(parts: 2) }}</p>
             @else
                 <p class="text-sm text-gray-400">—</p>
             @endif
@@ -123,44 +121,39 @@
         @endif
     </div>
 
-    {{-- History --}}
-    <div>
-        <h2 class="text-base font-semibold text-gray-900 mb-4">Action history</h2>
+    {{-- Upcoming Events --}}
+    <div class="mb-8">
+        <h2 class="text-base font-semibold text-gray-900 mb-4">Upcoming events</h2>
 
-        @if($history->isEmpty())
+        @if($pendingEvents->isEmpty())
             <div class="bg-white rounded-2xl border border-gray-200 p-10 text-center">
-                <p class="text-sm text-gray-400">No actions recorded yet.</p>
-                <p class="text-xs text-gray-300 mt-1">Actions taken from the mobile app will appear here.</p>
+                <p class="text-sm text-gray-400">No upcoming events.</p>
+                <p class="text-xs text-gray-300 mt-1">Events are generated automatically based on the schedule.</p>
             </div>
         @else
             <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b border-gray-100">
-                            <th class="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Action</th>
-                            <th class="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">Comment</th>
-                            <th class="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">Due</th>
-                            <th class="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
+                            <th class="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Scheduled</th>
+                            <th class="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">Time</th>
+                            <th class="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-50">
-                        @foreach($history as $entry)
+                        @foreach($pendingEvents as $event)
                             <tr>
+                                <td class="px-6 py-4 text-gray-900">
+                                    {{ $event->scheduled_at->copy()->setTimezone($userTimezone)->format('M j, Y') }}
+                                    <p class="text-xs text-gray-400 mt-0.5">{{ $event->scheduled_at->diffForHumans(parts: 2) }}</p>
+                                </td>
+                                <td class="px-6 py-4 text-gray-500 hidden md:table-cell">
+                                    {{ $event->scheduled_at->copy()->setTimezone($userTimezone)->format('H:i') }}
+                                </td>
                                 <td class="px-6 py-4">
-                                    @php $colors = ['Done' => 'green', 'Cancelled' => 'gray', 'Postponed' => 'yellow']; $c = $colors[$entry->action->value] ?? 'gray'; @endphp
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-{{ $c }}-50 text-{{ $c }}-700">
-                                        {{ $entry->action->value }}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+                                        Pending
                                     </span>
-                                    @if($entry->postponed_until)
-                                        <p class="text-xs text-gray-400 mt-0.5">Until {{ $entry->postponed_until->copy()->setTimezone($userTimezone)->format('M j, Y') }}</p>
-                                    @endif
-                                </td>
-                                <td class="px-6 py-4 text-gray-500 hidden md:table-cell">{{ $entry->comment ?? '—' }}</td>
-                                <td class="px-6 py-4 text-gray-500 hidden lg:table-cell">
-                                    {{ $entry->due_at?->copy()->setTimezone($userTimezone)->format('M j, Y H:i') ?? '—' }}
-                                </td>
-                                <td class="px-6 py-4 text-gray-500">
-                                    {{ $entry->created_at->copy()->setTimezone($userTimezone)->format('M j, Y') }}
                                 </td>
                             </tr>
                         @endforeach
@@ -168,8 +161,66 @@
                 </table>
             </div>
 
-            @if($history->hasPages())
-                <div class="mt-4">{{ $history->links() }}</div>
+            @if($pendingEvents->hasPages())
+                <div class="mt-4">{{ $pendingEvents->links() }}</div>
+            @endif
+        @endif
+    </div>
+
+    {{-- Processed Events --}}
+    <div>
+        <h2 class="text-base font-semibold text-gray-900 mb-4">Event history</h2>
+
+        @if($processedEvents->isEmpty())
+            <div class="bg-white rounded-2xl border border-gray-200 p-10 text-center">
+                <p class="text-sm text-gray-400">No processed events yet.</p>
+                <p class="text-xs text-gray-300 mt-1">Completed, cancelled, or postponed events will appear here.</p>
+            </div>
+        @else
+            <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-gray-100">
+                            <th class="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">Comment</th>
+                            <th class="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">Scheduled</th>
+                            <th class="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Completed</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        @foreach($processedEvents as $event)
+                            <tr>
+                                <td class="px-6 py-4">
+                                    @php
+                                        $colorMap = [
+                                            'done' => ['bg' => 'bg-green-50', 'text' => 'text-green-700'],
+                                            'cancelled' => ['bg' => 'bg-gray-100', 'text' => 'text-gray-600'],
+                                            'postponed' => ['bg' => 'bg-yellow-50', 'text' => 'text-yellow-700'],
+                                        ];
+                                        $colors = $colorMap[$event->status->value] ?? ['bg' => 'bg-gray-100', 'text' => 'text-gray-600'];
+                                    @endphp
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $colors['bg'] }} {{ $colors['text'] }}">
+                                        {{ $event->status->label() }}
+                                    </span>
+                                    @if($event->postponed_until)
+                                        <p class="text-xs text-gray-400 mt-0.5">Until {{ $event->postponed_until->copy()->setTimezone($userTimezone)->format('M j, Y H:i') }}</p>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4 text-gray-500 hidden md:table-cell">{{ $event->comment ?? '—' }}</td>
+                                <td class="px-6 py-4 text-gray-500 hidden lg:table-cell">
+                                    {{ $event->scheduled_at->copy()->setTimezone($userTimezone)->format('M j, Y H:i') }}
+                                </td>
+                                <td class="px-6 py-4 text-gray-500">
+                                    {{ $event->completed_at?->copy()->setTimezone($userTimezone)->format('M j, Y') ?? '—' }}
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            @if($processedEvents->hasPages())
+                <div class="mt-4">{{ $processedEvents->links() }}</div>
             @endif
         @endif
     </div>

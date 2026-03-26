@@ -5,7 +5,7 @@ namespace App\Http\Resources\Api\V1;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class NotificationHistoryResource extends JsonResource
+class NotificationEventResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -21,11 +21,14 @@ class NotificationHistoryResource extends JsonResource
                 'id' => $this->notification->id,
                 'name' => $this->notification->name,
             ]),
-            'action' => $this->action->value,
+            'scheduled_at' => $this->scheduled_at?->toIso8601String(),
+            'status' => $this->status->value,
+            'postponed_until' => $this->postponed_until?->toIso8601String(),
+            'postpone_history' => $this->postpone_history,
             'comment' => $this->comment,
-            'postponed_until' => $this->postponed_until,
-            'due_at' => $this->due_at,
+            'completed_at' => $this->completed_at?->toIso8601String(),
             'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ];
     }
 }
