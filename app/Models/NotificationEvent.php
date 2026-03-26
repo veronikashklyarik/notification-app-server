@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
-use App\Enums\HistoryAction;
-use Database\Factories\NotificationHistoryFactory;
+use App\Enums\EventStatus;
+use Database\Factories\NotificationEventFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,17 +13,17 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable([
     'notification_id',
     'user_id',
-    'action',
-    'comment',
+    'scheduled_at',
+    'status',
     'postponed_until',
-    'due_at',
+    'postpone_history',
+    'comment',
+    'completed_at',
 ])]
-class NotificationHistory extends Model
+class NotificationEvent extends Model
 {
-    /** @use HasFactory<NotificationHistoryFactory> */
-    use HasFactory;
-
-    protected $table = 'notification_history';
+    /** @use HasFactory<NotificationEventFactory> */
+    use HasFactory, HasUuids;
 
     /**
      * Get the attributes that should be cast.
@@ -32,14 +33,16 @@ class NotificationHistory extends Model
     protected function casts(): array
     {
         return [
-            'action' => HistoryAction::class,
+            'status' => EventStatus::class,
+            'scheduled_at' => 'datetime',
             'postponed_until' => 'datetime',
-            'due_at' => 'datetime',
+            'postpone_history' => 'array',
+            'completed_at' => 'datetime',
         ];
     }
 
     /**
-     * Get the notification this history entry belongs to.
+     * Get the notification this event belongs to.
      *
      * @return BelongsTo<Notification, $this>
      */
@@ -49,7 +52,7 @@ class NotificationHistory extends Model
     }
 
     /**
-     * Get the user this history entry belongs to.
+     * Get the user this event belongs to.
      *
      * @return BelongsTo<User, $this>
      */

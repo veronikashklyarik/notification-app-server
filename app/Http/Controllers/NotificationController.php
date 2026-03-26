@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\EventStatus;
 use App\Http\Requests\StoreNotificationRequest;
 use App\Http\Requests\UpdateNotificationRequest;
 use App\Models\Notification;
@@ -39,7 +40,6 @@ class NotificationController extends Controller
         $data = $request->validated();
         $data['user_id'] = auth()->id();
 
-        // Create the notification (next_due_at calculated automatically in model's booted() method)
         Notification::query()->create($data);
 
         return redirect()->route('notifications.index')
@@ -53,11 +53,17 @@ class NotificationController extends Controller
     {
         $this->authorizeNotification($notification);
 
-        $history = $notification->history()
-            ->latest()
-            ->paginate(10);
+        $pendingEvents = $notification->events()
+            ->where('status', EventStatus::Pending)
+            ->orderBy('scheduled_at')
+            ->paginate(10, ['*'], 'pending_page');
 
-        return view('notifications.show', compact('notification', 'history'));
+        $processedEvents = $notification->events()
+            ->where('status', '!=', EventStatus::Pending)
+            ->orderByDesc('completed_at')
+            ->paginate(10, ['*'], 'processed_page');
+
+        return view('notifications.show', compact('notification', 'pendingEvents', 'processedEvents'));
     }
 
     /**
@@ -77,7 +83,6 @@ class NotificationController extends Controller
     {
         $this->authorizeNotification($notification);
 
-        // Update notification (next_due_at recalculated automatically in model's booted() method)
         $notification->update($request->validated());
 
         return redirect()->route('notifications.show', $notification)

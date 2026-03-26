@@ -3,13 +3,11 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\V1\RecordNotificationActionRequest;
 use App\Http\Requests\Api\V1\StoreNotificationRequest;
 use App\Http\Requests\Api\V1\UpdateNotificationRequest;
-use App\Http\Resources\Api\V1\NotificationHistoryResource;
+use App\Http\Resources\Api\V1\NotificationEventResource;
 use App\Http\Resources\Api\V1\NotificationResource;
 use App\Models\Notification;
-use App\Models\NotificationHistory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -37,8 +35,6 @@ class NotificationController extends Controller
         $data = $request->validated();
         $data['user_id'] = $request->user()->id;
 
-        // Dates will be converted to UTC in the model's booted() method
-        // next_due_at will be calculated automatically in the model's booted() method
         $notification = Notification::query()->create($data);
 
         return response()->json(new NotificationResource($notification), 201);
@@ -59,7 +55,6 @@ class NotificationController extends Controller
      */
     public function update(UpdateNotificationRequest $request, Notification $notification): JsonResponse
     {
-        // Dates converted to UTC and next_due_at recalculated automatically in model's booted() method
         $notification->update($request->validated());
 
         return response()->json(new NotificationResource($notification));
@@ -78,30 +73,20 @@ class NotificationController extends Controller
     }
 
     /**
-     * Record an action (done, cancel, postpone) on the notification.
+     * List events for a specific notification.
      */
-    public function recordAction(RecordNotificationActionRequest $request, Notification $notification): JsonResponse
+    public function events(Request $request, Notification $notification): AnonymousResourceCollection
     {
-        $data = $request->validated();
+        abort_if($request->user()->id !== $notification->user_id, 403);
 
-        $historyEntry = NotificationHistory::query()->create([
-            'notification_id' => $notification->id,
-            'user_id' => $request->user()->id,
-            'action' => $data['action'],
-            'comment' => $data['comment'] ?? null,
-            'postponed_until' => $data['postponed_until'] ?? null,
-            'due_at' => $notification->next_due_at,
-        ]);
+        $events = $notification->events()
+            ->when(
+                $request->filled('status'),
+                fn ($query) => $query->where('status', $request->string('status'))
+            )
+            ->orderBy('scheduled_at')
+            ->paginate(20);
 
-        $userTimezone = $request->user()->timezone ?? 'UTC';
-
-        if (isset($data['postponed_until'])) {
-            $notification->next_due_at = Carbon::parse($data['postponed_until']);
-            $notification->save();
-        } else {
-            $notification->advanceNextDueAt($userTimezone);
-        }
-
-        return response()->json(new NotificationHistoryResource($historyEntry->load('notification')), 201);
+        return NotificationEventResource::collection($events);
     }
 }

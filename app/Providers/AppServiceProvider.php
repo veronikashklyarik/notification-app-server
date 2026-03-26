@@ -2,10 +2,12 @@
 
 namespace App\Providers;
 
+use App\Models\NotificationEvent;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\SecurityScheme;
-use Illuminate\Routing\Route;
+use Illuminate\Routing\Route as RoutingRoute;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -27,6 +29,8 @@ class AppServiceProvider extends ServiceProvider
     {
         Password::defaults(fn () => Password::min(8)->letters()->numbers());
 
+        Route::model('event', NotificationEvent::class);
+
         if ($this->app->environment('production')) {
             URL::forceScheme('https');
         }
@@ -36,6 +40,6 @@ class AppServiceProvider extends ServiceProvider
                 $openApi->info->title = 'Notifyr API';
                 $openApi->secure(SecurityScheme::http('bearer'));
             })
-            ->routes(fn (Route $route) => str_starts_with($route->uri, 'api/v1'));
+            ->routes(fn (RoutingRoute $route) => str_starts_with($route->uri, 'api/v1'));
     }
 }
