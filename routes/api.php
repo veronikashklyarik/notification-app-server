@@ -6,9 +6,13 @@ use App\Http\Controllers\Api\V1\Auth\RegisterController;
 use App\Http\Controllers\Api\V1\EventController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\ProfileController;
+use App\Http\Controllers\Api\V1\VersionController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function (): void {
+    // Version check (public endpoint)
+    Route::get('version/check', [VersionController::class, 'check'])->name('api.v1.version.check');
+
     Route::prefix('auth')->group(function (): void {
         Route::post('register', [RegisterController::class, 'store'])->name('api.v1.auth.register');
         Route::post('login', [LoginController::class, 'store'])->name('api.v1.auth.login');
