@@ -13,10 +13,10 @@ class RegisterController extends Controller
     /**
      * Register
      *
-     * Creates a new user account and returns a Sanctum API token scoped to the given device name.
+     * Creates a new user account and returns a Sanctum API token pair scoped to the given device name.
      *
-     * New accounts have no active Remember Me session, so the token always expires in **1 day**.
-     * Log in via the login endpoint after establishing a web session with Remember Me to receive a longer-lived token.
+     * Returns an **access token** (short-lived, for regular API requests) and a **refresh token**
+     * (longer-lived, can only be used to obtain a new token pair via the refresh endpoint).
      *
      * @unauthenticated
      */
@@ -24,12 +24,22 @@ class RegisterController extends Controller
     {
         $user = User::query()->create($request->safe()->except('device_name'));
 
-        $expiresAt = $user->remember_token ? now()->addYear() : now()->addDay();
-        $token = $user->createToken($request->device_name, ['*'], $expiresAt)->plainTextToken;
+        $accessToken = $user->createToken(
+            $request->device_name,
+            ['*'],
+            now()->addMinutes(config('auth.api_tokens.access_expiration_minutes')),
+        )->plainTextToken;
+
+        $refreshToken = $user->createToken(
+            $request->device_name.'-refresh',
+            ['refresh'],
+            now()->addMinutes(config('auth.api_tokens.refresh_expiration_minutes')),
+        )->plainTextToken;
 
         return response()->json([
             'user' => new UserResource($user),
-            'token' => $token,
+            'token' => $accessToken,
+            'refresh_token' => $refreshToken,
         ], 201);
     }
 }

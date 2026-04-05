@@ -114,4 +114,21 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    /*
+    |--------------------------------------------------------------------------
+    | API Token Expiration
+    |--------------------------------------------------------------------------
+    |
+    | These values define the lifetime (in minutes) for API access tokens and
+    | refresh tokens issued by Sanctum. Access tokens are short-lived and used
+    | for regular API requests. Refresh tokens are longer-lived and can only
+    | be used to obtain a new token pair.
+    |
+    */
+
+    'api_tokens' => [
+        'access_expiration_minutes' => env('API_ACCESS_TOKEN_EXPIRATION', 43200), // 30 days
+        'refresh_expiration_minutes' => env('API_REFRESH_TOKEN_EXPIRATION', 525600), // 1 year
+    ],
+
 ];

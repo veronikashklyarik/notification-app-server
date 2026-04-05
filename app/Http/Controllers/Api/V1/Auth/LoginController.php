@@ -15,11 +15,10 @@ class LoginController extends Controller
     /**
      * Login
      *
-     * Authenticates the user and returns a Sanctum API token scoped to the given device name.
+     * Authenticates the user and returns a Sanctum API token pair scoped to the given device name.
      *
-     * **Token expiry** is determined by the user's "Remember Me" web session:
-     * - If the user has an active Remember Me session (`remember_token` is set) — the token expires in **1 year**.
-     * - Otherwise — the token expires in **1 day**.
+     * Returns an **access token** (short-lived, for regular API requests) and a **refresh token**
+     * (longer-lived, can only be used to obtain a new token pair via the refresh endpoint).
      *
      * @unauthenticated
      */
@@ -35,12 +34,22 @@ class LoginController extends Controller
             ]);
         }
 
-        $expiresAt = $user->remember_token ? now()->addYear() : now()->addDay();
-        $token = $user->createToken($request->device_name, ['*'], $expiresAt)->plainTextToken;
+        $accessToken = $user->createToken(
+            $request->device_name,
+            ['*'],
+            now()->addMinutes(config('auth.api_tokens.access_expiration_minutes')),
+        )->plainTextToken;
+
+        $refreshToken = $user->createToken(
+            $request->device_name.'-refresh',
+            ['refresh'],
+            now()->addMinutes(config('auth.api_tokens.refresh_expiration_minutes')),
+        )->plainTextToken;
 
         return response()->json([
             'user' => new UserResource($user),
-            'token' => $token,
+            'token' => $accessToken,
+            'refresh_token' => $refreshToken,
         ]);
     }
 }
