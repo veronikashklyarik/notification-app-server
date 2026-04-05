@@ -27,7 +27,6 @@ class NotificationResource extends JsonResource
             'frequency_label' => $this->frequency_label,
             'starts_at' => $this->starts_at?->toDateString(),
             'ends_at' => $this->ends_at?->toDateString(),
-            'next_due_at' => $this->next_due_at?->toIso8601String(),
             'is_active' => $this->is_active,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

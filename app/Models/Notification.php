@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Enums\EventStatus;
 use App\Enums\ScheduleType;
+use App\Services\NotificationEventService;
 use Database\Factories\NotificationFactory;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -26,13 +28,19 @@ use Illuminate\Support\Carbon;
     'times',
     'starts_at',
     'ends_at',
-    'next_due_at',
     'is_active',
 ])]
 class Notification extends Model
 {
     /** @use HasFactory<NotificationFactory> */
     use HasFactory, MassPrunable, SoftDeletes;
+
+    /**
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'is_active' => true,
+    ];
 
     /**
      * Get the attributes that should be cast.
@@ -47,7 +55,6 @@ class Notification extends Model
             'times' => 'array',
             'starts_at' => 'date',
             'ends_at' => 'date',
-            'next_due_at' => 'datetime',
             'is_active' => 'boolean',
             'every_n_days' => 'integer',
             'cyclical_value' => 'integer',
@@ -57,12 +64,9 @@ class Notification extends Model
     protected static function booted(): void
     {
         static::saving(function (Notification $notification) {
-            // Get timezone from the notification's user, fallback to authenticated user, then UTC
             $userTimezone = $notification->user?->timezone
                 ?? auth()->user()?->timezone
                 ?? 'UTC';
-
-            $fields = ['starts_at', 'ends_at', 'times', 'schedule_type', 'week_days', 'is_active', 'every_n_days', 'cyclical_value', 'cyclical_unit'];
 
             if ($notification->isDirty('starts_at') && $notification->starts_at) {
                 $notification->starts_at = Carbon::parse($notification->starts_at, $userTimezone)
@@ -75,15 +79,19 @@ class Notification extends Model
                     ->endOfDay()
                     ->utc();
             }
+        });
 
-            if ($notification->isDirty($fields)) {
-                $notification->next_due_at = $notification->calculateNextDueAt($userTimezone);
+        static::saved(function (Notification $notification) {
+            $scheduleFields = ['starts_at', 'ends_at', 'times', 'schedule_type', 'week_days', 'is_active', 'every_n_days', 'cyclical_value', 'cyclical_unit'];
+
+            if ($notification->wasChanged($scheduleFields) || $notification->wasRecentlyCreated) {
+                app(NotificationEventService::class)->regenerateEvents($notification);
             }
         });
 
         static::deleting(function (Notification $notification) {
             if (method_exists($notification, 'isForceDeleting') && ! $notification->isForceDeleting()) {
-                $notification->history()->update(['notification_id' => null]);
+                $notification->events()->update(['notification_id' => null]);
             }
         });
     }
@@ -104,13 +112,25 @@ class Notification extends Model
     }
 
     /**
-     * Get the history entries for this notification.
+     * Get the events for this notification.
      *
-     * @return HasMany<NotificationHistory, $this>
+     * @return HasMany<NotificationEvent, $this>
      */
-    public function history(): HasMany
+    public function events(): HasMany
     {
-        return $this->hasMany(NotificationHistory::class);
+        return $this->hasMany(NotificationEvent::class);
+    }
+
+    /**
+     * Get the next pending event for this notification.
+     */
+    public function getNextEventAttribute(): ?NotificationEvent
+    {
+        return $this->events()
+            ->where('status', EventStatus::Pending)
+            ->where('scheduled_at', '>', now())
+            ->orderBy('scheduled_at')
+            ->first();
     }
 
     /**
@@ -134,71 +154,6 @@ class Notification extends Model
     }
 
     /**
-     * Calculate the next due date after the current one, respecting times and ends_at.
-     */
-    public function calculateNextDueAt(string $timezone = 'UTC'): ?Carbon
-    {
-        if ($this->schedule_type === ScheduleType::AsNeeded) {
-            return null;
-        }
-
-        $now = now($timezone);
-        $start = $this->starts_at->copy()->setTimezone($timezone)->startOfDay();
-
-        $base = $now->gt($start) ? $now : $start;
-        $times = $this->getEffectiveTimes();
-
-        // Check if today is a valid day for the schedule
-        if ($this->isValidScheduleDay($base)) {
-            // Try to find a time today that's in the future
-            foreach ($times as $time) {
-                $candidate = $this->applyTime($base->copy(), $time);
-
-                if ($candidate->gt($now)) {
-                    return $this->checkEndsAt($candidate, $timezone)?->utc();
-                }
-            }
-        }
-
-        // Today is not valid or all times today are past — get next eligible date
-        $nextDate = $this->getNextOccurrenceDate($base, $timezone);
-        if (! $nextDate) {
-            return null;
-        }
-
-        $result = $this->applyTime($nextDate, $times[0]);
-
-        return $this->checkEndsAt($result, $timezone)?->utc();
-    }
-
-    /**
-     * Advance next_due_at to the next occurrence and persist.
-     */
-    public function advanceNextDueAt(string $timezone = 'UTC'): void
-    {
-        $nextAt = $this->calculateNextDueAt($timezone);
-        if ($nextAt === null) {
-            $this->is_active = false;
-        }
-        $this->next_due_at = $nextAt;
-        $this->save();
-    }
-
-    /**
-     * Check if a given date is valid for this notification's schedule type.
-     */
-    private function isValidScheduleDay(Carbon $date): bool
-    {
-        return match ($this->schedule_type) {
-            ScheduleType::EveryDay => true,
-            ScheduleType::WeekDays => in_array($date->isoWeekday(), $this->week_days ?? []),
-            ScheduleType::EveryNDays => true, // Will be validated by getNextOccurrenceDate
-            ScheduleType::Cyclical => true, // Will be validated by getNextOccurrenceDate
-            ScheduleType::AsNeeded => false,
-        };
-    }
-
-    /**
      * Build a label for the selected week days.
      */
     private function weekDaysLabel(): string
@@ -214,93 +169,5 @@ class Notification extends Model
         sort($sorted);
 
         return implode(', ', array_map(fn ($d) => $names[$d] ?? $d, $sorted));
-    }
-
-    /**
-     * Get the next eligible calendar date after $base for the current schedule type.
-     */
-    private function getNextOccurrenceDate(Carbon $base, string $timezone): ?Carbon
-    {
-        return match ($this->schedule_type) {
-            ScheduleType::EveryDay => $base->copy()->addDay()->startOfDay(),
-            ScheduleType::WeekDays => $this->nextWeekDay($base->copy()->addDay()->startOfDay()),
-            ScheduleType::EveryNDays => $base->copy()->addDays($this->every_n_days ?? 1)->startOfDay(),
-            ScheduleType::Cyclical => $this->nextCyclicalDate($base),
-            default => null,
-        };
-    }
-
-    /**
-     * Find the next date that falls on a selected day of the week.
-     */
-    private function nextWeekDay(Carbon $from): ?Carbon
-    {
-        $days = $this->week_days ?? [];
-
-        if (empty($days)) {
-            return null;
-        }
-
-        for ($i = 0; $i < 8; $i++) {
-            $candidate = $from->copy()->addDays($i)->startOfDay();
-
-            if (in_array($candidate->isoWeekday(), $days)) {
-                return $candidate;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Advance the date by the cyclical period.
-     */
-    private function nextCyclicalDate(Carbon $base): Carbon
-    {
-        $value = $this->cyclical_value ?? 1;
-
-        return match ($this->cyclical_unit ?? 'weeks') {
-            'days' => $base->copy()->addDays($value)->startOfDay(),
-            'weeks' => $base->copy()->addWeeks($value)->startOfDay(),
-            'months' => $base->copy()->addMonths($value)->startOfDay(),
-            'years' => $base->copy()->addYears($value)->startOfDay(),
-            default => $base->copy()->addWeeks($value)->startOfDay(),
-        };
-    }
-
-    /**
-     * Return null if the given date exceeds ends_at, otherwise return the date.
-     */
-    private function checkEndsAt(Carbon $date, string $timezone): ?Carbon
-    {
-        if ($this->ends_at === null) {
-            return $date;
-        }
-
-        // ends_at is inclusive — occurrences on the last day are still allowed
-        return $date->lte($this->ends_at->copy()->endOfDay()) ? $date : null;
-    }
-
-    /**
-     * Return sorted list of times, defaulting to 09:00 if none are set.
-     *
-     * @return array<int, string>
-     */
-    private function getEffectiveTimes(): array
-    {
-        $times = $this->times ?? ['09:00'];
-        sort($times);
-
-        return $times;
-    }
-
-    /**
-     * Set the time component of a Carbon date from an HH:MM string.
-     */
-    private function applyTime(Carbon $date, string $time): Carbon
-    {
-        [$h, $m] = explode(':', $time);
-
-        return $date->setTime((int) $h, (int) $m, 0);
     }
 }

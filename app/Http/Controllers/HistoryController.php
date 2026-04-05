@@ -2,21 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\EventStatus;
 use Illuminate\View\View;
 
 class HistoryController extends Controller
 {
     /**
-     * Display the notification history for the authenticated user.
+     * Display all non-pending notification events for the authenticated user.
      */
     public function index(): View
     {
-        $history = auth()->user()
-            ->notificationHistory()
+        $events = auth()->user()
+            ->notificationEvents()
             ->with('notification')
-            ->latest()
+            ->where('status', '!=', EventStatus::Pending)
+            ->orderByDesc('completed_at')
             ->paginate(20);
 
-        return view('history.index', compact('history'));
+        return view('history.index', compact('events'));
     }
 }

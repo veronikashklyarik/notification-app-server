@@ -120,9 +120,9 @@
                             </div>
 
                             {{-- Next Due --}}
-                            @if($notification->next_due_at)
+                            @if($notification->next_event?->scheduled_at)
                                 @php
-                                    $nextDue = $notification->next_due_at;
+                                    $nextDue = $notification->next_event?->scheduled_at;
                                 @endphp
                                 <div class="bg-gradient-to-br from-amber-50 to-amber-100/50 rounded-2xl p-3.5">
                                     <div class="flex items-center gap-2 mb-2">
@@ -203,9 +203,9 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4 text-gray-500 hidden lg:table-cell">
-                                @if($notification->next_due_at)
+                                @if($notification->next_event?->scheduled_at)
                                     @php
-                                        $nextDue = $notification->next_due_at;
+                                        $nextDue = $notification->next_event?->scheduled_at;
                                     @endphp
                                     <span title="{{ $nextDue->copy()->setTimezone($userTimezone)->format('M j, Y H:i') }}">
                                         {{ $nextDue->diffForHumans(parts: 2) }}
