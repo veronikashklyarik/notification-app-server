@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\UpdateAvatarRequest;
 use App\Http\Requests\Api\V1\UpdateProfileRequest;
 use App\Http\Resources\Api\V1\UserResource;
 use Illuminate\Http\JsonResponse;
@@ -42,6 +43,27 @@ class ProfileController extends Controller
         }
 
         $user->update($data);
+
+        return response()->json([
+            'user' => new UserResource($user->fresh()),
+        ]);
+    }
+
+    /**
+     * Update Avatar
+     *
+     * Replace the authenticated user's profile photo.
+     */
+    public function updateAvatar(UpdateAvatarRequest $request): JsonResponse
+    {
+        $user = $request->user();
+
+        if ($user->avatar) {
+            Storage::delete($user->avatar);
+        }
+
+        $path = $request->file('avatar')->store('avatars', 'public');
+        $user->update(['avatar' => $path]);
 
         return response()->json([
             'user' => new UserResource($user->fresh()),

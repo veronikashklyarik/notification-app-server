@@ -34,6 +34,7 @@ Route::prefix('v1')->group(function (): void {
 
         Route::get('profile', [ProfileController::class, 'show'])->name('api.v1.profile');
         Route::put('profile', [ProfileController::class, 'update'])->name('api.v1.profile.update');
+        Route::post('profile/avatar', [ProfileController::class, 'updateAvatar'])->name('api.v1.profile.avatar');
 
         Route::post('device-tokens', [DeviceTokenController::class, 'store'])->name('api.v1.device-tokens.store');
         Route::delete('device-tokens', [DeviceTokenController::class, 'destroy'])->name('api.v1.device-tokens.destroy');
