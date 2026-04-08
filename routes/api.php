@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\Auth\ChangePasswordController;
 use App\Http\Controllers\Api\V1\Auth\DeleteAccountController;
+use App\Http\Controllers\Api\V1\Auth\EmailVerificationController;
 use App\Http\Controllers\Api\V1\Auth\LoginController;
 use App\Http\Controllers\Api\V1\Auth\LogoutController;
 use App\Http\Controllers\Api\V1\Auth\RefreshTokenController;
@@ -17,6 +18,10 @@ Route::prefix('v1')->group(function (): void {
     // Version check (public endpoint)
     Route::get('version/check', [VersionController::class, 'check'])->name('api.v1.version.check');
 
+    Route::get('auth/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+        ->middleware(['signed', 'throttle:6,1'])
+        ->name('api.v1.auth.email.verify');
+
     Route::prefix('auth')->middleware('throttle:api-auth')->group(function (): void {
         Route::post('register', [RegisterController::class, 'store'])->name('api.v1.auth.register');
         Route::post('login', [LoginController::class, 'store'])->name('api.v1.auth.login');
@@ -30,6 +35,7 @@ Route::prefix('v1')->group(function (): void {
             Route::delete('logout', [LogoutController::class, 'destroy'])->name('api.v1.auth.logout');
             Route::put('password', [ChangePasswordController::class, 'update'])->name('api.v1.auth.password');
             Route::delete('account', [DeleteAccountController::class, 'destroy'])->name('api.v1.auth.account.destroy');
+            Route::post('email/verify/send', [EmailVerificationController::class, 'send'])->name('api.v1.auth.email.verify.send');
         });
 
         Route::get('profile', [ProfileController::class, 'show'])->name('api.v1.profile');

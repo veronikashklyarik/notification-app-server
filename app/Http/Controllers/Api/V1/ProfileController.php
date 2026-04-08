@@ -8,7 +8,9 @@ use App\Http\Requests\Api\V1\UpdateProfileRequest;
 use App\Http\Resources\Api\V1\UserResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 class ProfileController extends Controller
 {
@@ -58,12 +60,23 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        if ($user->avatar) {
-            Storage::delete($user->avatar);
-        }
+        try {
+            if ($user->avatar) {
+                Storage::delete($user->avatar);
+            }
 
-        $path = $request->file('avatar')->store('avatars', 'public');
-        $user->update(['avatar' => $path]);
+            $path = $request->file('avatar')->store('avatars', 'public');
+
+            if (! $path) {
+                return response()->json(['message' => 'Failed to store the avatar. Please try again.'], 500);
+            }
+
+            $user->update(['avatar' => $path]);
+        } catch (Throwable $e) {
+            Log::error('Avatar upload failed', ['user_id' => $user->id, 'error' => $e->getMessage()]);
+
+            return response()->json(['message' => 'Failed to store the avatar. Please try again.'], 500);
+        }
 
         return response()->json([
             'user' => new UserResource($user->fresh()),
