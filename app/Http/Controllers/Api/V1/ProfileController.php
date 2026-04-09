@@ -61,7 +61,7 @@ class ProfileController extends Controller
         $user = $request->user();
         if ($request->hasFile('avatar')) {
             $file = $request->file('avatar');
-            \Log::info('[DEBUG] Upload Info:', [
+            Log::info('[DEBUG] Upload Info:', [
                 'is_valid' => $file->isValid(),
                 'error_code' => $file->getError(), // Узнаем причину (1, 3, 4 или 6)
                 'error_msg' => $file->getErrorMessage(),
@@ -69,7 +69,7 @@ class ProfileController extends Controller
                 'client_extension' => $file->getClientOriginalExtension(),
             ]);
         } else {
-            \Log::warning('[DEBUG] File "avatar" not found in request');
+            Log::warning('[DEBUG] File "avatar" not found in request');
         }
 
         try {
