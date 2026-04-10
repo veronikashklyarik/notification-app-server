@@ -24,7 +24,7 @@ class UpdateProfileRequest extends FormRequest
         return [
             'name' => ['sometimes', 'string', 'max:255'],
             'timezone' => ['sometimes', 'string', 'timezone'],
-            'avatar' => ['sometimes', 'image', 'max:2048'],
+            'avatar' => ['sometimes', 'extensions:jpg,jpeg,png,webp,heic,heif', 'max:10240'],
         ];
     }
 }
