@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Drivers\Imagick\Driver as ImagickDriver;
+use Intervention\Image\Encoders\WebpEncoder;
 use Intervention\Image\ImageManager;
 use Throwable;
 
@@ -68,10 +69,9 @@ class ProfileController extends Controller
             }
 
             $file = $request->file('avatar');
-            $webpContents = (new ImageManager(new ImagickDriver))
-                ->read($file->getRealPath())
-                ->toWebp(quality: 80)
-                ->toString();
+            $webpContents = (string) (new ImageManager(new ImagickDriver))
+                ->decodePath($file->getRealPath())
+                ->encode(new WebpEncoder(quality: 80));
 
             $path = 'avatars/'.uniqid('avatar_', true).'.webp';
             Storage::disk('public')->put($path, $webpContents);
