@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Intervention\Image\Drivers\Imagick\Driver as ImagickDriver;
 use Intervention\Image\Encoders\WebpEncoder;
 use Intervention\Image\ImageManager;
@@ -70,10 +71,10 @@ class ProfileController extends Controller
 
             $file = $request->file('avatar');
             $webpContents = (string) (new ImageManager(new ImagickDriver))
-                ->decode($file)
+                ->decodeBinary(file_get_contents($file->getRealPath()))
                 ->encode(new WebpEncoder(quality: 80));
 
-            $path = 'avatars/'.uniqid('avatar_', true).'.webp';
+            $path = 'avatars/'.Str::uuid().'.webp';
             Storage::disk('public')->put($path, $webpContents);
 
             $user->update(['avatar' => $path]);
