@@ -70,7 +70,7 @@ class ProfileController extends Controller
 
             $file = $request->file('avatar');
             $webpContents = (string) (new ImageManager(new ImagickDriver))
-                ->decodePath($file->getRealPath())
+                ->decode($file)
                 ->encode(new WebpEncoder(quality: 80));
 
             $path = 'avatars/'.uniqid('avatar_', true).'.webp';
