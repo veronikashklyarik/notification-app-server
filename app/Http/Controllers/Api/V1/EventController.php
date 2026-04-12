@@ -46,7 +46,7 @@ class EventController extends Controller
         $updateData = [
             'status' => $status,
             'comment' => $data['comment'] ?? $event->comment,
-            'completed_at' => now(),
+            'completed_at' => $status === EventStatus::Pending ? null : now(),
         ];
 
         if ($status === EventStatus::Postponed) {
@@ -61,6 +61,10 @@ class EventController extends Controller
 
             $updateData['postponed_until'] = $data['postponed_until'];
             $updateData['postpone_history'] = $history;
+        }
+
+        if ($status === EventStatus::Pending) {
+            $updateData['postponed_until'] = null;
         }
 
         $event->update($updateData);

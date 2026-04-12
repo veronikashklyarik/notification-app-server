@@ -24,7 +24,7 @@ class UpdateEventRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => ['required', Rule::enum(EventStatus::class), Rule::notIn([EventStatus::Pending->value])],
+            'status' => ['required', Rule::enum(EventStatus::class)],
             'comment' => ['nullable', 'string', 'max:1000'],
             'postponed_until' => ['nullable', 'required_if:status,postponed', 'date', 'after:now'],
         ];
