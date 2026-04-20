@@ -46,7 +46,7 @@ class EventController extends Controller
         $updateData = [
             'status' => $status,
             'comment' => $data['comment'] ?? $event->comment,
-            'completed_at' => $status === EventStatus::Pending ? null : now(),
+            'completed_at' => $status === EventStatus::Pending ? null : ($data['completed_at'] ?? now()),
         ];
 
         if ($status === EventStatus::Postponed) {
