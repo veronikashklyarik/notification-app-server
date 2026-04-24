@@ -109,13 +109,24 @@ class NotificationEventService
         $times = $this->getEffectiveTimes($notification);
         $events = [];
 
+        $completedScheduledAts = $notification->events()
+            ->whereIn('status', [EventStatus::Done, EventStatus::Cancelled, EventStatus::Postponed])
+            ->pluck('scheduled_at')
+            ->map(fn ($dt) => $dt->utc()->toDateTimeString())
+            ->flip()
+            ->all();
+
         // Try to find valid time slots on the current day first
         if ($this->isValidScheduleDay($notification, $base)) {
             foreach ($times as $time) {
                 $candidate = $this->applyTime($base->copy(), $time);
 
                 if ($candidate->gt($now) && $this->checkEndsAt($notification, $candidate, $timezone)) {
-                    $events[] = $candidate->copy()->utc();
+                    $utc = $candidate->copy()->utc();
+
+                    if (! isset($completedScheduledAts[$utc->toDateTimeString()])) {
+                        $events[] = $utc;
+                    }
 
                     if (count($events) >= $limit) {
                         break;
@@ -141,7 +152,11 @@ class NotificationEventService
                     break 2;
                 }
 
-                $events[] = $candidate->copy()->utc();
+                $utc = $candidate->copy()->utc();
+
+                if (! isset($completedScheduledAts[$utc->toDateTimeString()])) {
+                    $events[] = $utc;
+                }
 
                 if (count($events) >= $limit) {
                     break 2;
