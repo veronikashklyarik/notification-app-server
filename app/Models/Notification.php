@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 #[Fillable([
     'user_id',
@@ -94,6 +95,18 @@ class Notification extends Model
                 $notification->events()->update(['notification_id' => null]);
             }
         });
+    }
+
+    /**
+     * Determine if the notification's schedule has ended.
+     */
+    public function isEnded(): bool
+    {
+        $tz = Auth::user()?->timezone ?? 'UTC';
+
+        return $this->is_active
+            && $this->ends_at !== null
+            && Carbon::parse($this->ends_at->format('Y-m-d'), $tz)->endOfDay()->isPast();
     }
 
     public function prunable(): Builder

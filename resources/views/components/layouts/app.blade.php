@@ -7,15 +7,24 @@
 
     <title>{{ $title ?? config('app.name') }} - Notifyr</title>
 
+    {{-- PWA --}}
+    <link rel="manifest" href="/manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Notifyr">
+    <meta name="theme-color" content="#6366f1">
+
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @livewireStyles
 </head>
 <body class="bg-gray-50 md:bg-gray-50 mobile-gradient-bg antialiased">
 
     {{-- Navigation --}}
-    <nav class="bg-white border-b border-gray-100 md:border-gray-200 sticky top-0 z-50">
+    <nav class="hidden md:block bg-white border-b border-gray-200 sticky top-0 z-50">
         <div class="max-w-6xl mx-auto px-4 sm:px-6">
             <div class="flex items-center justify-between h-16">
 
@@ -32,10 +41,20 @@
 
                     {{-- Desktop Navigation --}}
                     <div class="hidden md:flex items-center gap-1">
+                        <a href="{{ route('home') }}"
+                           class="px-3 py-2 rounded-md text-sm font-medium transition-colors
+                                  {{ request()->routeIs('home') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
+                            Home
+                        </a>
                         <a href="{{ route('notifications.index') }}"
                            class="px-3 py-2 rounded-md text-sm font-medium transition-colors
                                   {{ request()->routeIs('notifications.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
                             Notifications
+                        </a>
+                        <a href="{{ route('events.index') }}"
+                           class="px-3 py-2 rounded-md text-sm font-medium transition-colors
+                                  {{ request()->routeIs('events.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' }}">
+                            Events
                         </a>
                         <a href="{{ route('history.index') }}"
                            class="px-3 py-2 rounded-md text-sm font-medium transition-colors
@@ -112,7 +131,7 @@
     </nav>
 
     {{-- Page Content --}}
-    <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6 md:py-8 pb-24 md:pb-8 min-h-[calc(100vh-4rem)]">
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 py-0 md:py-8 pb-24 md:pb-8 min-h-screen md:min-h-[calc(100vh-4rem)]">
 
         {{-- Flash Messages --}}
         @if(session('status'))
@@ -138,62 +157,86 @@
 
     {{-- Mobile Bottom Navigation --}}
     <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 safe-area-bottom">
-        <div class="flex items-center justify-around px-2 py-2 max-w-lg mx-auto">
+        <div class="flex items-center justify-around px-1 py-2 max-w-lg mx-auto">
+            {{-- Home Tab --}}
+            <a href="{{ route('home') }}"
+               class="flex flex-col items-center justify-center flex-1 py-2 px-2 rounded-xl transition-all duration-200 {{ request()->routeIs('home') ? 'bg-indigo-50' : 'hover:bg-gray-50' }}">
+                @if(request()->routeIs('home'))
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center mb-1 shadow-lg shadow-indigo-500/30">
+                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M10 20V14H14V20H19V12H22L12 3L2 12H5V20H10Z"/>
+                        </svg>
+                    </div>
+                    <span class="text-xs font-bold text-indigo-700">Home</span>
+                @else
+                    <svg class="w-6 h-6 text-gray-400 mb-1" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+                    </svg>
+                    <span class="text-xs font-medium text-gray-500">Home</span>
+                @endif
+            </a>
+
             {{-- Notifications Tab --}}
             <a href="{{ route('notifications.index') }}"
-               class="flex flex-col items-center justify-center flex-1 py-2 px-3 rounded-xl transition-all duration-200 {{ request()->routeIs('notifications.*') ? 'bg-indigo-50' : 'hover:bg-gray-50' }}">
+               class="flex flex-col items-center justify-center flex-1 py-2 px-2 rounded-xl transition-all duration-200 {{ request()->routeIs('notifications.*') ? 'bg-indigo-50' : 'hover:bg-gray-50' }}">
                 @if(request()->routeIs('notifications.*'))
                     <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center mb-1 shadow-lg shadow-indigo-500/30">
                         <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M12 2C10.3431 2 9 3.34315 9 5V5.56049C7.03024 6.13128 5.5 7.89215 5.5 10V13.5L3.5 15.5V16.5H20.5V15.5L18.5 13.5V10C18.5 7.89215 16.9698 6.13128 15 5.56049V5C15 3.34315 13.6569 2 12 2ZM10 18.5C10 19.8807 11.1193 21 12.5 21C13.8807 21 15 19.8807 15 18.5H10Z"/>
                         </svg>
                     </div>
-                    <span class="text-xs font-bold text-indigo-700">Notifications</span>
+                    <span class="text-xs font-bold text-indigo-700">Reminders</span>
                 @else
                     <svg class="w-6 h-6 text-gray-400 mb-1" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
                     </svg>
-                    <span class="text-xs font-medium text-gray-500">Notifications</span>
+                    <span class="text-xs font-medium text-gray-500">Reminders</span>
                 @endif
             </a>
 
-            {{-- History Tab --}}
-            <a href="{{ route('history.index') }}"
-               class="flex flex-col items-center justify-center flex-1 py-2 px-3 rounded-xl transition-all duration-200 {{ request()->routeIs('history.*') ? 'bg-indigo-50' : 'hover:bg-gray-50' }}">
-                @if(request()->routeIs('history.*'))
+            {{-- Events Tab --}}
+            <a href="{{ route('events.index') }}"
+               class="flex flex-col items-center justify-center flex-1 py-2 px-2 rounded-xl transition-all duration-200 {{ request()->routeIs('events.*') ? 'bg-indigo-50' : 'hover:bg-gray-50' }}">
+                @if(request()->routeIs('events.*'))
                     <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center mb-1 shadow-lg shadow-indigo-500/30">
-                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.58 20 4 16.42 4 12C4 7.58 7.58 4 12 4C16.42 4 20 7.58 20 12C20 16.42 16.42 20 12 20ZM12.5 7H11V13L16.25 16.15L17 14.92L12.5 12.25V7Z"/>
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                     </div>
-                    <span class="text-xs font-bold text-indigo-700">History</span>
+                    <span class="text-xs font-bold text-indigo-700">Events</span>
                 @else
-                    <svg class="w-6 h-6 text-gray-400 mb-1" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <svg class="w-6 h-6 text-gray-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    <span class="text-xs font-medium text-gray-500">History</span>
+                    <span class="text-xs font-medium text-gray-500">Events</span>
                 @endif
             </a>
 
-            {{-- Profile Tab --}}
+            {{-- Settings Tab --}}
             <a href="{{ route('profile.edit') }}"
-               class="flex flex-col items-center justify-center flex-1 py-2 px-3 rounded-xl transition-all duration-200 {{ request()->routeIs('profile.*') ? 'bg-indigo-50' : 'hover:bg-gray-50' }}">
+               class="flex flex-col items-center justify-center flex-1 py-2 px-2 rounded-xl transition-all duration-200 {{ request()->routeIs('profile.*') ? 'bg-indigo-50' : 'hover:bg-gray-50' }}">
                 @if(request()->routeIs('profile.*'))
                     <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center mb-1 shadow-lg shadow-indigo-500/30">
-                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z"/>
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                     </div>
-                    <span class="text-xs font-bold text-indigo-700">Profile</span>
+                    <span class="text-xs font-bold text-indigo-700">Settings</span>
                 @else
-                    <svg class="w-6 h-6 text-gray-400 mb-1" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                    <svg class="w-6 h-6 text-gray-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                    <span class="text-xs font-medium text-gray-500">Profile</span>
+                    <span class="text-xs font-medium text-gray-500">Settings</span>
                 @endif
             </a>
         </div>
     </nav>
 
+    @livewireScripts
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').catch(() => {});
+        }
+    </script>
 </body>
 </html>

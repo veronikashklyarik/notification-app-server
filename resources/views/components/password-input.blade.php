@@ -1,5 +1,5 @@
 @props([
-    'name',
+    'name' => null,
     'id' => null,
     'placeholder' => '••••••••',
     'autocomplete' => 'current-password',
@@ -10,8 +10,8 @@
     <input
         type="password"
         :type="visible ? 'text' : 'password'"
-        name="{{ $name }}"
-        id="{{ $id ?? $name }}"
+        @if($name) name="{{ $name }}" @endif
+        @if($id ?? $name) id="{{ $id ?? $name }}" @endif
         placeholder="{{ $placeholder }}"
         autocomplete="{{ $autocomplete }}"
         {{ $attributes->except(['class']) }}

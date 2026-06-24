@@ -9,11 +9,18 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ResendVerificationEmailController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\HistoryController;
-use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\ProfileController;
+use App\Livewire\EventList;
+use App\Livewire\EventShow;
+use App\Livewire\Home;
+use App\Livewire\NotificationCreate;
+use App\Livewire\NotificationEdit;
+use App\Livewire\NotificationList;
+use App\Livewire\NotificationShow;
+use App\Livewire\Profile;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', fn () => redirect()->route('notifications.index'));
+Route::get('/', fn () => redirect()->route('home'));
+Route::get('offline', fn () => view('pwa.offline'))->name('offline');
 
 Route::middleware('guest')->group(function (): void {
     Route::get('login', [LoginController::class, 'create'])->name('login');
@@ -42,10 +49,17 @@ Route::middleware('auth')->group(function (): void {
 });
 
 Route::middleware(['auth', 'verified'])->group(function (): void {
-    Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::get('home', Home::class)->name('home');
 
-    Route::resource('notifications', NotificationController::class);
+    Route::get('profile', Profile::class)->name('profile.edit');
+
+    Route::get('notifications', NotificationList::class)->name('notifications.index');
+    Route::get('notifications/create', NotificationCreate::class)->name('notifications.create');
+    Route::get('notifications/{notification}', NotificationShow::class)->name('notifications.show');
+    Route::get('notifications/{notification}/edit', NotificationEdit::class)->name('notifications.edit');
 
     Route::get('history', [HistoryController::class, 'index'])->name('history.index');
+
+    Route::get('events', EventList::class)->name('events.index');
+    Route::get('events/{event}', EventShow::class)->name('events.show');
 });

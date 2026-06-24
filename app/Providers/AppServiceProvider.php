@@ -10,6 +10,7 @@ use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route as RoutingRoute;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
@@ -32,6 +33,10 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Password::defaults(fn () => Password::min(8)->letters()->numbers());
+
+        Blade::directive('userTime', function (string $expression): string {
+            return "<?php echo \\App\\Helpers\\TimeHelper::toUserTz($expression); ?>";
+        });
 
         VerifyEmail::createUrlUsing(function (mixed $notifiable): string {
             return URL::temporarySignedRoute(
