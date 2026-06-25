@@ -17,6 +17,11 @@
 
     body {
         color: var(--color-gray-900);
+        scrollbar-width: none;
+    }
+
+    body::-webkit-scrollbar {
+        display: none;
     }
 
     input[type='text'],
@@ -177,6 +182,10 @@
     /* Safe area support for iOS */
     .safe-area-bottom {
         padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .safe-area-top {
+        padding-top: env(safe-area-inset-top);
     }
 
     /* Grain texture overlay */
