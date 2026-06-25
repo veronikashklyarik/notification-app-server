@@ -32,9 +32,9 @@
                    autocomplete="name"
                    placeholder="Your name"
                    class="input-styled w-full {{ $errors->has('name') ? 'border-red-300' : '' }}">
-            @error('name')
-                <p class="mt-1.5 text-xs text-red-600">{{ $message }}</p>
-            @enderror
+{{--            @error('name')--}}
+{{--                <p class="mt-1.5 text-xs text-red-600">{{ $message }}</p>--}}
+{{--            @enderror--}}
         </div>
 
         <div>
@@ -47,17 +47,17 @@
                    autocomplete="email"
                    placeholder="you@example.com"
                    class="input-styled w-full {{ $errors->has('email') ? 'border-red-300' : '' }}">
-            @error('email')
-                <p class="mt-1.5 text-xs text-red-600">{{ $message }}</p>
-            @enderror
+{{--            @error('email')--}}
+{{--                <p class="mt-1.5 text-xs text-red-600">{{ $message }}</p>--}}
+{{--            @enderror--}}
         </div>
 
         <div>
             <label for="password" class="block mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Password</label>
             <x-password-input name="password" autocomplete="new-password" placeholder="Min. 8 characters" required :hasError="$errors->has('password')" />
-            @error('password')
-                <p class="mt-1.5 text-xs text-red-600">{{ $message }}</p>
-            @enderror
+{{--            @error('password')--}}
+{{--                <p class="mt-1.5 text-xs text-red-600">{{ $message }}</p>--}}
+{{--            @enderror--}}
         </div>
 
         <div>

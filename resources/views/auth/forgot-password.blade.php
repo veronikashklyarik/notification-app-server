@@ -41,9 +41,9 @@
                    autocomplete="email"
                    placeholder="you@example.com"
                    class="input-styled w-full {{ $errors->has('email') ? 'border-red-300' : '' }}">
-            @error('email')
-                <p class="mt-1.5 text-xs text-red-600">{{ $message }}</p>
-            @enderror
+{{--            @error('email')--}}
+{{--                <p class="mt-1.5 text-xs text-red-600">{{ $message }}</p>--}}
+{{--            @enderror--}}
         </div>
 
         <button type="submit" class="btn-primary w-full py-3.5 text-sm mt-2">
