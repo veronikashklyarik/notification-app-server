@@ -58,10 +58,11 @@
                     <div class="flex-1">
                         <p class="text-sm font-semibold text-gray-900">Tap the Share button</p>
                         <p class="text-xs text-gray-400 mt-0.5">The Share button is the square with an arrow pointing up — it's in the middle of the bottom toolbar.</p>
-                        <div class="mt-2 inline-flex items-center justify-center w-9 h-9 rounded-xl bg-gray-100">
-                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                        <div class="mt-2 flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-xl border border-gray-100 w-fit">
+                            <svg class="w-4 h-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path id="Vector" d="M9 6L12 3M12 3L15 6M12 3V13M7.00023 10C6.06835 10 5.60241 10 5.23486 10.1522C4.74481 10.3552 4.35523 10.7448 4.15224 11.2349C4 11.6024 4 12.0681 4 13V17.8C4 18.9201 4 19.4798 4.21799 19.9076C4.40973 20.2839 4.71547 20.5905 5.0918 20.7822C5.5192 21 6.07899 21 7.19691 21H16.8036C17.9215 21 18.4805 21 18.9079 20.7822C19.2842 20.5905 19.5905 20.2839 19.7822 19.9076C20 19.4802 20 18.921 20 17.8031V13C20 12.0681 19.9999 11.6024 19.8477 11.2349C19.6447 10.7448 19.2554 10.3552 18.7654 10.1522C18.3978 10 17.9319 10 17 10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
+                            <span class="text-xs font-semibold text-gray-700">Share</span>
                         </div>
                     </div>
                 </div>
