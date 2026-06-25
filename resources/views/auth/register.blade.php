@@ -18,8 +18,10 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('register') }}" class="space-y-5">
+    <form method="POST" action="{{ route('register') }}" class="space-y-5"
+          x-data x-init="$el.querySelector('[name=timezone]').value = Intl.DateTimeFormat().resolvedOptions().timeZone">
         @csrf
+        <input type="hidden" name="timezone" value="UTC">
 
         <div>
             <label for="name" class="block mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</label>

@@ -25,7 +25,10 @@ class RegisterController extends Controller
      */
     public function store(RegisterRequest $request): RedirectResponse
     {
-        $user = User::query()->create($request->validated());
+        $user = User::query()->create(array_merge(
+            $request->validated(),
+            ['timezone' => $request->validated('timezone') ?? 'UTC'],
+        ));
 
         event(new Registered($user));
 
