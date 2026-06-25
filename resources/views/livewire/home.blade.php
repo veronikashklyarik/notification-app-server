@@ -5,7 +5,8 @@
 @endphp
 <x-pull-to-refresh class="stagger-children">
     {{-- Header with gradient --}}
-    <div class="gradient-header px-5 pt-[calc(env(safe-area-inset-top)+1.5rem)] pb-8 rounded-b-[32px] shadow-lg shadow-indigo-500/10 -mt-[env(safe-area-inset-top)]">
+    <div class="gradient-header px-5 pb-8 rounded-b-[32px] shadow-lg shadow-indigo-500/10"
+         style="padding-top: max(env(safe-area-inset-top), 1.5rem)">
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-indigo-200 text-sm font-medium">Good {{ now(config('app.user_timezone', 'UTC'))->format('H') < 5 ? 'night' : (now(config('app.user_timezone', 'UTC'))->format('H') < 12 ? 'morning' : (now(config('app.user_timezone', 'UTC'))->format('H') < 18 ? 'afternoon' : 'evening')) }},</p>

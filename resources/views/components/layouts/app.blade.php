@@ -11,7 +11,7 @@
     <link rel="manifest" href="/manifest.json">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Notifyr">
     <meta name="theme-color" content="#6366f1">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
@@ -134,7 +134,7 @@
     </nav>
 
     {{-- Page Content --}}
-    <main class="max-w-6xl mx-auto px-0 md:px-6 py-0 md:py-8 pb-32 md:pb-8 min-h-screen md:min-h-[calc(100vh-4rem)] safe-area-top md:pt-0">
+    <main class="max-w-6xl mx-auto px-0 md:px-6 py-0 md:py-8 pb-32 md:pb-8 min-h-screen md:min-h-[calc(100vh-4rem)]">
 
         {{-- Flash Messages --}}
         @if(session('status'))
