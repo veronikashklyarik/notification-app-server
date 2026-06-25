@@ -181,4 +181,35 @@ class EventListTest extends TestCase
             ->test(EventList::class)
             ->assertSet('todayTotal', 0);
     }
+
+    public function test_recent_events_with_deleted_notification_are_excluded(): void
+    {
+        $user = User::factory()->create(['timezone' => 'UTC']);
+        $notification = Notification::factory()->for($user)->create();
+
+        NotificationEvent::factory()->for($user)->for($notification)->done()->create();
+
+        $notification->forceDelete();
+
+        Livewire::actingAs($user)
+            ->test(EventList::class)
+            ->assertSet('recentTotal', 0);
+    }
+
+    public function test_pending_events_with_deleted_notification_are_excluded(): void
+    {
+        $user = User::factory()->create(['timezone' => 'UTC']);
+        $notification = Notification::factory()->for($user)->create();
+
+        NotificationEvent::factory()->for($user)->for($notification)->create([
+            'scheduled_at' => now()->midDay(),
+            'status' => EventStatus::Pending,
+        ]);
+
+        $notification->forceDelete();
+
+        Livewire::actingAs($user)
+            ->test(EventList::class)
+            ->assertSet('todayTotal', 0);
+    }
 }

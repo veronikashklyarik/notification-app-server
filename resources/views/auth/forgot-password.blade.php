@@ -1,14 +1,29 @@
 <x-layouts.guest title="Forgot password">
 
-    <h2 class="text-xl font-semibold text-gray-900 mb-2">Forgot your password?</h2>
-    <p class="text-sm text-gray-500 mb-6">Enter your email and we'll send you a reset link.</p>
+    <div class="mb-10 text-center">
+        <div class="inline-flex items-center justify-center w-20 h-20 mb-5 rounded-3xl gradient-header shadow-lg shadow-indigo-500/25">
+            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+        </div>
+        <h1 class="text-[28px] font-bold text-gray-900 tracking-tight">Reset password</h1>
+        <p class="mt-2 text-sm text-gray-400">Enter your email to receive a reset link</p>
+    </div>
 
     @if(session('status'))
-        <div class="mb-5 flex items-center gap-3 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-xl text-sm">
-            <svg class="w-5 h-5 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <div class="p-4 mb-6 text-sm text-emerald-700 bg-emerald-50/80 rounded-2xl border border-emerald-100 flex items-center gap-3">
+            <svg class="w-5 h-5 text-emerald-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
             </svg>
             {{ session('status') }}
+        </div>
+    @endif
+
+    @if($errors->any())
+        <div class="p-4 mb-6 text-sm text-red-600 bg-red-50/80 rounded-2xl border border-red-100">
+            @foreach($errors->all() as $error)
+                <p>{{ $error }}</p>
+            @endforeach
         </div>
     @endif
 
@@ -16,7 +31,7 @@
         @csrf
 
         <div>
-            <label for="email" class="block text-sm font-medium text-gray-700 mb-1.5">Email address</label>
+            <label for="email" class="block mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</label>
             <input type="email"
                    id="email"
                    name="email"
@@ -25,22 +40,20 @@
                    autofocus
                    autocomplete="email"
                    placeholder="you@example.com"
-                   class="w-full px-3.5 py-2.5 text-sm rounded-lg border transition-colors outline-none
-                          {{ $errors->has('email') ? 'border-red-300 bg-red-50 focus:border-red-400 focus:ring-2 focus:ring-red-100' : 'border-gray-300 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100' }}">
+                   class="input-styled w-full {{ $errors->has('email') ? 'border-red-300' : '' }}">
             @error('email')
-                <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                <p class="mt-1.5 text-xs text-red-600">{{ $message }}</p>
             @enderror
         </div>
 
-        <button type="submit"
-                class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors">
-            Send reset link
+        <button type="submit" class="btn-primary w-full py-3.5 text-sm mt-2">
+            Send Reset Link
         </button>
     </form>
 
-    <p class="mt-6 text-center text-sm text-gray-500">
+    <p class="mt-8 text-sm text-center text-gray-400">
         Remember your password?
-        <a href="{{ route('login') }}" class="text-indigo-600 font-medium hover:text-indigo-700">Sign in</a>
+        <a href="{{ route('login') }}" class="font-semibold text-indigo-600 hover:text-indigo-500">Sign in</a>
     </p>
 
 </x-layouts.guest>

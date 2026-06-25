@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => redirect()->route('home'));
 Route::get('offline', fn () => view('pwa.offline'))->name('offline');
+Route::middleware(['auth', 'verified'])->get('install', fn () => view('install'))->name('install');
 
 Route::middleware('guest')->group(function (): void {
     Route::get('login', [LoginController::class, 'create'])->name('login');

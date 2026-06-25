@@ -15,7 +15,7 @@ class EmailVerificationNoticeController extends Controller
     public function __invoke(Request $request): RedirectResponse|View
     {
         if ($request->user()->hasVerifiedEmail()) {
-            return redirect()->intended(route('notifications.index'));
+            return redirect()->intended(route('home'));
         }
 
         return view('auth.verify-email');

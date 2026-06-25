@@ -14,7 +14,7 @@ class ResendVerificationEmailController extends Controller
     public function __invoke(Request $request): RedirectResponse
     {
         if ($request->user()->hasVerifiedEmail()) {
-            return redirect()->intended(route('notifications.index'));
+            return redirect()->intended(route('home'));
         }
 
         $request->user()->sendEmailVerificationNotification();

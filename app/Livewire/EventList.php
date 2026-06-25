@@ -135,11 +135,13 @@ class EventList extends Component
             ->get();
 
         $this->recentTotal = $user->notificationEvents()
+            ->whereHas('notification')
             ->whereIn('status', [EventStatus::Done, EventStatus::Cancelled, EventStatus::Postponed])
             ->count();
 
         $this->recentEvents = $user->notificationEvents()
             ->with('notification')
+            ->whereHas('notification')
             ->whereIn('status', [EventStatus::Done, EventStatus::Cancelled, EventStatus::Postponed])
             ->orderByDesc('scheduled_at')
             ->limit($this->recentPerPage)
