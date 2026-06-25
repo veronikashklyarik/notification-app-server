@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Notifications\ApiEmailVerificationNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,7 +24,7 @@ class EmailVerificationController extends Controller
             return response()->json(['message' => 'Email already verified.']);
         }
 
-        $request->user()->sendEmailVerificationNotification();
+        $request->user()->notify(new ApiEmailVerificationNotification);
 
         return response()->json(['message' => 'Verification email sent.']);
     }

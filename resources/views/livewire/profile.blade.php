@@ -31,9 +31,9 @@
                     </div>
                     <input id="avatar-upload" type="file" wire:model="avatar" accept="image/*" class="sr-only">
                 </label>
-                <div>
+                <div class="flex-1 min-w-0">
                     <p class="text-lg font-bold text-gray-900">{{ $user->name }}</p>
-                    <p class="text-sm text-gray-400">{{ $user->email }}</p>
+                    <p class="text-sm text-gray-400 break-all">{{ $user->email }}</p>
                     @if($user->email_verified_at)
                         <span class="inline-flex items-center gap-1 mt-1 text-xs font-semibold text-emerald-600">
                             <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
@@ -162,6 +162,28 @@
                 </form>
             </div>
         </div>
+    </div>
+
+    {{-- Add to Home Screen --}}
+    <div x-data class="px-4 mt-4">
+        <template x-if="!window.matchMedia('(display-mode: standalone)').matches && window.navigator.standalone !== true">
+            <a href="{{ route('install') }}" class="card flex items-center justify-between p-4 w-full">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
+                        <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-900">Add to Home Screen</p>
+                        <p class="text-xs text-gray-400 mt-0.5">Install as an app for the best experience</p>
+                    </div>
+                </div>
+                <svg class="w-4 h-4 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </a>
+        </template>
     </div>
 
     {{-- Log Out --}}

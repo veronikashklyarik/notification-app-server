@@ -37,9 +37,9 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes shimmer {
-    0% { background-position: -200% center; }
-    100% { background-position: 200% center; }
+@keyframes badge-shimmer-sweep {
+    from { transform: translateX(-200%); }
+    to   { transform: translateX(200%); }
 }
 
 @keyframes fade-in {
@@ -75,10 +75,21 @@
 
 /* Shimmer badge for Active status */
 .badge-shimmer {
-    background: linear-gradient(90deg, #22c55e 0%, #10b981 40%, #34d399 50%, #10b981 60%, #22c55e 100%);
-    background-size: 200% auto;
-    animation: shimmer 2.5s linear infinite;
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
     color: white;
+}
+
+.badge-shimmer::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.35) 50%, transparent 100%);
+    transform: translateX(-200%);
+    animation: badge-shimmer-sweep 2.5s linear infinite;
+    pointer-events: none;
 }
 
 /* Glass-style input */

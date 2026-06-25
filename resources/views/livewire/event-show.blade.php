@@ -25,11 +25,15 @@
     <div class="px-4">
         <div class="card p-5 space-y-5">
             <div>
-                <a href="{{ route('notifications.show', $event->notification) }}?back={{ urlencode(route('events.show', $event).'?back='.urlencode($backUrl)) }}" class="text-lg font-bold text-indigo-600 hover:text-indigo-500 transition-colors">
-                    {{ $event->notification->name }}
-                </a>
-                @if($event->notification->description)
-                    <p class="mt-1 text-sm text-gray-400 leading-relaxed">{{ $event->notification->description }}</p>
+                @if($event->notification)
+                    <a href="{{ route('notifications.show', $event->notification) }}?back={{ urlencode(route('events.show', $event).'?back='.urlencode($backUrl)) }}" class="text-lg font-bold text-indigo-600 hover:text-indigo-500 transition-colors">
+                        {{ $event->notification->name }}
+                    </a>
+                    @if($event->notification->description)
+                        <p class="mt-1 text-sm text-gray-400 leading-relaxed">{{ $event->notification->description }}</p>
+                    @endif
+                @else
+                    <p class="text-lg font-bold text-gray-400">Deleted reminder</p>
                 @endif
             </div>
 
