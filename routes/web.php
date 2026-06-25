@@ -49,7 +49,7 @@ Route::middleware('auth')->group(function (): void {
         ->name('verification.send');
 });
 
-Route::middleware(['auth', 'verified'])->group(function (): void {
+Route::middleware('auth')->group(function (): void {
     Route::get('home', Home::class)->name('home');
 
     Route::get('profile', Profile::class)->name('profile.edit');
