@@ -82,7 +82,7 @@ class NotificationEdit extends Component
             'times' => ['nullable', 'array'],
             'times.*' => ['date_format:H:i'],
             'starts_at' => ['nullable', 'date'],
-            'ends_at' => ['nullable', 'date', 'after:starts_at'],
+            'ends_at' => ['nullable', 'date', 'after_or_equal:starts_at'],
             'is_active' => ['boolean'],
         ];
 
@@ -118,6 +118,9 @@ class NotificationEdit extends Component
     public function save(): void
     {
         $this->authorize('update', $this->notification);
+
+        $this->starts_at = $this->starts_at ?: null;
+        $this->ends_at = $this->ends_at ?: null;
 
         $validated = $this->validate();
 
