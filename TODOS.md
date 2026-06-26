@@ -3,7 +3,7 @@
 ## Deferred from autoplan review (2026-06-24)
 
 ### Phase 2 (post PWA migration)
-- [ ] Avatar upload (profile settings)
+- [x] Avatar upload (profile settings) **Completed:** 2026-06-26
 - [ ] E2E browser tests (Pest v4) for critical paths: login → home, create notification, mark event done
 
 ### Future scope

@@ -14,8 +14,15 @@
     {{-- Profile --}}
     <div class="px-4 mt-4">
         <div class="card p-5 space-y-5">
-            <div class="flex items-center gap-4">
-                <label for="avatar-upload" class="relative shrink-0 touchable cursor-pointer">
+            <div class="flex items-center gap-4" x-data>
+                <input type="file" accept="image/jpeg,image/png,image/heic,image/heif,image/webp,.heic,.heif" class="hidden" x-ref="photoInput"
+                       x-on:change="$wire.upload('avatar', $event.target.files[0]); $event.target.value = ''">
+
+                <button type="button"
+                        @click="$refs.photoInput.click()"
+                        wire:loading.attr="disabled"
+                        wire:target="updatedAvatar"
+                        class="relative shrink-0 touchable">
                     @if($user->avatar_url)
                         <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" class="w-16 h-16 rounded-2xl object-cover shadow-sm">
                     @else
@@ -23,14 +30,20 @@
                             <span class="text-2xl font-bold text-white">{{ substr($user->name, 0, 1) }}</span>
                         </div>
                     @endif
-                    <div class="absolute bottom-0 right-0 w-5 h-5 rounded-full bg-indigo-600 border-2 border-white flex items-center justify-center">
+                    <div class="absolute inset-0 rounded-2xl bg-black/25 flex items-center justify-center" wire:loading wire:target="updatedAvatar">
+                        <svg class="w-5 h-5 text-white animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                        </svg>
+                    </div>
+                    <div class="absolute bottom-0 right-0 w-5 h-5 rounded-full bg-indigo-600 border-2 border-white flex items-center justify-center" wire:loading.remove wire:target="updatedAvatar">
                         <svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                     </div>
-                    <input id="avatar-upload" type="file" wire:model="avatar" accept="image/*" class="sr-only">
-                </label>
+                </button>
+
                 <div class="flex-1 min-w-0">
                     <p class="text-lg font-bold text-gray-900">{{ $user->name }}</p>
                     <p class="text-sm text-gray-400 break-all">{{ $user->email }}</p>
