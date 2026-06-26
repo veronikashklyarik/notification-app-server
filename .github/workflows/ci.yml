@@ -76,7 +76,8 @@ jobs:
 
       - name: Validate Laravel Config & Routes
         run: |
-          php artisan config:show || exit 1
+          php artisan config:cache
+          php artisan config:clear
           php artisan route:list --except-vendor
 
       - name: Run migrations
