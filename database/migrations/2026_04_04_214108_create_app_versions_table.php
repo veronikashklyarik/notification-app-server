@@ -20,7 +20,8 @@ return new class extends Migration
             $table->boolean('force_update')->default(false);
             $table->text('message')->nullable();
             $table->string('download_url')->nullable();
-            $table->timestamps();
+            $table->datetime('created_at')->nullable();
+            $table->datetime('updated_at')->nullable();
 
             $table->unique('platform');
         });

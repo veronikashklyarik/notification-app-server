@@ -21,7 +21,8 @@ return new class extends Migration
             $table->json('postpone_history')->nullable();
             $table->text('comment')->nullable();
             $table->datetime('completed_at')->nullable();
-            $table->timestamps();
+            $table->datetime('created_at')->nullable();
+            $table->datetime('updated_at')->nullable();
 
             $table->index(['notification_id', 'status']);
             $table->index(['user_id', 'status']);
@@ -41,7 +42,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('notifications', function (Blueprint $table) {
-            $table->timestamp('next_due_at')->nullable()->after('ends_at');
+            $table->datetime('next_due_at')->nullable()->after('ends_at');
         });
 
         Schema::create('notification_history', function (Blueprint $table) {
@@ -50,9 +51,10 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('action');
             $table->text('comment')->nullable();
-            $table->timestamp('postponed_until')->nullable();
-            $table->timestamp('due_at')->nullable();
-            $table->timestamps();
+            $table->datetime('postponed_until')->nullable();
+            $table->datetime('due_at')->nullable();
+            $table->datetime('created_at')->nullable();
+            $table->datetime('updated_at')->nullable();
         });
 
         Schema::dropIfExists('notification_events');

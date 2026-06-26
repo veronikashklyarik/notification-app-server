@@ -22,8 +22,9 @@ return new class extends Migration
             $table->timestamp('starts_at')->nullable();
             $table->datetime('next_due_at')->nullable();
             $table->boolean('is_active')->default(true);
-            $table->timestamps();
-            $table->softDeletes();
+            $table->datetime('created_at')->nullable();
+            $table->datetime('updated_at')->nullable();
+            $table->datetime('deleted_at')->nullable();
         });
     }
 

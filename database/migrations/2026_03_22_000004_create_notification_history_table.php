@@ -19,7 +19,8 @@ return new class extends Migration
             $table->text('comment')->nullable();
             $table->datetime('postponed_until')->nullable();
             $table->datetime('due_at')->nullable();
-            $table->timestamps();
+            $table->datetime('created_at')->nullable();
+            $table->datetime('updated_at')->nullable();
         });
     }
 
