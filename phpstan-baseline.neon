@@ -1,0 +1,409 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Cannot call method toIso8601String\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: app/Http/Controllers/Api/V1/EventController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>timezone" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Middleware/SetUserTimezone.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Api\\V1\\NotificationEventResource\:\:\$comment\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Api/V1/NotificationEventResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Api\\V1\\NotificationEventResource\:\:\$completed_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Api/V1/NotificationEventResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Api\\V1\\NotificationEventResource\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Api/V1/NotificationEventResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Api\\V1\\NotificationEventResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Api/V1/NotificationEventResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Api\\V1\\NotificationEventResource\:\:\$notification\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Resources/Api/V1/NotificationEventResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Api\\V1\\NotificationEventResource\:\:\$notification_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Api/V1/NotificationEventResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Api\\V1\\NotificationEventResource\:\:\$postpone_history\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Api/V1/NotificationEventResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Api\\V1\\NotificationEventResource\:\:\$postponed_until\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Api/V1/NotificationEventResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Api\\V1\\NotificationEventResource\:\:\$scheduled_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Api/V1/NotificationEventResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Api\\V1\\NotificationEventResource\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Api/V1/NotificationEventResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Api\\V1\\NotificationEventResource\:\:\$updated_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Api/V1/NotificationEventResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Api\\V1\\NotificationResource\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Api/V1/NotificationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Api\\V1\\NotificationResource\:\:\$cyclical_unit\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Api/V1/NotificationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Api\\V1\\NotificationResource\:\:\$cyclical_value\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Api/V1/NotificationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Api\\V1\\NotificationResource\:\:\$description\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Api/V1/NotificationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Api\\V1\\NotificationResource\:\:\$ends_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Api/V1/NotificationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Api\\V1\\NotificationResource\:\:\$every_n_days\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Api/V1/NotificationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Api\\V1\\NotificationResource\:\:\$frequency_label\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Api/V1/NotificationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Api\\V1\\NotificationResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Api/V1/NotificationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Api\\V1\\NotificationResource\:\:\$is_active\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Api/V1/NotificationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Api\\V1\\NotificationResource\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Api/V1/NotificationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Api\\V1\\NotificationResource\:\:\$schedule_type\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Api/V1/NotificationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Api\\V1\\NotificationResource\:\:\$starts_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Api/V1/NotificationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Api\\V1\\NotificationResource\:\:\$times\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Api/V1/NotificationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Api\\V1\\NotificationResource\:\:\$updated_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Api/V1/NotificationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Api\\V1\\NotificationResource\:\:\$week_days\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Api/V1/NotificationResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Api\\V1\\UserResource\:\:\$avatar_url\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Api/V1/UserResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Api\\V1\\UserResource\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Api/V1/UserResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Api\\V1\\UserResource\:\:\$email\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Api/V1/UserResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Api\\V1\\UserResource\:\:\$email_verified_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Api/V1/UserResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Api\\V1\\UserResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Api/V1/UserResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\Api\\V1\\UserResource\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/Api/V1/UserResource.php
+
+		-
+			message: '#^Attribute class Livewire\\Attributes\\Protect does not exist\.$#'
+			identifier: attribute.notFound
+			count: 1
+			path: app/Livewire/EventList.php
+
+		-
+			message: '#^Attribute class Livewire\\Attributes\\Protect does not exist\.$#'
+			identifier: attribute.notFound
+			count: 1
+			path: app/Livewire/EventShow.php
+
+		-
+			message: '#^Cannot call method toIso8601String\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Livewire/EventShow.php
+
+		-
+			message: '#^Attribute class Livewire\\Attributes\\Protect does not exist\.$#'
+			identifier: attribute.notFound
+			count: 1
+			path: app/Livewire/Home.php
+
+		-
+			message: '#^Attribute class Livewire\\Attributes\\Protect does not exist\.$#'
+			identifier: attribute.notFound
+			count: 1
+			path: app/Livewire/NotificationCreate.php
+
+		-
+			message: '#^Attribute class Livewire\\Attributes\\Protect does not exist\.$#'
+			identifier: attribute.notFound
+			count: 1
+			path: app/Livewire/NotificationEdit.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Livewire/NotificationEdit.php
+
+		-
+			message: '#^Cannot call method format\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: app/Livewire/NotificationEdit.php
+
+		-
+			message: '#^Attribute class Livewire\\Attributes\\Protect does not exist\.$#'
+			identifier: attribute.notFound
+			count: 1
+			path: app/Livewire/NotificationList.php
+
+		-
+			message: '#^Attribute class Livewire\\Attributes\\Protect does not exist\.$#'
+			identifier: attribute.notFound
+			count: 1
+			path: app/Livewire/NotificationShow.php
+
+		-
+			message: '#^Attribute class Livewire\\Attributes\\Protect does not exist\.$#'
+			identifier: attribute.notFound
+			count: 1
+			path: app/Livewire/Profile.php
+
+		-
+			message: '#^Call to function method_exists\(\) with App\\Models\\Notification and ''isForceDeleting'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: app/Models/Notification.php
+
+		-
+			message: '#^Cannot call method format\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Models/Notification.php
+
+		-
+			message: '#^Match arm comparison between string and App\\Enums\\ScheduleType\:\:AsNeeded is always false\.$#'
+			identifier: match.alwaysFalse
+			count: 1
+			path: app/Models/Notification.php
+
+		-
+			message: '#^Match arm comparison between string and App\\Enums\\ScheduleType\:\:Cyclical is always false\.$#'
+			identifier: match.alwaysFalse
+			count: 1
+			path: app/Models/Notification.php
+
+		-
+			message: '#^Match arm comparison between string and App\\Enums\\ScheduleType\:\:EveryDay is always false\.$#'
+			identifier: match.alwaysFalse
+			count: 1
+			path: app/Models/Notification.php
+
+		-
+			message: '#^Match arm comparison between string and App\\Enums\\ScheduleType\:\:EveryNDays is always false\.$#'
+			identifier: match.alwaysFalse
+			count: 1
+			path: app/Models/Notification.php
+
+		-
+			message: '#^Match arm comparison between string and App\\Enums\\ScheduleType\:\:WeekDays is always false\.$#'
+			identifier: match.alwaysFalse
+			count: 1
+			path: app/Models/Notification.php
+
+		-
+			message: '#^Match expression does not handle remaining value\: string$#'
+			identifier: match.unhandled
+			count: 1
+			path: app/Models/Notification.php
+
+		-
+			message: '#^Parameter \#1 \$array of function sort expects TArray of array\<T\>, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Models/Notification.php
+
+		-
+			message: '#^Parameter \#2 \$array of function implode expects array, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Models/Notification.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\ScheduleType\:\:AsNeeded will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Models/Notification.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>timezone" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 3
+			path: app/Models/Notification.php
+
+		-
+			message: '#^Cannot call method copy\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 3
+			path: app/Services/NotificationEventService.php
+
+		-
+			message: '#^Match arm comparison between string and App\\Enums\\ScheduleType\:\:AsNeeded is always false\.$#'
+			identifier: match.alwaysFalse
+			count: 1
+			path: app/Services/NotificationEventService.php
+
+		-
+			message: '#^Match arm comparison between string and App\\Enums\\ScheduleType\:\:Cyclical is always false\.$#'
+			identifier: match.alwaysFalse
+			count: 2
+			path: app/Services/NotificationEventService.php
+
+		-
+			message: '#^Match arm comparison between string and App\\Enums\\ScheduleType\:\:EveryDay is always false\.$#'
+			identifier: match.alwaysFalse
+			count: 2
+			path: app/Services/NotificationEventService.php
+
+		-
+			message: '#^Match arm comparison between string and App\\Enums\\ScheduleType\:\:EveryNDays is always false\.$#'
+			identifier: match.alwaysFalse
+			count: 2
+			path: app/Services/NotificationEventService.php
+
+		-
+			message: '#^Match arm comparison between string and App\\Enums\\ScheduleType\:\:WeekDays is always false\.$#'
+			identifier: match.alwaysFalse
+			count: 2
+			path: app/Services/NotificationEventService.php
+
+		-
+			message: '#^Match expression does not handle remaining value\: string$#'
+			identifier: match.unhandled
+			count: 1
+			path: app/Services/NotificationEventService.php
+
+		-
+			message: '#^Method App\\Services\\NotificationEventService\:\:getNextOccurrenceDate\(\) never returns Illuminate\\Support\\Carbon so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: app/Services/NotificationEventService.php
+
+		-
+			message: '#^Parameter \#2 \$haystack of function in_array expects array, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/NotificationEventService.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\ScheduleType\:\:AsNeeded will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 2
+			path: app/Services/NotificationEventService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>timezone" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: app/Services/NotificationEventService.php
