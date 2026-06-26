@@ -13,7 +13,7 @@ class EmailVerificationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_already_verified_user_is_redirected_to_home_on_verification_link(): void
+    public function test_already_verified_user_is_redirected_to_profile_on_verification_link(): void
     {
         $user = User::factory()->create();
 
@@ -25,10 +25,10 @@ class EmailVerificationTest extends TestCase
 
         $this->actingAs($user)
             ->get($verificationUrl)
-            ->assertRedirect(route('home'));
+            ->assertRedirect(route('profile.edit'));
     }
 
-    public function test_unverified_user_can_verify_email_and_is_redirected_to_home(): void
+    public function test_unverified_user_can_verify_email_and_is_redirected_to_profile(): void
     {
         Event::fake();
 
@@ -42,7 +42,7 @@ class EmailVerificationTest extends TestCase
 
         $this->actingAs($user)
             ->get($verificationUrl)
-            ->assertRedirect(route('home'));
+            ->assertRedirect(route('profile.edit'));
 
         $this->assertNotNull($user->fresh()->email_verified_at);
         Event::assertDispatched(Verified::class);
