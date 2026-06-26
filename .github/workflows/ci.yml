@@ -6,7 +6,7 @@ on:
 
 jobs:
   ci:
-    name: Tests, Pint & PHPStan
+    name: CI
     runs-on: ubuntu-latest
 
     services:
@@ -47,7 +47,7 @@ jobs:
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
       - name: Install npm dependencies and build assets
-        run: npm ci && npm run build
+        run: npm install && npm run build
 
       - name: Copy .env
         run: cp .env.example .env
@@ -60,6 +60,25 @@ jobs:
 
       - name: Run PHPStan
         run: vendor/bin/phpstan analyse --memory-limit=512M --no-progress
+
+      - name: Check for debug statements
+        run: |
+          if grep -rn --include="*.php" -E "^\s*(dd|ddd|dump|var_dump|print_r|ray)\s*\(" app/ routes/; then
+            echo "Debug statements found in source code!"
+            exit 1
+          fi
+
+      - name: Security audit (PHP)
+        run: composer audit
+
+      - name: Security audit (JS)
+        run: npm audit --audit-level=high
+
+      - name: Validate Laravel Config & Routes
+        run: |
+          php artisan config:cache
+          php artisan config:clear
+          php artisan route:list --except-vendor
 
       - name: Run migrations
         run: php artisan migrate --force

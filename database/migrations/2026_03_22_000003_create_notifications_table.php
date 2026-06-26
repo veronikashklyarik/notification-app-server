@@ -20,10 +20,11 @@ return new class extends Migration
             $table->unsignedInteger('frequency_value')->nullable();
             $table->string('frequency_unit')->nullable();
             $table->timestamp('starts_at')->nullable();
-            $table->timestamp('next_due_at')->nullable();
+            $table->datetime('next_due_at')->nullable();
             $table->boolean('is_active')->default(true);
-            $table->timestamps();
-            $table->softDeletes();
+            $table->datetime('created_at')->nullable();
+            $table->datetime('updated_at')->nullable();
+            $table->datetime('deleted_at')->nullable();
         });
     }
 

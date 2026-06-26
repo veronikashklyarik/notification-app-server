@@ -17,9 +17,10 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('action');
             $table->text('comment')->nullable();
-            $table->timestamp('postponed_until')->nullable();
-            $table->timestamp('due_at')->nullable();
-            $table->timestamps();
+            $table->datetime('postponed_until')->nullable();
+            $table->datetime('due_at')->nullable();
+            $table->datetime('created_at')->nullable();
+            $table->datetime('updated_at')->nullable();
         });
     }
 
