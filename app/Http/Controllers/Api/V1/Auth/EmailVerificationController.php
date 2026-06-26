@@ -40,18 +40,24 @@ class EmailVerificationController extends Controller
      */
     public function verify(Request $request, int $id, string $hash): RedirectResponse|Response
     {
-        if (! $request->hasValidSignature()) {
-            return redirect(config('app.deeplink_scheme').'://email-verification-failed?reason=expired');
-        }
+        $isWeb = $request->query('source') === 'web';
 
         $user = User::findOrFail($id);
 
         if (! hash_equals($hash, sha1($user->getEmailForVerification()))) {
+            if ($isWeb) {
+                return redirect(route('profile.edit'))->with('error', 'The verification link is invalid. Please request a new one.');
+            }
+
             return redirect(config('app.deeplink_scheme').'://email-verification-failed?reason=invalid');
         }
 
         if (! $user->hasVerifiedEmail()) {
             $user->markEmailAsVerified();
+        }
+
+        if ($isWeb) {
+            return redirect(route('profile.edit'))->with('success', 'Email verified successfully!');
         }
 
         return redirect(config('app.deeplink_scheme').'://email-verified');
