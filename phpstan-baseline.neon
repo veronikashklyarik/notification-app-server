@@ -407,3 +407,9 @@ parameters:
 			identifier: nullsafe.neverNull
 			count: 2
 			path: app/Services/NotificationEventService.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Schema\\ForeignIdColumnDefinition\:\:nullOnDelete\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: database/migrations/2026_03_26_141106_create_notification_events_and_refactor.php
