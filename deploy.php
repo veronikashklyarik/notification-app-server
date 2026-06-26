@@ -35,7 +35,7 @@ host('64.227.122.5')
 
 desc('Install & build npm packages');
 task('npm:build', function () {
-    run('cd {{release_path}} && npm ci && npm run build');
+    run('cd {{release_path}} && npm install && npm run build');
 });
 
 desc('Restart PHP-FPM to clear OPcache');
