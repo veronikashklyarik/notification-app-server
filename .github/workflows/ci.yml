@@ -47,7 +47,7 @@ jobs:
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
       - name: Install npm dependencies and build assets
-        run: npm ci && npm run build
+        run: npm install && npm run build
 
       - name: Copy .env
         run: cp .env.example .env
