@@ -15,12 +15,12 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignId('notification_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->timestamp('scheduled_at');
+            $table->datetime('scheduled_at');
             $table->string('status')->default('pending');
-            $table->timestamp('postponed_until')->nullable();
+            $table->datetime('postponed_until')->nullable();
             $table->json('postpone_history')->nullable();
             $table->text('comment')->nullable();
-            $table->timestamp('completed_at')->nullable();
+            $table->datetime('completed_at')->nullable();
             $table->timestamps();
 
             $table->index(['notification_id', 'status']);
