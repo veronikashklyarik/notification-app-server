@@ -16,4 +16,9 @@ class ExampleTest extends TestCase
 
         $response->assertRedirect(route('home'));
     }
+
+    public function test_intentional_failure(): void
+    {
+        $this->assertTrue(false, 'This test intentionally fails to verify CI blocks the merge.');
+    }
 }
