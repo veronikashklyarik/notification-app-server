@@ -144,6 +144,12 @@
             </form>
         </div>
 
+        {{-- Notifications --}}
+        <div class="bg-white rounded-3xl md:rounded-2xl border md:border border-gray-100 md:border-gray-200 p-6 shadow-sm md:shadow-none">
+            <h2 class="text-base font-bold md:font-semibold text-gray-900 mb-5">Notifications</h2>
+            <x-push-notification-settings />
+        </div>
+
     </div>
 
     {{-- Mobile Sign Out Button --}}
