@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\PushSubscriptionController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\EmailVerificationNoticeController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
@@ -47,6 +48,11 @@ Route::middleware('auth')->group(function (): void {
     Route::post('email/verification-notification', ResendVerificationEmailController::class)
         ->middleware('throttle:6,1')
         ->name('verification.send');
+});
+
+Route::middleware('auth')->group(function (): void {
+    Route::post('push-subscriptions/subscribe', [PushSubscriptionController::class, 'store'])->name('push-subscriptions.subscribe');
+    Route::delete('push-subscriptions/unsubscribe', [PushSubscriptionController::class, 'destroy'])->name('push-subscriptions.unsubscribe');
 });
 
 Route::middleware('auth')->group(function (): void {
