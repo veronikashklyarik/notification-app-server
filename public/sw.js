@@ -80,3 +80,46 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 });
+
+// Web Push: display notification when received from server
+self.addEventListener('push', (event) => {
+    let data = { title: 'Notifyr', body: '' };
+
+    if (event.data) {
+        try {
+            data = { ...data, ...event.data.json() };
+        } catch {
+            data.body = event.data.text();
+        }
+    }
+
+    event.waitUntil(
+        self.registration.showNotification(data.title, {
+            body: data.body,
+            icon: data.icon ?? '/icon-192.png',
+            badge: data.badge ?? '/badge-72.png',
+            tag: data.tag ?? 'notifyr',
+            requireInteraction: data.requireInteraction ?? false,
+            vibrate: [100, 50, 100],
+            data: { url: data.url ?? '/' },
+        })
+    );
+});
+
+// Web Push: open/focus the app when the notification is clicked
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+
+    const urlToOpen = event.notification.data?.url ?? '/';
+
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+            for (const client of windowClients) {
+                if (client.url === urlToOpen && 'focus' in client) {
+                    return client.focus();
+                }
+            }
+            return clients.openWindow(urlToOpen);
+        })
+    );
+});

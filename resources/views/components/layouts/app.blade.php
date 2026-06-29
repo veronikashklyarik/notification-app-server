@@ -228,6 +228,7 @@
         </div>
     </nav>
 
+    <x-web-push />
     @livewireScripts
     <script>
         if ('serviceWorker' in navigator) {
