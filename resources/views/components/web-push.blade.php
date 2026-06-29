@@ -89,6 +89,11 @@
     let subscription = null;
 
     async function init() {
+        // If permission is already denied, the button is useless — hide it permanently
+        if (Notification.permission === 'denied') {
+            return;
+        }
+
         try {
             reg          = await navigator.serviceWorker.ready;
             subscription = await reg.pushManager.getSubscription();
@@ -124,7 +129,13 @@
             } else {
                 // Subscribe
                 const permission = await Notification.requestPermission();
+                if (permission === 'denied') {
+                    // Permission explicitly blocked — hide the button, it's useless now
+                    container.style.display = 'none';
+                    return;
+                }
                 if (permission !== 'granted') {
+                    // Dismissed without a choice — leave button visible so user can try again
                     text.textContent = 'Enable Notifications';
                     btn.disabled = false;
                     return;
@@ -153,7 +164,15 @@
             }
         } catch (err) {
             console.error('Web Push error:', err);
-            text.textContent = 'Enable Notifications';
+            // If subscribe() threw, it's likely an unsupported platform or permission issue.
+            // Hide the button if permission ended up denied; otherwise reset so user can retry.
+            if (Notification.permission === 'denied') {
+                container.style.display = 'none';
+            } else {
+                text.textContent = 'Enable Notifications';
+                btn.disabled = false;
+            }
+            return;
         }
 
         btn.disabled = false;
