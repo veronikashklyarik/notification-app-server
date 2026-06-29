@@ -7,7 +7,7 @@
 - [ ] E2E browser tests (Pest v4) for critical paths: login → home, create notification, mark event done
 
 ### Future scope
-- [ ] Web Push API notifications
+- [x] Web Push API notifications **Completed:** 2026-06-29
 - [ ] Real-time Livewire broadcasts (upgrade from wire:poll)
 - [ ] Dark mode support
 - [ ] Accessibility (WCAG compliance)

@@ -75,4 +75,14 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(DeviceToken::class);
     }
+
+    /**
+     * Get the web push subscriptions for the user.
+     *
+     * @return HasMany<PushSubscription, $this>
+     */
+    public function pushSubscriptions(): HasMany
+    {
+        return $this->hasMany(PushSubscription::class);
+    }
 }

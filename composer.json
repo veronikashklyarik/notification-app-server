@@ -17,6 +17,7 @@
         "laravel/sanctum": "^4.3",
         "laravel/tinker": "^3.0",
         "livewire/livewire": "^4.3",
+        "minishlink/web-push": "^8.0",
         "symfony/http-client": "^8.0",
         "symfony/mailgun-mailer": "^8.0"
     },

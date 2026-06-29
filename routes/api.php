@@ -11,12 +11,18 @@ use App\Http\Controllers\Api\V1\DeviceTokenController;
 use App\Http\Controllers\Api\V1\EventController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\ProfileController;
+use App\Http\Controllers\Api\V1\PushSubscriptionController;
 use App\Http\Controllers\Api\V1\VersionController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function (): void {
     // Version check (public endpoint)
     Route::get('version/check', [VersionController::class, 'check'])->name('api.v1.version.check');
+
+    // VAPID public key (public endpoint — no auth required)
+    Route::get('push-subscriptions/vapid-public-key', [PushSubscriptionController::class, 'vapidPublicKey'])
+        ->middleware('throttle:6,1')
+        ->name('api.v1.push-subscriptions.vapid-public-key');
 
     Route::get('auth/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
         ->middleware(['signed', 'throttle:6,1'])
@@ -44,6 +50,9 @@ Route::prefix('v1')->group(function (): void {
 
         Route::post('device-tokens', [DeviceTokenController::class, 'store'])->name('api.v1.device-tokens.store');
         Route::delete('device-tokens', [DeviceTokenController::class, 'destroy'])->name('api.v1.device-tokens.destroy');
+
+        Route::post('push-subscriptions', [PushSubscriptionController::class, 'store'])->name('api.v1.push-subscriptions.store');
+        Route::delete('push-subscriptions', [PushSubscriptionController::class, 'destroy'])->name('api.v1.push-subscriptions.destroy');
 
         Route::apiResource('notifications', NotificationController::class)->names([
             'index' => 'api.v1.notifications.index',
