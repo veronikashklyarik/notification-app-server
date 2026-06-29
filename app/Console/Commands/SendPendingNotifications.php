@@ -23,22 +23,26 @@ class SendPendingNotifications extends Command
             ->with('notification', 'user.pushSubscriptions')
             ->where('status', EventStatus::Pending)
             ->where('scheduled_at', '<=', now())
+            ->whereNull('notified_at')
             ->get();
 
         foreach ($events as $event) {
             DB::transaction(function () use ($event): void {
-                $event->update(['status' => EventStatus::Done]);
+                // Mark as notified so cron doesn't re-send. Status stays Pending
+                // until the user explicitly marks it Done / Cancelled / Postponed.
+                $event->update(['notified_at' => now()]);
 
                 if ($event->notification === null || $event->notification->trashed()) {
-                    // Orphaned event (parent notification deleted) — mark Done and skip delivery
+                    // Orphaned event (parent notification deleted) — skip delivery
                     return;
                 }
 
                 $title = $event->notification->name;
                 $body = $event->notification->description ?? '';
+                $url = route('events.show', $event);
 
                 foreach ($event->user->pushSubscriptions as $subscription) {
-                    dispatch(new SendPushNotificationJob($subscription, $title, $body))->afterCommit();
+                    dispatch(new SendPushNotificationJob($subscription, $title, $body, ['url' => $url]))->afterCommit();
                 }
             });
         }

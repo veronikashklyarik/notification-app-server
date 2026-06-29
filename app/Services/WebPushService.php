@@ -38,7 +38,7 @@ class WebPushService
             $payload = json_encode([
                 'title' => $title,
                 'body' => $body,
-                'data' => $options,
+                ...$options,
             ]);
 
             $report = $webPush->sendOneNotification($sub, $payload);
