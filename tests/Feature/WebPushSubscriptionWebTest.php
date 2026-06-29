@@ -12,6 +12,26 @@ class WebPushSubscriptionWebTest extends TestCase
     use RefreshDatabase;
 
     // ---------------------------------------------------------------------------
+    // Profile page integration
+    // ---------------------------------------------------------------------------
+
+    public function test_profile_page_shows_push_notification_settings_for_authenticated_users(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get(route('profile.edit'))
+            ->assertOk()
+            ->assertSee('Push Notifications');
+    }
+
+    public function test_profile_page_does_not_show_push_notification_settings_for_guests(): void
+    {
+        $this->get(route('profile.edit'))
+            ->assertRedirect(route('login'));
+    }
+
+    // ---------------------------------------------------------------------------
     // POST /push-subscriptions/subscribe (web session auth)
     // ---------------------------------------------------------------------------
 
