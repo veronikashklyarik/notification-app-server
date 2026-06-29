@@ -1,5 +1,4 @@
 @auth
-@if('serviceWorker' !== '' && 'PushManager' !== '')
 <div
     x-data="pushNotificationSettings()"
     x-init="init()"
@@ -72,7 +71,7 @@
                 <div class="mt-3 p-3 bg-amber-50 rounded-xl text-xs text-amber-800 space-y-1 leading-relaxed">
                     <p class="font-semibold">To enable notifications:</p>
                     <p>1. Open the <strong>Settings</strong> app on your iPhone</p>
-                    <p>2. Scroll down and tap <strong>Notifyr</strong></p>
+                    <p>2. Scroll down and tap <strong>{{ config('app.name') }}</strong></p>
                     <p>3. Tap <strong>Notifications</strong> and toggle <strong>Allow Notifications</strong> on</p>
                     <p>4. Return here and reload the app</p>
                 </div>
@@ -255,5 +254,4 @@ function pushNotificationSettings() {
     };
 }
 </script>
-@endif
 @endauth

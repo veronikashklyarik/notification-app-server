@@ -177,6 +177,13 @@
         </div>
     </div>
 
+    {{-- Push Notifications --}}
+    <div class="px-4 mt-4">
+        <div class="card p-4">
+            <x-push-notification-settings />
+        </div>
+    </div>
+
     {{-- Add to Home Screen --}}
     <div x-data class="px-4 mt-4">
         <template x-if="!window.matchMedia('(display-mode: standalone)').matches && window.navigator.standalone !== true">
