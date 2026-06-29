@@ -18,7 +18,8 @@ return new class extends Migration
             $table->unique(['endpoint', 'user_id']);
             $table->string('p256dh');
             $table->string('auth');
-            $table->timestamps();
+            $table->datetime('created_at')->nullable();
+            $table->datetime('updated_at')->nullable();
         });
     }
 
