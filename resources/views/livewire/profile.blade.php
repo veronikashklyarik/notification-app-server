@@ -87,6 +87,17 @@
                     </select>
                 </div>
 
+                <div>
+                    <label for="reminderInterval" class="block mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Reminder Interval</label>
+                    <select id="reminderInterval" wire:model="reminderInterval" class="input-styled w-full">
+                        <option value="">No reminders</option>
+                        @foreach(\App\Livewire\Profile::REMINDER_INTERVALS as $minutes => $label)
+                            <option value="{{ $minutes }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    <p class="mt-1.5 text-xs text-gray-400">Repeat push notifications for pending events at this interval</p>
+                </div>
+
                 <button type="submit" class="btn-primary w-full py-3 text-sm" wire:loading.attr="disabled">
                     <span wire:loading.remove wire:target="updateProfile">Save Profile</span>
                     <span wire:loading wire:target="updateProfile">Saving...</span>

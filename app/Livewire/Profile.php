@@ -25,9 +25,22 @@ class Profile extends Component
 {
     use WithFileUploads;
 
+    /** @var array<int, string> */
+    public const array REMINDER_INTERVALS = [
+        15 => 'Every 15 minutes',
+        30 => 'Every 30 minutes',
+        60 => 'Every hour',
+        120 => 'Every 2 hours',
+        240 => 'Every 4 hours',
+        480 => 'Every 8 hours',
+        1440 => 'Every 24 hours',
+    ];
+
     public string $profileName = '';
 
     public string $timezone = '';
+
+    public ?int $reminderInterval = null;
 
     public string $current_password = '';
 
@@ -46,6 +59,7 @@ class Profile extends Component
         $user = Auth::user();
         $this->profileName = $user->name;
         $this->timezone = $user->timezone ?? 'UTC';
+        $this->reminderInterval = $user->reminder_interval;
     }
 
     public function updatedAvatar(): void
@@ -138,6 +152,7 @@ class Profile extends Component
         $validated = $this->validate([
             'profileName' => 'required|string|max:255',
             'timezone' => 'required|string|timezone',
+            'reminderInterval' => 'nullable|integer|in:'.implode(',', array_keys(self::REMINDER_INTERVALS)),
         ]);
 
         $user = Auth::user();
@@ -145,6 +160,7 @@ class Profile extends Component
         $user->update([
             'name' => $validated['profileName'],
             'timezone' => $validated['timezone'],
+            'reminder_interval' => $validated['reminderInterval'] ?? null,
         ]);
 
         session()->flash('success', 'Profile updated.');
