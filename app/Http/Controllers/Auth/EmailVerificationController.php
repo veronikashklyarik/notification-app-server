@@ -22,6 +22,6 @@ class EmailVerificationController extends Controller
             event(new Verified($request->user()));
         }
 
-        return redirect()->intended(route('profile.edit'))->with('status', 'Email verified successfully!');
+        return redirect()->intended(route('profile.edit'))->with('status', __('Email verified successfully!'));
     }
 }

@@ -5,7 +5,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
             </svg>
         </a>
-        <h1 class="text-xl font-bold text-gray-900">New Reminder</h1>
+        <h1 class="text-xl font-bold text-gray-900">{{ __('New Reminder') }}</h1>
     </div>
 
     @if($errors->any())
@@ -18,19 +18,19 @@
 
     <form wire:submit="save" class="space-y-5">
         <div>
-            <label for="name" class="block mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</label>
+            <label for="name" class="block mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('Name') }}</label>
             <input type="text" id="name" wire:model="name" required
-                class="input-styled w-full" placeholder="e.g. Take vitamins">
+                class="input-styled w-full" placeholder="{{ __('e.g. Take vitamins') }}">
         </div>
 
         <div>
-            <label for="description" class="block mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Description <span class="text-gray-300">(optional)</span></label>
+            <label for="description" class="block mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('Description') }} <span class="text-gray-300">({{ __('optional') }})</span></label>
             <textarea id="description" wire:model="description" rows="2"
-                class="input-styled w-full resize-none" placeholder="Add details..."></textarea>
+                class="input-styled w-full resize-none" placeholder="{{ __('Add details...') }}"></textarea>
         </div>
 
         <div>
-            <label class="block mb-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Schedule</label>
+            <label class="block mb-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('Schedule') }}</label>
             <div class="grid grid-cols-2 gap-2">
                 @foreach([
                     'every_day' => ['Every Day', 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'],
@@ -47,7 +47,7 @@
                             <svg class="w-4 h-4 shrink-0 text-gray-400 peer-checked:text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $icon }}" />
                             </svg>
-                            <span class="text-sm font-medium text-gray-700">{{ $label }}</span>
+                            <span class="text-sm font-medium text-gray-700">{{ __($label) }}</span>
                         </div>
                     </label>
                 @endforeach
@@ -56,7 +56,7 @@
 
         @if($schedule_type === 'week_days')
             <div>
-                <label class="block mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Days of Week</label>
+                <label class="block mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('Days of Week') }}</label>
                 <div class="flex gap-1.5">
                     @php $dayLabels = [1 => 'Mo', 2 => 'Tu', 3 => 'We', 4 => 'Th', 5 => 'Fr', 6 => 'Sa', 7 => 'Su']; @endphp
                     @foreach($dayLabels as $day => $label)
@@ -65,7 +65,7 @@
                             <span class="flex items-center justify-center py-2.5 text-xs font-bold border-2 rounded-xl cursor-pointer transition-all
                                 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-600 peer-checked:shadow-sm
                                 text-gray-500 border-gray-200 hover:border-gray-300">
-                                {{ $label }}
+                                {{ __($label) }}
                             </span>
                         </label>
                     @endforeach
@@ -75,24 +75,24 @@
 
         @if($schedule_type === 'every_n_days')
             <div>
-                <label class="block mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Repeat every</label>
+                <label class="block mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('Repeat every') }}</label>
                 <div class="flex items-center gap-2">
                     <input type="number" wire:model="every_n_days" min="1" max="365"
                         class="input-styled w-24 text-center">
-                    <span class="text-sm font-medium text-gray-500">days</span>
+                    <span class="text-sm font-medium text-gray-500">{{ __('days') }}</span>
                 </div>
             </div>
         @endif
 
         @if($schedule_type === 'cyclical')
             <div>
-                <label class="block mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Repeat every</label>
+                <label class="block mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('Repeat every') }}</label>
                 <div class="flex items-center gap-2">
                     <input type="number" wire:model="cyclical_value" min="1"
                         class="input-styled w-24 text-center">
                     <select wire:model="cyclical_unit" class="input-styled flex-1">
                         @foreach(['days' => 'Days', 'weeks' => 'Weeks', 'months' => 'Months', 'years' => 'Years'] as $val => $lbl)
-                            <option value="{{ $val }}">{{ $lbl }}</option>
+                            <option value="{{ $val }}">{{ __($lbl) }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -101,7 +101,7 @@
 
         @if($schedule_type !== 'as_needed')
             <div>
-                <label class="block mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Times</label>
+                <label class="block mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('Times') }}</label>
                 @foreach($times as $index => $time)
                     <div class="flex items-center gap-2 mb-2">
                         <input type="time" wire:model="times.{{ $index }}" class="input-styled flex-1">
@@ -119,31 +119,31 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
                     </svg>
-                    Add time
+                    {{ __('Add time') }}
                 </button>
             </div>
         @endif
 
         <div class="grid grid-cols-2 gap-3">
             <div>
-                <label for="starts_at" class="block mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Start Date</label>
-                <input type="date" id="starts_at" wire:model="starts_at" class="input-styled w-full">
+                <label for="starts_at" class="block mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('Start Date') }}</label>
+                <input type="date" id="starts_at" wire:model="starts_at" lang="{{ app()->getLocale() }}" class="input-styled w-full">
             </div>
             <div>
-                <label for="ends_at" class="block mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">End Date</label>
-                <input type="date" id="ends_at" wire:model="ends_at" class="input-styled w-full">
+                <label for="ends_at" class="block mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('End Date') }}</label>
+                <input type="date" id="ends_at" wire:model="ends_at" lang="{{ app()->getLocale() }}" class="input-styled w-full">
             </div>
         </div>
 
         <label class="flex items-center justify-between p-4 bg-white border-2 border-gray-200 rounded-xl cursor-pointer hover:border-gray-300 transition-colors">
-            <span class="text-sm font-semibold text-gray-700">Active</span>
+            <span class="text-sm font-semibold text-gray-700">{{ __('Active') }}</span>
             <input type="checkbox" wire:model="is_active"
                 class="w-5 h-5 text-indigo-600 rounded-md border-gray-300 focus:ring-indigo-500">
         </label>
 
         <button type="submit" class="btn-primary w-full py-3.5 text-sm mt-2" wire:loading.attr="disabled">
-            <span wire:loading.remove wire:target="save">Create Reminder</span>
-            <span wire:loading wire:target="save">Creating...</span>
+            <span wire:loading.remove wire:target="save">{{ __('Create Reminder') }}</span>
+            <span wire:loading wire:target="save">{{ __('Creating...') }}</span>
         </button>
     </form>
 </div>

@@ -80,7 +80,7 @@ class NotificationShow extends Component
 
         $this->notification->delete();
 
-        session()->flash('success', 'Reminder deleted.');
+        session()->flash('success', __('Reminder deleted.'));
 
         $this->redirect(route('notifications.index'));
     }

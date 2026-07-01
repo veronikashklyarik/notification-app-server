@@ -8,7 +8,7 @@
                 </svg>
             </a>
             <div class="min-w-0 flex-1">
-                <h1 class="text-xl font-bold text-gray-900 truncate">Event Details</h1>
+                <h1 class="text-xl font-bold text-gray-900 truncate">{{ __('Event Details') }}</h1>
             </div>
             <span class="px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-lg
                 @if($event->status === \App\Enums\EventStatus::Pending) text-blue-600 bg-blue-50 border border-blue-200
@@ -16,7 +16,7 @@
                 @elseif($event->status === \App\Enums\EventStatus::Postponed) text-amber-600 bg-amber-50 border border-amber-200
                 @else text-gray-500 bg-gray-100 border border-gray-200
                 @endif">
-                {{ $event->status->value }}
+                {{ __($event->status->value) }}
             </span>
         </div>
     </div>
@@ -33,24 +33,24 @@
                         <p class="mt-1 text-sm text-gray-400 leading-relaxed">{{ $event->notification->description }}</p>
                     @endif
                 @else
-                    <p class="text-lg font-bold text-gray-400">Deleted reminder</p>
+                    <p class="text-lg font-bold text-gray-400">{{ __('Deleted reminder') }}</p>
                 @endif
             </div>
 
             <div class="grid grid-cols-2 gap-3">
                 <div class="p-3 rounded-2xl bg-gray-50">
-                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Date</p>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{ __('Date') }}</p>
                     <p class="mt-1 text-sm font-bold text-gray-900">@userTime($event->scheduled_at, 'M j, Y')</p>
                 </div>
                 <div class="p-3 rounded-2xl bg-gray-50">
-                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Time</p>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{ __('Time') }}</p>
                     <p class="mt-1 text-sm font-bold text-gray-900">@userTime($event->scheduled_at, 'H:i')</p>
                 </div>
             </div>
 
             @if($event->comment)
                 <div class="p-3 rounded-2xl bg-gray-50">
-                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Comment</p>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{ __('Comment') }}</p>
                     <p class="mt-1 text-sm text-gray-700">{{ $event->comment }}</p>
                 </div>
             @endif
@@ -59,10 +59,10 @@
                 @php
                     $isGreen = $event->status === \App\Enums\EventStatus::Done;
                     $label = match($event->status) {
-                        \App\Enums\EventStatus::Done => 'Completed',
-                        \App\Enums\EventStatus::Cancelled => 'Cancelled',
-                        \App\Enums\EventStatus::Postponed => 'Postponed at',
-                        default => 'Completed',
+                        \App\Enums\EventStatus::Done => __('Completed'),
+                        \App\Enums\EventStatus::Cancelled => __('Cancelled'),
+                        \App\Enums\EventStatus::Postponed => __('Postponed at'),
+                        default => __('Completed'),
                     };
                 @endphp
                 <div class="p-3 rounded-2xl {{ $isGreen ? 'bg-green-50' : 'bg-gray-50' }}">
@@ -73,7 +73,7 @@
 
             @if($event->postpone_history && count($event->postpone_history) > 0)
                 <div>
-                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Postpone History</p>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">{{ __('Postpone History') }}</p>
                     @foreach($event->postpone_history as $entry)
                         <div class="flex items-center gap-2 py-1.5">
                             <div class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></div>
@@ -91,8 +91,8 @@
     @if($event->status !== \App\Enums\EventStatus::Pending)
         <div class="px-4 mt-5">
             <button wire:click="revertToPending" wire:loading.attr="disabled" wire:target="revertToPending" class="w-full py-3 text-sm font-bold text-amber-600 bg-amber-50 rounded-xl border border-amber-200 hover:bg-amber-100 active:scale-[0.98] transition-all shadow-sm disabled:opacity-50">
-                <span wire:loading.remove wire:target="revertToPending">Revert to Pending</span>
-                <span wire:loading wire:target="revertToPending">Reverting...</span>
+                <span wire:loading.remove wire:target="revertToPending">{{ __('Revert to Pending') }}</span>
+                <span wire:loading wire:target="revertToPending">{{ __('Reverting...') }}</span>
             </button>
         </div>
     @endif
@@ -101,18 +101,18 @@
     @if($event->status === \App\Enums\EventStatus::Pending)
         <div class="px-4 mt-5 flex gap-3">
             <button wire:click="markDone" wire:loading.attr="disabled" wire:target="markDone" class="flex-1 py-3 text-sm font-bold text-green-700 bg-green-50 rounded-xl border border-green-200 hover:bg-green-100 active:scale-[0.98] transition-all shadow-sm disabled:opacity-50">
-                <span wire:loading.remove wire:target="markDone">Mark Done</span>
-                <span wire:loading wire:target="markDone">Saving...</span>
+                <span wire:loading.remove wire:target="markDone">{{ __('Mark Done') }}</span>
+                <span wire:loading wire:target="markDone">{{ __('Saving...') }}</span>
             </button>
             <button wire:click="markCancelled" wire:loading.attr="disabled" wire:target="markCancelled" class="flex-1 py-3 text-sm font-bold text-gray-500 bg-white rounded-xl border border-gray-200 hover:bg-gray-50 active:scale-[0.98] transition-all shadow-sm disabled:opacity-50">
-                <span wire:loading.remove wire:target="markCancelled">Cancel</span>
-                <span wire:loading wire:target="markCancelled">Saving...</span>
+                <span wire:loading.remove wire:target="markCancelled">{{ __('Cancel') }}</span>
+                <span wire:loading wire:target="markCancelled">{{ __('Saving...') }}</span>
             </button>
         </div>
 
         <div class="px-4 mt-4 mb-6">
             <div class="card p-5">
-                <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Update Event</h2>
+                <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">{{ __('Update Event') }}</h2>
 
                 @if($errors->any())
                     <div class="p-3 mb-4 text-sm text-red-600 bg-red-50/80 rounded-xl border border-red-100">
@@ -124,31 +124,31 @@
 
                 <form wire:submit="update" class="space-y-4">
                     <div>
-                        <label class="block mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</label>
+                        <label class="block mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('Status') }}</label>
                         <select wire:model.live="status" class="input-styled w-full">
-                            <option value="">Select status...</option>
-                            <option value="done">Done</option>
-                            <option value="cancelled">Cancelled</option>
-                            <option value="postponed">Postponed</option>
+                            <option value="">{{ __('Select status...') }}</option>
+                            <option value="done">{{ __('Done') }}</option>
+                            <option value="cancelled">{{ __('Cancelled') }}</option>
+                            <option value="postponed">{{ __('Postponed at') }}</option>
                         </select>
                     </div>
 
                     @if($status === 'postponed')
                         <div>
-                            <label class="block mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Postpone Until</label>
-                            <input type="datetime-local" wire:model="postponed_until" class="input-styled w-full">
+                            <label class="block mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('Postpone Until') }}</label>
+                            <input type="datetime-local" wire:model="postponed_until" lang="{{ app()->getLocale() }}" class="input-styled w-full">
                         </div>
                     @endif
 
                     <div>
-                        <label class="block mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Comment <span class="text-gray-300">(optional)</span></label>
+                        <label class="block mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('Comment') }} <span class="text-gray-300">({{ __('optional') }})</span></label>
                         <textarea wire:model="comment" rows="2" class="input-styled w-full resize-none"
-                            placeholder="Add a note..."></textarea>
+                            placeholder="{{ __('Add a note...') }}"></textarea>
                     </div>
 
                     <button type="submit" class="btn-primary w-full py-3 text-sm" wire:loading.attr="disabled">
-                        <span wire:loading.remove wire:target="update">Update Event</span>
-                        <span wire:loading wire:target="update">Updating...</span>
+                        <span wire:loading.remove wire:target="update">{{ __('Update Event') }}</span>
+                        <span wire:loading wire:target="update">{{ __('Updating...') }}</span>
                     </button>
                 </form>
             </div>

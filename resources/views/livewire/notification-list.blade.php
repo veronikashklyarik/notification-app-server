@@ -3,16 +3,16 @@
     <div class="px-5 pt-6 pb-4">
         <div class="flex items-center justify-between">
             <div>
-                <h1 class="text-[28px] font-bold text-gray-900 tracking-tight">Reminders</h1>
+                <h1 class="text-[28px] font-bold text-gray-900 tracking-tight">{{ __('Reminders') }}</h1>
                 @if($total > 0)
-                    <p class="text-xs text-gray-400 mt-0.5">Showing {{ $notifications->count() }} of {{ $total }}</p>
+                    <p class="text-xs text-gray-400 mt-0.5">{{ __('Showing :count of :total', ['count' => $notifications->count(), 'total' => $total]) }}</p>
                 @endif
             </div>
             <a href="{{ route('notifications.create') }}" class="btn-primary px-4 py-2.5 text-sm flex items-center gap-1.5">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
                 </svg>
-                New
+                {{ __('New') }}
             </a>
         </div>
     </div>
@@ -94,7 +94,7 @@
                         <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3" />
                         </svg>
-                        <span class="text-[10px] font-bold text-white">Delete</span>
+                        <span class="text-[10px] font-bold text-white">{{ __('Delete') }}</span>
                     </button>
                 </div>
 
@@ -119,15 +119,15 @@
                         <div class="shrink-0 mt-0.5">
                             @if($notification->isEnded())
                                 <span class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-slate-500 bg-slate-100 rounded-full border border-slate-200">
-                                    Ended
+                                    {{ __('Ended') }}
                                 </span>
                             @elseif($notification->is_active)
                                 <span class="badge-shimmer inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold rounded-full shadow-sm shadow-green-500/20">
-                                    Active
+                                    {{ __('Active') }}
                                 </span>
                             @else
                                 <span class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-gray-500 bg-gray-100 rounded-full border border-gray-200">
-                                    Paused
+                                    {{ __('Paused') }}
                                 </span>
                             @endif
                         </div>
@@ -141,10 +141,10 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                     </svg>
                 </div>
-                <p class="text-lg font-bold text-gray-900">No reminders yet</p>
-                <p class="mt-1 text-sm text-gray-400">Create your first reminder to get started.</p>
+                <p class="text-lg font-bold text-gray-900">{{ __('No reminders yet') }}</p>
+                <p class="mt-1 text-sm text-gray-400">{{ __('Create your first reminder to get started.') }}</p>
                 <a href="{{ route('notifications.create') }}" class="btn-primary inline-block mt-5 px-6 py-2.5 text-sm">
-                    Create Reminder
+                    {{ __('Create Reminder') }}
                 </a>
             </div>
         @endforelse
@@ -158,8 +158,8 @@
                 wire:target="loadMore"
                 class="w-full py-3 text-sm font-semibold text-indigo-600 bg-indigo-50 rounded-2xl border border-indigo-100 active:scale-[0.98] transition-all disabled:opacity-50"
             >
-                <span wire:loading.remove wire:target="loadMore">Show more</span>
-                <span wire:loading wire:target="loadMore">Loading...</span>
+                <span wire:loading.remove wire:target="loadMore">{{ __('Show more') }}</span>
+                <span wire:loading wire:target="loadMore">{{ __('Loading...') }}</span>
             </button>
         </div>
     @endif
@@ -198,18 +198,18 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3" />
                     </svg>
                 </div>
-                <h3 class="text-base font-bold text-gray-900">Delete Reminder</h3>
+                <h3 class="text-base font-bold text-gray-900">{{ __('Delete Reminder') }}</h3>
             </div>
-            <p class="text-sm text-gray-500 mb-5">Are you sure you want to delete this reminder? This will permanently delete the reminder and all its notification history. This action cannot be undone.</p>
+            <p class="text-sm text-gray-500 mb-5">{{ __('Are you sure you want to delete this reminder? This will permanently delete the reminder and all its notification history. This action cannot be undone.') }}</p>
             <div class="flex gap-3">
                 <button type="button" @click="show = false"
                         class="flex-1 py-3 text-sm font-bold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 active:scale-[0.98] transition-all">
-                    Cancel
+                    {{ __('Cancel') }}
                 </button>
                 <button type="button"
                         @click="show = false; $wire.delete()"
                         class="flex-1 py-3 text-sm font-bold text-red-500 bg-gray-100 rounded-xl hover:bg-red-50 active:scale-[0.98] transition-all">
-                    Delete
+                    {{ __('Delete') }}
                 </button>
             </div>
         </div>

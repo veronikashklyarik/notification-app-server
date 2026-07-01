@@ -1,12 +1,12 @@
 <x-pull-to-refresh class="stagger-children">
     <div class="px-5 pt-6 pb-2">
-        <h1 class="text-[28px] font-bold text-gray-900 tracking-tight">Events</h1>
+        <h1 class="text-[28px] font-bold text-gray-900 tracking-tight">{{ __('Events') }}</h1>
     </div>
 
     {{-- Today --}}
     <div class="px-4 mt-4">
         <div class="flex items-center justify-between mb-3 px-1">
-            <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest">Today</h2>
+            <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest">{{ __('Today') }}</h2>
             @if($todayTotal > 0)
                 <span class="text-xs text-gray-400">{{ $todayEvents->count() }} / {{ $todayTotal }}</span>
             @endif
@@ -26,14 +26,14 @@
                         </a>
                         <div class="flex gap-2 shrink-0 ml-3">
                             <button wire:click="markDone('{{ $event->id }}')" wire:loading.attr="disabled" wire:target="markDone('{{ $event->id }}')" class="px-4 py-2 text-xs font-bold text-green-700 bg-green-50 rounded-xl border border-green-200 hover:bg-green-100 active:scale-95 transition-all disabled:opacity-50">
-                                <span wire:loading.remove wire:target="markDone('{{ $event->id }}')">Done</span>
+                                <span wire:loading.remove wire:target="markDone('{{ $event->id }}')">{{ __('Done') }}</span>
                                 <svg wire:loading wire:target="markDone('{{ $event->id }}')" class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                                 </svg>
                             </button>
                             <button wire:click="markCancelled('{{ $event->id }}')" wire:loading.attr="disabled" wire:target="markCancelled('{{ $event->id }}')" class="px-3 py-2 text-xs font-bold text-gray-500 bg-gray-50 rounded-xl border border-gray-200 hover:bg-gray-100 active:scale-95 transition-all disabled:opacity-50">
-                                <span wire:loading.remove wire:target="markCancelled('{{ $event->id }}')">Skip</span>
+                                <span wire:loading.remove wire:target="markCancelled('{{ $event->id }}')">{{ __('Skip') }}</span>
                                 <svg wire:loading wire:target="markCancelled('{{ $event->id }}')" class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
@@ -44,7 +44,7 @@
                 </div>
             @empty
                 <div class="card p-6 text-center">
-                    <p class="text-sm text-gray-400 font-medium">No tasks for today</p>
+                    <p class="text-sm text-gray-400 font-medium">{{ __('No tasks for today') }}</p>
                 </div>
             @endforelse
         </div>
@@ -56,8 +56,8 @@
                 wire:target="loadMoreToday"
                 class="mt-4 w-full py-3 text-sm font-semibold text-gray-600 bg-gray-50 rounded-2xl border border-gray-200 active:scale-[0.98] transition-all disabled:opacity-50"
             >
-                <span wire:loading.remove wire:target="loadMoreToday">Show more</span>
-                <span wire:loading wire:target="loadMoreToday">Loading...</span>
+                <span wire:loading.remove wire:target="loadMoreToday">{{ __('Show more') }}</span>
+                <span wire:loading wire:target="loadMoreToday">{{ __('Loading...') }}</span>
             </button>
         @endif
     </div>
@@ -65,7 +65,7 @@
     {{-- Upcoming --}}
     <div class="px-4 mt-6">
         <div class="flex items-center justify-between mb-3 px-1">
-            <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest">Upcoming</h2>
+            <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest">{{ __('Upcoming') }}</h2>
             @if($upcomingTotal > 0)
                 <span class="text-xs text-gray-400">{{ $upcomingEvents->count() }} / {{ $upcomingTotal }}</span>
             @endif
@@ -84,13 +84,13 @@
                             </div>
                         </div>
                         <span class="px-2.5 py-1 text-[10px] font-bold text-blue-600 bg-blue-50 rounded-lg uppercase tracking-wider shrink-0 ml-3">
-                            Pending
+                            {{ __('Pending') }}
                         </span>
                     </div>
                 </a>
             @empty
                 <div class="card p-6 text-center">
-                    <p class="text-sm text-gray-400 font-medium">No upcoming events</p>
+                    <p class="text-sm text-gray-400 font-medium">{{ __('No upcoming events') }}</p>
                 </div>
             @endforelse
         </div>
@@ -102,8 +102,8 @@
                 wire:target="loadMoreUpcoming"
                 class="mt-4 w-full py-3 text-sm font-semibold text-blue-600 bg-blue-50 rounded-2xl border border-blue-100 active:scale-[0.98] transition-all disabled:opacity-50"
             >
-                <span wire:loading.remove wire:target="loadMoreUpcoming">Show more</span>
-                <span wire:loading wire:target="loadMoreUpcoming">Loading...</span>
+                <span wire:loading.remove wire:target="loadMoreUpcoming">{{ __('Show more') }}</span>
+                <span wire:loading wire:target="loadMoreUpcoming">{{ __('Loading...') }}</span>
             </button>
         @endif
     </div>
@@ -112,7 +112,7 @@
     @if($recentTotal > 0)
         <div class="px-4 mt-6 mb-6">
             <div class="flex items-center justify-between mb-3 px-1">
-                <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest">Recent</h2>
+                <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest">{{ __('Recent') }}</h2>
                 <span class="text-xs text-gray-400">{{ $recentEvents->count() }} / {{ $recentTotal }}</span>
             </div>
             <div class="space-y-2">
@@ -123,7 +123,7 @@
                                 @if($event->notification)
                                     <p class="font-semibold text-gray-900 truncate">{{ $event->notification->name }}</p>
                                 @else
-                                    <p class="font-semibold text-gray-400 truncate">Deleted notification</p>
+                                    <p class="font-semibold text-gray-400 truncate">{{ __('Deleted notification') }}</p>
                                 @endif
                                 <div class="flex items-center gap-1.5 mt-1">
                                     <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -137,7 +137,7 @@
                                 @elseif($event->status === \App\Enums\EventStatus::Postponed) text-amber-600 bg-amber-50
                                 @else text-gray-500 bg-gray-100
                                 @endif">
-                                {{ $event->status->value }}
+                                {{ __($event->status->value) }}
                             </span>
                         </div>
                     </a>
@@ -151,8 +151,8 @@
                     wire:target="loadMoreRecent"
                     class="mt-4 w-full py-3 text-sm font-semibold text-gray-600 bg-gray-50 rounded-2xl border border-gray-200 active:scale-[0.98] transition-all disabled:opacity-50"
                 >
-                    <span wire:loading.remove wire:target="loadMoreRecent">Show more</span>
-                    <span wire:loading wire:target="loadMoreRecent">Loading...</span>
+                    <span wire:loading.remove wire:target="loadMoreRecent">{{ __('Show more') }}</span>
+                    <span wire:loading wire:target="loadMoreRecent">{{ __('Loading...') }}</span>
                 </button>
             @endif
         </div>

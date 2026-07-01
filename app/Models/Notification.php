@@ -151,16 +151,17 @@ class Notification extends Model
      */
     public function getFrequencyLabelAttribute(): string
     {
+        $n = $this->every_n_days ?? 1;
         $schedule = match ($this->schedule_type) {
-            ScheduleType::EveryDay => 'Every day',
+            ScheduleType::EveryDay => __('Every day'),
             ScheduleType::WeekDays => $this->weekDaysLabel(),
-            ScheduleType::EveryNDays => 'Every '.($this->every_n_days ?? 1).' '.(($this->every_n_days ?? 1) === 1 ? 'day' : 'days'),
-            ScheduleType::Cyclical => 'Every '.($this->cyclical_value ?? 1).' '.($this->cyclical_unit ?? 'weeks'),
-            ScheduleType::AsNeeded => 'As needed',
+            ScheduleType::EveryNDays => trans_choice('Every :count day|Every :count days', $n, ['count' => $n]),
+            ScheduleType::Cyclical => __('Every :count :unit', ['count' => $this->cyclical_value ?? 1, 'unit' => __($this->cyclical_unit ?? 'weeks')]),
+            ScheduleType::AsNeeded => __('As needed'),
         };
 
         if ($this->schedule_type !== ScheduleType::AsNeeded && ! empty($this->times)) {
-            $schedule .= ' at '.implode(', ', $this->times);
+            $schedule .= ' '.__('at :times', ['times' => implode(', ', $this->times)]);
         }
 
         return $schedule;
@@ -174,10 +175,10 @@ class Notification extends Model
         $days = $this->week_days ?? [];
 
         if (empty($days)) {
-            return 'Specific days';
+            return __('Specific days');
         }
 
-        $names = [1 => 'Mon', 2 => 'Tue', 3 => 'Wed', 4 => 'Thu', 5 => 'Fri', 6 => 'Sat', 7 => 'Sun'];
+        $names = [1 => __('Mon'), 2 => __('Tue'), 3 => __('Wed'), 4 => __('Thu'), 5 => __('Fri'), 6 => __('Sat'), 7 => __('Sun')];
         $sorted = $days;
         sort($sorted);
 

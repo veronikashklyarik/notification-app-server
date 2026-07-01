@@ -12,10 +12,10 @@ enum EventStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Pending => 'Pending',
-            self::Done => 'Done',
-            self::Cancelled => 'Cancelled',
-            self::Postponed => 'Postponed',
+            self::Pending => __('Pending'),
+            self::Done => __('Done'),
+            self::Cancelled => __('Cancelled'),
+            self::Postponed => __('Postponed'),
         };
     }
 

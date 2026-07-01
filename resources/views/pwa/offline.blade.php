@@ -23,9 +23,9 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 5.636a9 9 0 010 12.728M5.636 5.636a9 9 0 000 12.728M12 12h.01M15.536 8.464a5 5 0 010 7.072M8.464 8.464a5 5 0 000 7.072"/>
             </svg>
         </div>
-        <h1>You're offline</h1>
-        <p>Please check your connection and try again. Your data will sync automatically when you're back online.</p>
-        <button onclick="location.reload()">Try again</button>
+        <h1>{{ __('You\'re offline') }}</h1>
+        <p>{{ __('Please check your connection and try again. Your data will sync automatically when you\'re back online.') }}</p>
+        <button onclick="location.reload()">{{ __('Try again') }}</button>
     </div>
 </body>
 </html>

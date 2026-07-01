@@ -11,11 +11,11 @@
                 <h1 class="text-xl font-bold text-gray-900 truncate">{{ $notification->name }}</h1>
             </div>
             @if($notification->isEnded())
-                <span class="px-3 py-1 text-[11px] font-semibold text-slate-500 bg-slate-100 rounded-full border border-slate-200">Ended</span>
+                <span class="px-3 py-1 text-[11px] font-semibold text-slate-500 bg-slate-100 rounded-full border border-slate-200">{{ __('Ended') }}</span>
             @elseif($notification->is_active)
-                <span class="badge-shimmer px-3 py-1 text-[11px] font-bold rounded-full shadow-sm shadow-green-500/20">Active</span>
+                <span class="badge-shimmer px-3 py-1 text-[11px] font-bold rounded-full shadow-sm shadow-green-500/20">{{ __('Active') }}</span>
             @else
-                <span class="px-3 py-1 text-[11px] font-semibold text-gray-500 bg-gray-100 rounded-full border border-gray-200">Paused</span>
+                <span class="px-3 py-1 text-[11px] font-semibold text-gray-500 bg-gray-100 rounded-full border border-gray-200">{{ __('Paused') }}</span>
             @endif
         </div>
     </div>
@@ -29,12 +29,12 @@
 
             <div class="grid grid-cols-2 gap-4">
                 <div class="p-3 rounded-2xl bg-gray-50">
-                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Schedule</p>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{ __('Schedule') }}</p>
                     <p class="mt-1 text-sm font-semibold text-gray-900">{{ $notification->frequency_label ?? str_replace('_', ' ', $notification->schedule_type->value) }}</p>
                 </div>
                 @if($notification->times)
                     <div class="p-3 rounded-2xl bg-gray-50">
-                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Times</p>
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{ __('Times') }}</p>
                         <p class="mt-1 text-sm font-semibold text-gray-900">{{ implode(', ', $notification->times) }}</p>
                     </div>
                 @endif
@@ -42,9 +42,9 @@
 
             @if($notification->week_days)
                 <div>
-                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Days</p>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">{{ __('Days of Week') }}</p>
                     <div class="flex flex-wrap gap-1.5">
-                        @php $dayNames = [1 => 'Mon', 2 => 'Tue', 3 => 'Wed', 4 => 'Thu', 5 => 'Fri', 6 => 'Sat', 7 => 'Sun']; @endphp
+                        @php $dayNames = [1 => __('Mon'), 2 => __('Tue'), 3 => __('Wed'), 4 => __('Thu'), 5 => __('Fri'), 6 => __('Sat'), 7 => __('Sun')]; @endphp
                         @foreach($notification->week_days as $day)
                             <span class="px-3 py-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 rounded-lg">{{ $dayNames[$day] ?? $day }}</span>
                         @endforeach
@@ -56,19 +56,19 @@
                 <div class="flex gap-4">
                     @if($notification->starts_at)
                         <div class="p-3 rounded-2xl bg-gray-50 flex-1">
-                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Starts</p>
-                            <p class="mt-1 text-sm font-semibold text-gray-900">{{ $notification->starts_at->format('M j, Y') }}</p>
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{ __('Starts') }}</p>
+                            <p class="mt-1 text-sm font-semibold text-gray-900">{{ $notification->starts_at->translatedFormat('M j, Y') }}</p>
                         </div>
                     @endif
                     @if($notification->ends_at)
                         <div class="p-3 rounded-2xl bg-gray-50 flex-1">
-                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Ends</p>
-                            <p class="mt-1 text-sm font-semibold text-gray-900">{{ $notification->ends_at->format('M j, Y') }}</p>
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{ __('Ends') }}</p>
+                            <p class="mt-1 text-sm font-semibold text-gray-900">{{ $notification->ends_at->translatedFormat('M j, Y') }}</p>
                             @php
                                 $startsAt = $notification->starts_at ?? $notification->created_at->startOfDay();
                                 $totalDays = (int)$startsAt->diffInDays($notification->ends_at) + 1;
                             @endphp
-                            <p class="text-xs text-gray-400 mt-0.5">{{ $totalDays }} {{ $totalDays === 1 ? 'day' : 'days' }} total</p>
+                            <p class="text-xs text-gray-400 mt-0.5">{{ $totalDays }} {{ $totalDays === 1 ? __('day') : __('days') }} {{ __('total') }}</p>
                         </div>
                     @endif
                 </div>
@@ -80,7 +80,7 @@
     @if($eventsTotal > 0)
         <div class="px-4 mt-5">
             <div class="flex items-center justify-between mb-3 px-1">
-                <h2 class="text-sm font-bold text-gray-400 uppercase tracking-widest">Upcoming Events</h2>
+                <h2 class="text-sm font-bold text-gray-400 uppercase tracking-widest">{{ __('Upcoming Events') }}</h2>
                 <span class="text-xs text-gray-400">{{ $events->count() }} / {{ $eventsTotal }}</span>
             </div>
             <div class="space-y-2">
@@ -94,7 +94,7 @@
                                 <p class="text-sm font-medium text-gray-700">@userTime($event->scheduled_at, 'M j, Y \a\t H:i')</p>
                             </div>
                             <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md text-blue-600 bg-blue-50">
-                                pending
+                                {{ __('Pending') }}
                             </span>
                         </div>
                     </a>
@@ -108,8 +108,8 @@
                     wire:target="loadMoreEvents"
                     class="mt-4 w-full py-3 text-sm font-semibold text-blue-600 bg-blue-50 rounded-2xl border border-blue-100 active:scale-[0.98] transition-all disabled:opacity-50"
                 >
-                    <span wire:loading.remove wire:target="loadMoreEvents">Show more</span>
-                    <span wire:loading wire:target="loadMoreEvents">Loading...</span>
+                    <span wire:loading.remove wire:target="loadMoreEvents">{{ __('Show more') }}</span>
+                    <span wire:loading wire:target="loadMoreEvents">{{ __('Loading...') }}</span>
                 </button>
             @endif
         </div>
@@ -119,7 +119,7 @@
     @if($recentTotal > 0)
         <div class="px-4 mt-5">
             <div class="flex items-center justify-between mb-3 px-1">
-                <h2 class="text-sm font-bold text-gray-400 uppercase tracking-widest">Recent Events</h2>
+                <h2 class="text-sm font-bold text-gray-400 uppercase tracking-widest">{{ __('Recent Events') }}</h2>
                 <span class="text-xs text-gray-400">{{ $recentEvents->count() }} / {{ $recentTotal }}</span>
             </div>
             <div class="space-y-2">
@@ -151,8 +151,8 @@
                     wire:target="loadMoreRecent"
                     class="mt-4 w-full py-3 text-sm font-semibold text-gray-600 bg-gray-50 rounded-2xl border border-gray-200 active:scale-[0.98] transition-all disabled:opacity-50"
                 >
-                    <span wire:loading.remove wire:target="loadMoreRecent">Show more</span>
-                    <span wire:loading wire:target="loadMoreRecent">Loading...</span>
+                    <span wire:loading.remove wire:target="loadMoreRecent">{{ __('Show more') }}</span>
+                    <span wire:loading wire:target="loadMoreRecent">{{ __('Loading...') }}</span>
                 </button>
             @endif
         </div>
@@ -162,22 +162,22 @@
     <div class="px-4 mt-6 mb-6 space-y-3">
         <div class="flex gap-3">
             <a href="{{ route('notifications.edit', $notification) }}?back={{ urlencode(route('notifications.show', $notification).'?back='.urlencode($backUrl)) }}" class="flex-1 py-3 text-sm font-bold text-center text-indigo-600 bg-white rounded-xl border border-indigo-200 hover:bg-indigo-50 active:scale-[0.98] transition-all shadow-sm">
-                Edit
+                {{ __('Edit') }}
             </a>
             @if(!$notification->isEnded())
                 <button wire:click="toggleActive" wire:loading.attr="disabled" wire:target="toggleActive" type="button" class="flex-1 py-3 text-sm font-bold text-center rounded-xl border active:scale-[0.98] transition-all shadow-sm disabled:opacity-50
                     {{ $notification->is_active
                         ? 'text-amber-600 bg-white border-amber-200 hover:bg-amber-50'
                         : 'text-green-600 bg-white border-green-200 hover:bg-green-50' }}">
-                    <span wire:loading.remove wire:target="toggleActive">{{ $notification->is_active ? 'Pause' : 'Activate' }}</span>
-                    <span wire:loading wire:target="toggleActive">Updating...</span>
+                    <span wire:loading.remove wire:target="toggleActive">{{ $notification->is_active ? __('Pause') : __('Activate') }}</span>
+                    <span wire:loading wire:target="toggleActive">{{ __('Updating...') }}</span>
                 </button>
             @endif
         </div>
 
         <button wire:click="confirmDelete" wire:loading.attr="disabled" wire:target="confirmDelete,delete" type="button" class="w-full py-3 text-sm font-bold text-red-500 bg-white rounded-xl border border-gray-200 hover:bg-red-50 hover:border-red-200 active:scale-[0.98] transition-all shadow-sm disabled:opacity-50">
-            <span wire:loading.remove wire:target="confirmDelete,delete">Delete Reminder</span>
-            <span wire:loading wire:target="confirmDelete,delete">Deleting...</span>
+            <span wire:loading.remove wire:target="confirmDelete,delete">{{ __('Delete Reminder') }}</span>
+            <span wire:loading wire:target="confirmDelete,delete">{{ __('Deleting...') }}</span>
         </button>
     </div>
 
@@ -208,18 +208,18 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3" />
                     </svg>
                 </div>
-                <h3 class="text-base font-bold text-gray-900">Delete Reminder</h3>
+                <h3 class="text-base font-bold text-gray-900">{{ __('Delete Reminder') }}</h3>
             </div>
-            <p class="text-sm text-gray-500 mb-5">Are you sure you want to delete this reminder? This will permanently delete the reminder and all its notification history. This action cannot be undone.</p>
+            <p class="text-sm text-gray-500 mb-5">{{ __('Are you sure you want to delete this reminder? This will permanently delete the reminder and all its notification history. This action cannot be undone.') }}</p>
             <div class="flex gap-3">
                 <button type="button" @click="confirmingDelete = false"
                         class="flex-1 py-3 text-sm font-bold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 active:scale-[0.98] transition-all">
-                    Cancel
+                    {{ __('Cancel') }}
                 </button>
                 <button type="button"
                         @click="confirmingDelete = false; $wire.delete()"
                         class="flex-1 py-3 text-sm font-bold text-red-500 bg-gray-100 rounded-xl hover:bg-red-50 active:scale-[0.98] transition-all">
-                    Delete
+                    {{ __('Delete') }}
                 </button>
             </div>
         </div>

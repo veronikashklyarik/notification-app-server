@@ -126,7 +126,7 @@ class NotificationEdit extends Component
 
         $this->notification->update($validated);
 
-        session()->flash('success', 'Reminder updated.');
+        session()->flash('success', __('Reminder updated.'));
 
         $this->redirect($this->backUrl);
     }

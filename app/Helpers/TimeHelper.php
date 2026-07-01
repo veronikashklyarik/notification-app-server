@@ -14,7 +14,7 @@ class TimeHelper
 
         $tz = config('app.user_timezone', 'UTC');
 
-        return $date->copy()->setTimezone($tz)->format($format);
+        return $date->copy()->setTimezone($tz)->translatedFormat($format);
     }
 
     public static function toUserDate(?Carbon $date): ?Carbon

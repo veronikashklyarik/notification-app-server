@@ -1,6 +1,6 @@
 @auth
 <div
-    x-data="pushNotificationSettings()"
+    x-data="pushNotificationSettings('{{ __('Disabling…') }}', '{{ __('Disable') }}', '{{ __('Enabling…') }}', '{{ __('Enable') }}')"
     x-init="init()"
     x-cloak
     x-show="supported"
@@ -15,15 +15,15 @@
                     </svg>
                 </div>
                 <div>
-                    <p class="{{ $labelClass ?? 'text-sm font-semibold text-gray-900' }}">Push Notifications</p>
-                    <p class="{{ $subLabelClass ?? 'text-xs text-emerald-600 mt-0.5' }}">Enabled</p>
+                    <p class="{{ $labelClass ?? 'text-sm font-semibold text-gray-900' }}">{{ __('Push Notifications') }}</p>
+                    <p class="{{ $subLabelClass ?? 'text-xs text-emerald-600 mt-0.5' }}">{{ __('Enabled') }}</p>
                 </div>
             </div>
             <button
                 @click="disable()"
                 :disabled="loading"
                 class="{{ $disableBtnClass ?? 'text-xs font-semibold text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50' }}"
-                x-text="loading ? 'Disabling…' : 'Disable'"
+                x-text="loading ? txtDisabling : txtDisable"
             ></button>
         </div>
     </template>
@@ -38,15 +38,15 @@
                     </svg>
                 </div>
                 <div>
-                    <p class="{{ $labelClass ?? 'text-sm font-semibold text-gray-900' }}">Push Notifications</p>
-                    <p class="{{ $subLabelClass ?? 'text-xs text-gray-400 mt-0.5' }}">Not enabled</p>
+                    <p class="{{ $labelClass ?? 'text-sm font-semibold text-gray-900' }}">{{ __('Push Notifications') }}</p>
+                    <p class="{{ $subLabelClass ?? 'text-xs text-gray-400 mt-0.5' }}">{{ __('Not enabled') }}</p>
                 </div>
             </div>
             <button
                 @click="enable()"
                 :disabled="loading"
                 class="{{ $enableBtnClass ?? 'text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-colors disabled:opacity-50' }}"
-                x-text="loading ? 'Enabling…' : 'Enable'"
+                x-text="loading ? txtEnabling : txtEnable"
             ></button>
         </div>
     </template>
@@ -61,73 +61,73 @@
                     </svg>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="{{ $labelClass ?? 'text-sm font-semibold text-gray-900' }}">Push Notifications</p>
-                    <p class="{{ $subLabelClass ?? 'text-xs text-amber-600 mt-0.5' }}">Blocked by browser</p>
+                    <p class="{{ $labelClass ?? 'text-sm font-semibold text-gray-900' }}">{{ __('Push Notifications') }}</p>
+                    <p class="{{ $subLabelClass ?? 'text-xs text-amber-600 mt-0.5' }}">{{ __('Blocked by browser') }}</p>
                 </div>
             </div>
 
             {{-- iOS PWA (standalone) --}}
             <template x-if="platform === 'ios-pwa'">
                 <div class="mt-3 p-3 bg-amber-50 rounded-xl text-xs text-amber-800 space-y-1 leading-relaxed">
-                    <p class="font-semibold">To enable notifications:</p>
-                    <p>1. Open the <strong>Settings</strong> app on your iPhone</p>
-                    <p>2. Scroll down and tap <strong>{{ config('app.name') }}</strong></p>
-                    <p>3. Tap <strong>Notifications</strong> and toggle <strong>Allow Notifications</strong> on</p>
-                    <p>4. Return here and reload the app</p>
+                    <p class="font-semibold">{{ __('To enable notifications:') }}</p>
+                    <p>{{ __('1. Open the Settings app on your iPhone') }}</p>
+                    <p>{{ __('2. Scroll down and tap :appName', ['appName' => config('app.name')]) }}</p>
+                    <p>{{ __('3. Tap Notifications and toggle Allow Notifications on') }}</p>
+                    <p>{{ __('4. Return here and reload the app') }}</p>
                 </div>
             </template>
 
             {{-- iOS Safari (not installed as PWA) --}}
             <template x-if="platform === 'ios-safari'">
                 <div class="mt-3 p-3 bg-amber-50 rounded-xl text-xs text-amber-800 space-y-1 leading-relaxed">
-                    <p class="font-semibold">Web push requires the app to be installed:</p>
-                    <p>1. Tap the <strong>Share</strong> button in Safari (box with arrow)</p>
-                    <p>2. Tap <strong>Add to Home Screen</strong></p>
-                    <p>3. Open the app from your Home Screen and enable notifications</p>
-                    <p class="text-amber-600">Requires iOS 16.4 or later.</p>
+                    <p class="font-semibold">{{ __('Web push requires the app to be installed:') }}</p>
+                    <p>{{ __('1. Tap the Share button in Safari (box with arrow)') }}</p>
+                    <p>{{ __('2. Tap Add to Home Screen') }}</p>
+                    <p>{{ __('3. Open the app from your Home Screen and enable notifications') }}</p>
+                    <p class="text-amber-600">{{ __('Requires iOS 16.4 or later.') }}</p>
                 </div>
             </template>
 
             {{-- Chrome (desktop & Android) --}}
             <template x-if="platform === 'chrome'">
                 <div class="mt-3 p-3 bg-amber-50 rounded-xl text-xs text-amber-800 space-y-1 leading-relaxed">
-                    <p class="font-semibold">To enable notifications in Chrome:</p>
-                    <p>1. Click the <strong>lock icon</strong> (or info icon) in the address bar</p>
-                    <p>2. Click <strong>Site settings</strong></p>
-                    <p>3. Find <strong>Notifications</strong> and set it to <strong>Allow</strong></p>
-                    <p>4. Reload this page</p>
+                    <p class="font-semibold">{{ __('To enable notifications in Chrome:') }}</p>
+                    <p>{{ __('1. Click the lock icon (or info icon) in the address bar') }}</p>
+                    <p>{{ __('2. Click Site settings') }}</p>
+                    <p>{{ __('3. Find Notifications and set it to Allow') }}</p>
+                    <p>{{ __('4. Reload this page') }}</p>
                 </div>
             </template>
 
             {{-- Firefox --}}
             <template x-if="platform === 'firefox'">
                 <div class="mt-3 p-3 bg-amber-50 rounded-xl text-xs text-amber-800 space-y-1 leading-relaxed">
-                    <p class="font-semibold">To enable notifications in Firefox:</p>
-                    <p>1. Click the <strong>lock icon</strong> in the address bar</p>
-                    <p>2. Click <strong>Connection Secure → More Information</strong></p>
-                    <p>3. Go to <strong>Permissions</strong> tab</p>
-                    <p>4. Find <strong>Send Notifications</strong> and uncheck <em>Block</em></p>
-                    <p>5. Reload this page</p>
+                    <p class="font-semibold">{{ __('To enable notifications in Firefox:') }}</p>
+                    <p>{{ __('1. Click the lock icon in the address bar') }}</p>
+                    <p>{{ __('2. Click Connection Secure → More Information') }}</p>
+                    <p>{{ __('3. Go to Permissions tab') }}</p>
+                    <p>{{ __('4. Find Send Notifications and uncheck Block') }}</p>
+                    <p>{{ __('5. Reload this page') }}</p>
                 </div>
             </template>
 
             {{-- macOS Safari --}}
             <template x-if="platform === 'safari-desktop'">
                 <div class="mt-3 p-3 bg-amber-50 rounded-xl text-xs text-amber-800 space-y-1 leading-relaxed">
-                    <p class="font-semibold">To enable notifications in Safari:</p>
-                    <p>1. Open <strong>Safari → Settings</strong> (or Preferences)</p>
-                    <p>2. Click the <strong>Websites</strong> tab</p>
-                    <p>3. Select <strong>Notifications</strong> on the left</p>
-                    <p>4. Find this site and change it to <strong>Allow</strong></p>
-                    <p>5. Reload this page</p>
+                    <p class="font-semibold">{{ __('To enable notifications in Safari:') }}</p>
+                    <p>{{ __('1. Open Safari → Settings (or Preferences)') }}</p>
+                    <p>{{ __('2. Click the Websites tab') }}</p>
+                    <p>{{ __('3. Select Notifications on the left') }}</p>
+                    <p>{{ __('4. Find this site and change it to Allow') }}</p>
+                    <p>{{ __('5. Reload this page') }}</p>
                 </div>
             </template>
 
             {{-- Fallback for other browsers --}}
             <template x-if="platform === 'other'">
                 <div class="mt-3 p-3 bg-amber-50 rounded-xl text-xs text-amber-800 space-y-1 leading-relaxed">
-                    <p class="font-semibold">To enable notifications:</p>
-                    <p>Open your browser's site settings for this page, find <strong>Notifications</strong>, and set it to <strong>Allow</strong>, then reload.</p>
+                    <p class="font-semibold">{{ __('To enable notifications:') }}</p>
+                    <p>{{ __("Open your browser's site settings for this page, find Notifications, and set it to Allow, then reload.") }}</p>
                 </div>
             </template>
         </div>
@@ -135,7 +135,7 @@
 </div>
 
 <script>
-function pushNotificationSettings() {
+function pushNotificationSettings(txtDisabling, txtDisable, txtEnabling, txtEnable) {
     return {
         supported: false,
         state: 'prompt',   // 'subscribed' | 'prompt' | 'denied'
@@ -144,6 +144,10 @@ function pushNotificationSettings() {
         reg: null,
         subscription: null,
         csrfToken: document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+        txtDisabling,
+        txtDisable,
+        txtEnabling,
+        txtEnable,
 
         async init() {
             if (!('serviceWorker' in navigator) || !('PushManager' in window)) {

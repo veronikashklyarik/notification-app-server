@@ -13,11 +13,11 @@ enum ScheduleType: string
     public function label(): string
     {
         return match ($this) {
-            self::EveryDay => 'Every day',
-            self::WeekDays => 'Specific days',
-            self::EveryNDays => 'Every few days',
-            self::Cyclical => 'Cyclical',
-            self::AsNeeded => 'As needed',
+            self::EveryDay => __('Every Day'),
+            self::WeekDays => __('Specific Days'),
+            self::EveryNDays => __('Every N Days'),
+            self::Cyclical => __('Cyclical'),
+            self::AsNeeded => __('As Needed'),
         };
     }
 }

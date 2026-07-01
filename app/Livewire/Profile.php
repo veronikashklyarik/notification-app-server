@@ -36,9 +36,18 @@ class Profile extends Component
         1440 => 'Every 24 hours',
     ];
 
+    /** @var array<string, string> */
+    public const array SUPPORTED_LOCALES = [
+        'en' => 'English',
+        'ru' => 'Русский',
+        'pl' => 'Polski',
+    ];
+
     public string $profileName = '';
 
     public string $timezone = '';
+
+    public string $locale = 'en';
 
     public ?int $reminderInterval = null;
 
@@ -59,6 +68,7 @@ class Profile extends Component
         $user = Auth::user();
         $this->profileName = $user->name;
         $this->timezone = $user->timezone ?? 'UTC';
+        $this->locale = $user->locale ?? 'en';
         $this->reminderInterval = $user->reminder_interval;
     }
 
@@ -98,7 +108,7 @@ class Profile extends Component
             ]);
 
             $this->avatar = null;
-            $this->addError('avatar', 'Failed to upload photo. Please try again.');
+            $this->addError('avatar', __('Failed to upload photo. Please try again.'));
 
             return;
         } finally {
@@ -108,7 +118,6 @@ class Profile extends Component
         }
 
         $this->avatar = null;
-        session()->flash('success', 'Profile photo updated.');
         $this->redirect(route('profile.edit'));
     }
 
@@ -163,7 +172,21 @@ class Profile extends Component
             'reminder_interval' => $validated['reminderInterval'] ?? null,
         ]);
 
-        session()->flash('success', 'Profile updated.');
+        $this->redirect(route('profile.edit'));
+    }
+
+    public function updateLang(): void
+    {
+        $this->validateOnly('locale', [
+            'locale' => 'required|string|in:'.implode(',', array_keys(self::SUPPORTED_LOCALES)),
+        ]);
+
+        $user = Auth::user();
+
+        $user->update([
+            'locale' => $this->locale,
+        ]);
+
         $this->redirect(route('profile.edit'));
     }
 
@@ -177,7 +200,7 @@ class Profile extends Component
         $user = Auth::user();
 
         if (! Hash::check($this->current_password, $user->password)) {
-            $this->addError('current_password', 'The current password is incorrect.');
+            $this->addError('current_password', __('The current password is incorrect.'));
 
             return;
         }
@@ -185,7 +208,7 @@ class Profile extends Component
         $user->update(['password' => Hash::make($this->password)]);
 
         $this->reset(['current_password', 'password', 'password_confirmation']);
-        session()->flash('success', 'Password changed.');
+        session()->flash('success', __('Password changed.'));
         $this->redirect(route('profile.edit'));
     }
 
@@ -206,10 +229,10 @@ class Profile extends Component
 
         if ($user->hasVerifiedEmail()) {
             $this->verificationEmailSent = false;
-            session()->flash('success', 'Email verified successfully!');
+            session()->flash('success', __('Email verified successfully!'));
             $this->redirect(route('profile.edit'));
         } else {
-            $this->addError('verification', 'Email not yet verified. Please check your inbox.');
+            $this->addError('verification', __('Email not yet verified. Please check your inbox.'));
         }
     }
 
@@ -226,7 +249,7 @@ class Profile extends Component
         $user = Auth::user();
 
         if (! Hash::check($this->deletePassword, $user->password)) {
-            $this->addError('deletePassword', 'The password is incorrect.');
+            $this->addError('deletePassword', __('The password is incorrect.'));
 
             return;
         }
@@ -234,7 +257,7 @@ class Profile extends Component
         Auth::logout();
         $user->delete();
 
-        session()->flash('success', 'Account deleted.');
+        session()->flash('success', __('Account deleted.'));
         $this->redirect(route('login'));
     }
 
