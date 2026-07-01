@@ -29,6 +29,8 @@ class Profile extends Component
 
     public string $timezone = '';
 
+    public ?int $reminderInterval = null;
+
     public string $current_password = '';
 
     public string $password = '';
@@ -46,6 +48,7 @@ class Profile extends Component
         $user = Auth::user();
         $this->profileName = $user->name;
         $this->timezone = $user->timezone ?? 'UTC';
+        $this->reminderInterval = $user->reminder_interval;
     }
 
     public function updatedAvatar(): void
@@ -138,6 +141,7 @@ class Profile extends Component
         $validated = $this->validate([
             'profileName' => 'required|string|max:255',
             'timezone' => 'required|string|timezone',
+            'reminderInterval' => 'nullable|integer|in:15,30,60,120,240,480,1440',
         ]);
 
         $user = Auth::user();
@@ -145,6 +149,7 @@ class Profile extends Component
         $user->update([
             'name' => $validated['profileName'],
             'timezone' => $validated['timezone'],
+            'reminder_interval' => $validated['reminderInterval'] ?: null,
         ]);
 
         session()->flash('success', 'Profile updated.');
