@@ -19,12 +19,21 @@ class SendReminderNotifications extends Command
      */
     public function handle(): int
     {
+        // Pre-filter: only load events where the shortest possible interval (15 min)
+        // may have elapsed, eliminating recently-notified events without per-row PHP checks.
+        // The exact per-user interval is then verified in PHP below.
+        $cutoff = now()->subMinutes(15);
+
         $candidates = NotificationEvent::query()
             ->with('notification', 'user.pushSubscriptions')
             ->where('status', EventStatus::Pending)
             ->whereNotNull('notified_at')
             ->whereHas('user', fn ($q) => $q->whereNotNull('reminder_interval'))
-            ->get();
+            ->where(fn ($q) => $q
+                ->where(fn ($q) => $q->whereNull('reminded_at')->where('notified_at', '<=', $cutoff))
+                ->orWhere('reminded_at', '<=', $cutoff)
+            )
+            ->cursor();
 
         $now = now();
 

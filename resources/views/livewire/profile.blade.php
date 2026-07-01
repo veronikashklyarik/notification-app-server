@@ -91,13 +91,9 @@
                     <label for="reminderInterval" class="block mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Reminder Interval</label>
                     <select id="reminderInterval" wire:model="reminderInterval" class="input-styled w-full">
                         <option value="">No reminders</option>
-                        <option value="15">Every 15 minutes</option>
-                        <option value="30">Every 30 minutes</option>
-                        <option value="60">Every hour</option>
-                        <option value="120">Every 2 hours</option>
-                        <option value="240">Every 4 hours</option>
-                        <option value="480">Every 8 hours</option>
-                        <option value="1440">Every 24 hours</option>
+                        @foreach(\App\Livewire\Profile::REMINDER_INTERVALS as $minutes => $label)
+                            <option value="{{ $minutes }}">{{ $label }}</option>
+                        @endforeach
                     </select>
                     <p class="mt-1.5 text-xs text-gray-400">Repeat push notifications for pending events at this interval</p>
                 </div>
