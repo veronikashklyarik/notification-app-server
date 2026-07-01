@@ -12,6 +12,6 @@ All notable changes to this project will be documented in this file.
 - `reminded_at` field on notification events for tracking when the last reminder was sent.
 - Composite index on `(status, reminded_at)` for efficient reminder queries at scale.
 
-### Changed
+### For contributors
 
-- Pre-filter cutoff in the reminder command is now derived from the minimum value in the `REMINDER_INTERVALS` constant rather than a hardcoded literal, keeping the two in sync automatically.
+- Pre-filter cutoff in the reminder command is derived from `min(array_keys(REMINDER_INTERVALS))` rather than a hardcoded literal, keeping the two in sync automatically.
