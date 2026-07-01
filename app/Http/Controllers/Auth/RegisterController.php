@@ -27,7 +27,10 @@ class RegisterController extends Controller
     {
         $user = User::query()->create(array_merge(
             $request->validated(),
-            ['timezone' => $request->validated('timezone') ?? 'UTC'],
+            [
+                'timezone' => $request->validated('timezone') ?? 'UTC',
+                'locale' => $request->cookie('app_locale') ?? $request->session()->get('locale') ?? config('app.locale', 'en'),
+            ],
         ));
 
         event(new Registered($user));

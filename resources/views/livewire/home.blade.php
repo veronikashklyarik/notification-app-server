@@ -9,7 +9,8 @@
          style="padding-top: max(env(safe-area-inset-top), 1.5rem)">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-indigo-200 text-sm font-medium">Good {{ now(config('app.user_timezone', 'UTC'))->format('H') < 5 ? 'night' : (now(config('app.user_timezone', 'UTC'))->format('H') < 12 ? 'morning' : (now(config('app.user_timezone', 'UTC'))->format('H') < 18 ? 'afternoon' : 'evening')) }},</p>
+                @php $hour = (int) now(config('app.user_timezone', 'UTC'))->format('H'); @endphp
+                <p class="text-indigo-200 text-sm font-medium">{{ $hour < 5 ? __('Good night') : ($hour < 12 ? __('Good morning') : ($hour < 18 ? __('Good afternoon') : __('Good evening'))) }},</p>
                 <h1 class="text-2xl font-bold text-white mt-0.5">{{ $user->name }}</h1>
             </div>
             <a href="{{ route('profile.edit') }}" class="shrink-0">
@@ -36,7 +37,7 @@
                     </div>
                     <div>
                         <p class="text-2xl font-bold text-gray-900">{{ $stats['active_notifications'] }}</p>
-                        <p class="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Active</p>
+                        <p class="text-[11px] font-medium text-gray-400 uppercase tracking-wider">{{ __('Active') }}</p>
                     </div>
                 </div>
             </div>
@@ -49,7 +50,7 @@
                     </div>
                     <div>
                         <p class="text-2xl font-bold text-gray-900">{{ $stats['today_events'] }}</p>
-                        <p class="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Today</p>
+                        <p class="text-[11px] font-medium text-gray-400 uppercase tracking-wider">{{ __('Today') }}</p>
                     </div>
                 </div>
             </div>
@@ -60,13 +61,13 @@
     <div class="px-4 mt-6">
         <div class="flex items-center justify-between mb-4">
             <div>
-                <h2 class="text-lg font-bold text-gray-900">Today's Tasks</h2>
+                <h2 class="text-lg font-bold text-gray-900">{{ __("Today's Tasks") }}</h2>
                 @if($todayTotal > 0)
-                    <p class="text-xs text-gray-400 mt-0.5">Showing {{ $todayEvents->count() }} of {{ $todayTotal }}</p>
+                    <p class="text-xs text-gray-400 mt-0.5">{{ __('Showing :count of :total', ['count' => $todayEvents->count(), 'total' => $todayTotal]) }}</p>
                 @endif
             </div>
             @if($todayTotal > 0)
-                <a href="{{ route('events.index') }}" class="text-xs font-semibold text-indigo-600">See all</a>
+                <a href="{{ route('events.index') }}" class="text-xs font-semibold text-indigo-600">{{ __('See all') }}</a>
             @endif
         </div>
 
@@ -85,14 +86,14 @@
                         </a>
                         <div class="flex gap-2 shrink-0 ml-3">
                             <button wire:click="markDone('{{ $event->id }}')" wire:loading.attr="disabled" wire:target="markDone('{{ $event->id }}')" class="px-4 py-2 text-xs font-bold text-green-700 bg-green-50 rounded-xl border border-green-200 hover:bg-green-100 active:scale-95 transition-all disabled:opacity-50">
-                                <span wire:loading.remove wire:target="markDone('{{ $event->id }}')">Done</span>
+                                <span wire:loading.remove wire:target="markDone('{{ $event->id }}')">{{ __('Done') }}</span>
                                 <svg wire:loading wire:target="markDone('{{ $event->id }}')" class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                                 </svg>
                             </button>
                             <button wire:click="markCancelled('{{ $event->id }}')" wire:loading.attr="disabled" wire:target="markCancelled('{{ $event->id }}')" class="px-3 py-2 text-xs font-bold text-gray-500 bg-gray-50 rounded-xl border border-gray-200 hover:bg-gray-100 active:scale-95 transition-all disabled:opacity-50">
-                                <span wire:loading.remove wire:target="markCancelled('{{ $event->id }}')">Skip</span>
+                                <span wire:loading.remove wire:target="markCancelled('{{ $event->id }}')">{{ __('Skip') }}</span>
                                 <svg wire:loading wire:target="markCancelled('{{ $event->id }}')" class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
@@ -108,8 +109,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                     </div>
-                    <p class="font-semibold text-gray-900">All clear!</p>
-                    <p class="mt-1 text-sm text-gray-400">No tasks scheduled for today.</p>
+                    <p class="font-semibold text-gray-900">{{ __('All clear!') }}</p>
+                    <p class="mt-1 text-sm text-gray-400">{{ __('No tasks scheduled for today.') }}</p>
                 </div>
             @endforelse
         </div>
@@ -121,8 +122,8 @@
                 wire:target="loadMore"
                 class="mt-4 w-full py-3 text-sm font-semibold text-gray-600 bg-gray-50 rounded-2xl border border-gray-200 active:scale-[0.98] transition-all disabled:opacity-50"
             >
-                <span wire:loading.remove wire:target="loadMore">Show more</span>
-                <span wire:loading wire:target="loadMore">Loading...</span>
+                <span wire:loading.remove wire:target="loadMore">{{ __('Show more') }}</span>
+                <span wire:loading wire:target="loadMore">{{ __('Loading...') }}</span>
             </button>
         @endif
     </div>
@@ -132,19 +133,19 @@
         <div class="px-4 mt-6">
             <div class="flex items-center justify-between mb-4">
                 <div>
-                    <h2 class="text-lg font-bold text-gray-900">Missed</h2>
-                    <p class="text-xs text-gray-400 mt-0.5">{{ $missedTotal }} {{ Str::plural('task', $missedTotal) }} from previous days</p>
+                    <h2 class="text-lg font-bold text-gray-900">{{ __('Missed') }}</h2>
+                    <p class="text-xs text-gray-400 mt-0.5">{{ trans_choice(':count task from previous days|:count tasks from previous days', $missedTotal, ['count' => $missedTotal]) }}</p>
                 </div>
                 <div class="flex gap-2">
                     <button wire:click="completeAllMissed" wire:loading.attr="disabled" wire:target="completeAllMissed" class="px-3 py-1.5 text-xs font-semibold text-green-700 bg-green-50 rounded-xl border border-green-200 hover:bg-green-100 active:scale-95 transition-all disabled:opacity-50 whitespace-nowrap">
-                        <span wire:loading.remove wire:target="completeAllMissed">Complete all</span>
+                        <span wire:loading.remove wire:target="completeAllMissed">{{ __('Complete all') }}</span>
                         <svg wire:loading wire:target="completeAllMissed" class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                         </svg>
                     </button>
                     <button wire:click="skipAllMissed" wire:loading.attr="disabled" wire:target="skipAllMissed" class="px-3 py-1.5 text-xs font-semibold text-gray-500 bg-gray-50 rounded-xl border border-gray-200 hover:bg-gray-100 active:scale-95 transition-all disabled:opacity-50 whitespace-nowrap">
-                        <span wire:loading.remove wire:target="skipAllMissed">Skip all</span>
+                        <span wire:loading.remove wire:target="skipAllMissed">{{ __('Skip all') }}</span>
                         <svg wire:loading wire:target="skipAllMissed" class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
@@ -168,14 +169,14 @@
                             </a>
                             <div class="flex gap-2 shrink-0 ml-3">
                                 <button wire:click="markDone('{{ $event->id }}')" wire:loading.attr="disabled" wire:target="markDone('{{ $event->id }}')" class="px-4 py-2 text-xs font-bold text-green-700 bg-green-50 rounded-xl border border-green-200 hover:bg-green-100 active:scale-95 transition-all disabled:opacity-50">
-                                    <span wire:loading.remove wire:target="markDone('{{ $event->id }}')">Done</span>
+                                    <span wire:loading.remove wire:target="markDone('{{ $event->id }}')">{{ __('Done') }}</span>
                                     <svg wire:loading wire:target="markDone('{{ $event->id }}')" class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                                     </svg>
                                 </button>
                                 <button wire:click="markCancelled('{{ $event->id }}')" wire:loading.attr="disabled" wire:target="markCancelled('{{ $event->id }}')" class="px-3 py-2 text-xs font-bold text-gray-500 bg-gray-50 rounded-xl border border-gray-200 hover:bg-gray-100 active:scale-95 transition-all disabled:opacity-50">
-                                    <span wire:loading.remove wire:target="markCancelled('{{ $event->id }}')">Skip</span>
+                                    <span wire:loading.remove wire:target="markCancelled('{{ $event->id }}')">{{ __('Skip') }}</span>
                                     <svg wire:loading wire:target="markCancelled('{{ $event->id }}')" class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
@@ -194,8 +195,8 @@
                     wire:target="loadMoreMissed"
                     class="mt-4 w-full py-3 text-sm font-semibold text-gray-600 bg-gray-50 rounded-2xl border border-gray-200 active:scale-[0.98] transition-all disabled:opacity-50"
                 >
-                    <span wire:loading.remove wire:target="loadMoreMissed">Show more</span>
-                    <span wire:loading wire:target="loadMoreMissed">Loading...</span>
+                    <span wire:loading.remove wire:target="loadMoreMissed">{{ __('Show more') }}</span>
+                    <span wire:loading wire:target="loadMoreMissed">{{ __('Loading...') }}</span>
                 </button>
             @endif
         </div>
@@ -205,10 +206,10 @@
     <div class="px-4 mt-6 mb-6">
         <div class="flex gap-3">
             <a href="{{ route('notifications.create') }}" class="btn-primary flex-1 py-3.5 text-sm text-center animate-pulse-soft">
-                + New Reminder
+                {{ __('+ New Reminder') }}
             </a>
             <a href="{{ route('events.index') }}" class="flex-1 py-3.5 text-sm font-bold text-center text-gray-600 bg-white rounded-xl border border-gray-200 hover:bg-gray-50 active:scale-[0.98] transition-all shadow-sm">
-                All Events
+                {{ __('All Events') }}
             </a>
         </div>
     </div>

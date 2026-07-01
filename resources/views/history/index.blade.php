@@ -1,15 +1,15 @@
-<x-layouts.app title="History">
+<x-layouts.app title="{{ __('History') }}">
 
     {{-- Mobile Header --}}
     <div class="md:hidden px-1 mb-5 slide-up">
-        <h1 class="text-2xl font-bold text-gray-900 mb-1">History</h1>
-        <p class="text-gray-500 text-sm">All completed, cancelled, and postponed events.</p>
+        <h1 class="text-2xl font-bold text-gray-900 mb-1">{{ __('History') }}</h1>
+        <p class="text-gray-500 text-sm">{{ __('All completed, cancelled, and postponed events.') }}</p>
     </div>
 
     {{-- Desktop Header --}}
     <div class="hidden md:block mb-8">
-        <h1 class="text-2xl font-semibold text-gray-900">History</h1>
-        <p class="text-gray-500 text-sm mt-1">All processed events across your notifications.</p>
+        <h1 class="text-2xl font-semibold text-gray-900">{{ __('History') }}</h1>
+        <p class="text-gray-500 text-sm mt-1">{{ __('All processed events across your notifications.') }}</p>
     </div>
 
     @if($events->isEmpty())
@@ -20,8 +20,8 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
             </div>
-            <h3 class="text-lg font-bold text-gray-900 mb-2">No history yet</h3>
-            <p class="text-sm text-gray-500">Completed, cancelled, or postponed events will appear here.</p>
+            <h3 class="text-lg font-bold text-gray-900 mb-2">{{ __('No history yet') }}</h3>
+            <p class="text-sm text-gray-500">{{ __('Completed, cancelled, or postponed events will appear here.') }}</p>
         </div>
 
         {{-- Desktop Empty State --}}
@@ -31,8 +31,8 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
             </div>
-            <h3 class="text-base font-semibold text-gray-900 mb-1">No history yet</h3>
-            <p class="text-sm text-gray-500">Completed, cancelled, or postponed events will appear here.</p>
+            <h3 class="text-base font-semibold text-gray-900 mb-1">{{ __('No history yet') }}</h3>
+            <p class="text-sm text-gray-500">{{ __('Completed, cancelled, or postponed events will appear here.') }}</p>
         </div>
     @else
         {{-- Mobile Card View --}}
@@ -53,7 +53,7 @@
                                     {{ $event->notification->name }}
                                 </a>
                             @else
-                                <p class="font-semibold text-gray-400 truncate">Deleted notification</p>
+                                <p class="font-semibold text-gray-400 truncate">{{ __('Deleted notification') }}</p>
                             @endif
                             <div class="flex items-center gap-1.5 mt-1">
                                 <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -75,11 +75,11 @@
             <table class="w-full text-sm">
                 <thead>
                     <tr class="border-b border-gray-100">
-                        <th class="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Notification</th>
-                        <th class="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                        <th class="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">Comment</th>
-                        <th class="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">Scheduled</th>
-                        <th class="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Completed</th>
+                        <th class="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('Notification') }}</th>
+                        <th class="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('Status') }}</th>
+                        <th class="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">{{ __('Comment') }}</th>
+                        <th class="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">{{ __('Scheduled') }}</th>
+                        <th class="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('Completed') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
@@ -100,7 +100,7 @@
                                         {{ $event->notification->name }}
                                     </a>
                                 @else
-                                    <span class="text-gray-400 italic">Deleted notification</span>
+                                    <span class="text-gray-400 italic">{{ __('Deleted notification') }}</span>
                                 @endif
                             </td>
                             <td class="px-6 py-4">
@@ -108,18 +108,17 @@
                                     {{ $event->status->label() }}
                                 </span>
                                 @if($event->postponed_until)
-                                    <p class="text-xs text-gray-400 mt-0.5">Until {{ $event->postponed_until->copy()->setTimezone($userTimezone)->format('M j') }}</p>
+                                    <p class="text-xs text-gray-400 mt-0.5">{{ __('Until') }} @userTime($event->postponed_until->copy()->setTimezone($userTimezone), 'M j')</p>
                                 @endif
                             </td>
                             <td class="px-6 py-4 text-gray-500 hidden md:table-cell">
                                 {{ $event->comment ?? '—' }}
                             </td>
-                            <td class="px-6 py-4 text-gray-500 hidden lg:table-cell">
-                                {{ $event->scheduled_at->copy()->setTimezone($userTimezone)->format('M j, Y') }}
+                            <td class="px-6 py-4 text-gray-500 hidden lg:table-cell">@userTime($event->scheduled_at->copy()->setTimezone($userTimezone), 'M j, Y')
                             </td>
                             <td class="px-6 py-4 text-gray-400 text-xs">
                                 @if($event->completed_at)
-                                    <span title="{{ $event->completed_at->copy()->setTimezone($userTimezone)->format('M j, Y H:i') }}">
+                                    <span title="@userTime($event->completed_at->copy()->setTimezone($userTimezone), 'M j, Y H:i')">
                                         {{ $event->completed_at->diffForHumans(parts: 2) }}
                                     </span>
                                 @else

@@ -39,10 +39,10 @@ class ApiEmailVerificationNotification extends Notification implements ShouldQue
         );
 
         return (new MailMessage)
-            ->subject('Verify Email Address')
-            ->line('Please click the button below to verify your email address.')
-            ->action('Verify Email Address', $verificationUrl)
-            ->line('If you did not create an account, no further action is required.');
+            ->subject(__('Verify Email Address'))
+            ->line(__('Please click the button below to verify your email address.'))
+            ->action(__('Verify Email Address'), $verificationUrl)
+            ->line(__('If you did not create an account, no further action is required.'));
     }
 
     /**

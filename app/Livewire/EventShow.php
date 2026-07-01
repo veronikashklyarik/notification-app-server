@@ -55,7 +55,7 @@ class EventShow extends Component
         ]);
 
         if ($this->status === EventStatus::Postponed->value && ! $this->postponed_until) {
-            $this->addError('postponed_until', 'The postpone date is required when postponing.');
+            $this->addError('postponed_until', __('The postpone date is required when postponing.'));
 
             return;
         }

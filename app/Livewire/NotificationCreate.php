@@ -105,7 +105,7 @@ class NotificationCreate extends Component
 
         $notification = Auth::user()->reminders()->create($validated);
 
-        session()->flash('success', 'Reminder created.');
+        session()->flash('success', __('Reminder created.'));
 
         $this->redirect(route('notifications.show', $notification));
     }
