@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Enums\EventStatus;
 use App\Jobs\SendPushNotificationJob;
+use App\Livewire\Profile;
 use App\Models\NotificationEvent;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -19,10 +20,10 @@ class SendReminderNotifications extends Command
      */
     public function handle(): int
     {
-        // Pre-filter: only load events where the shortest possible interval (15 min)
-        // may have elapsed, eliminating recently-notified events without per-row PHP checks.
+        // Pre-filter: only load events where the shortest possible interval may have elapsed,
+        // eliminating recently-notified events without per-row PHP checks.
         // The exact per-user interval is then verified in PHP below.
-        $cutoff = now()->subMinutes(15);
+        $cutoff = now()->subMinutes(min(array_keys(Profile::REMINDER_INTERVALS)));
 
         $candidates = NotificationEvent::query()
             ->with('notification', 'user.pushSubscriptions')
