@@ -37,11 +37,11 @@ class SendReminderNotifications extends Command
             }
 
             DB::transaction(function () use ($event): void {
-                $event->update(['reminded_at' => now()]);
-
                 if ($event->notification === null || $event->notification->trashed()) {
                     return;
                 }
+
+                $event->update(['reminded_at' => now()]);
 
                 $title = $event->notification->name;
                 $body = $event->notification->description ?? '';

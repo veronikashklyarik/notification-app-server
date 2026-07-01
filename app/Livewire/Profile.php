@@ -149,7 +149,7 @@ class Profile extends Component
         $user->update([
             'name' => $validated['profileName'],
             'timezone' => $validated['timezone'],
-            'reminder_interval' => $validated['reminderInterval'] ?: null,
+            'reminder_interval' => $validated['reminderInterval'] ?? null,
         ]);
 
         session()->flash('success', 'Profile updated.');

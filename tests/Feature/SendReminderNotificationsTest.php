@@ -143,4 +143,56 @@ class SendReminderNotificationsTest extends TestCase
 
         Queue::assertNothingPushed();
     }
+
+    public function test_does_not_send_reminder_for_trashed_notification(): void
+    {
+        Queue::fake();
+
+        $user = $this->userWithReminder(60);
+        PushSubscription::factory()->create(['user_id' => $user->id]);
+        $notification = Notification::factory()->create(['user_id' => $user->id]);
+        $event = NotificationEvent::factory()->create([
+            'user_id' => $user->id,
+            'notification_id' => $notification->id,
+            'status' => EventStatus::Pending,
+            'scheduled_at' => now()->subHour(),
+            'notified_at' => now()->subHours(2),
+        ]);
+        $notification->delete();
+
+        $this->artisan('app:send-reminder-notifications')->assertSuccessful();
+
+        Queue::assertNothingPushed();
+        // reminded_at must NOT be stamped since no push was sent
+        $this->assertNull($event->fresh()->reminded_at);
+    }
+
+    public function test_does_not_dispatch_jobs_when_user_has_no_push_subscriptions(): void
+    {
+        Queue::fake();
+
+        $user = $this->userWithReminder(60);
+        // No PushSubscription created
+        $event = $this->pendingNotifiedEvent($user, notifiedMinutesAgo: 65);
+
+        $this->artisan('app:send-reminder-notifications')->assertSuccessful();
+
+        Queue::assertNothingPushed();
+        // reminded_at still stamped because the notification exists and push loop is simply empty
+        $this->assertNotNull($event->fresh()->reminded_at);
+    }
+
+    public function test_sends_reminder_when_exactly_at_interval_boundary(): void
+    {
+        Queue::fake();
+
+        $user = $this->userWithReminder(60);
+        PushSubscription::factory()->create(['user_id' => $user->id]);
+        // Exactly 60 minutes ago — diffInMinutes returns 60 which is NOT < 60
+        $this->pendingNotifiedEvent($user, notifiedMinutesAgo: 60);
+
+        $this->artisan('app:send-reminder-notifications')->assertSuccessful();
+
+        Queue::assertPushed(SendPushNotificationJob::class);
+    }
 }
