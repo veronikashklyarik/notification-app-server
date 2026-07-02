@@ -158,11 +158,11 @@
         </div>
     </div>
 
-    {{-- Change Password --}}
+    {{-- Change / Set Password --}}
     <div class="px-4 mt-4" x-data="{ open: false }">
         <div class="card p-5">
             <div class="flex items-center justify-between cursor-pointer" @click="open = !open">
-                <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest">{{ __('Change Password') }}</h2>
+                <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest">{{ $user->password ? __('Change Password') : __('Set Password') }}</h2>
                 <svg class="w-5 h-5 text-gray-300 transition-transform duration-200" :class="open && 'rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
@@ -170,12 +170,14 @@
 
             <div x-show="open" x-cloak x-transition class="mt-4">
                 <form wire:submit="changePassword" class="space-y-4">
-                    <div>
-                        <x-password-input wire:model="current_password" required placeholder="{{ __('Current password') }}" />
-                        @error('current_password')
-                            <p class="mt-1.5 text-xs text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
+                    @if($user->password)
+                        <div>
+                            <x-password-input wire:model="current_password" required placeholder="{{ __('Current password') }}" />
+                            @error('current_password')
+                                <p class="mt-1.5 text-xs text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    @endif
                     <div>
                         <x-password-input wire:model="password" required placeholder="{{ __('New password') }}" />
                         @error('password')
@@ -189,7 +191,7 @@
                         @enderror
                     </div>
                     <button type="submit" class="btn-primary w-full py-3 text-sm" wire:loading.attr="disabled">
-                        <span wire:loading.remove wire:target="changePassword">{{ __('Change Password') }}</span>
+                        <span wire:loading.remove wire:target="changePassword">{{ $user->password ? __('Change Password') : __('Set Password') }}</span>
                         <span wire:loading wire:target="changePassword">{{ __('Changing...') }}</span>
                     </button>
                 </form>
@@ -252,7 +254,9 @@
                 <p class="text-sm text-gray-400 mb-4">{{ __('Permanently delete your account and all data. This cannot be undone.') }}</p>
 
                 <form wire:submit="confirmDeleteAccount" class="space-y-3">
-                    <x-password-input wire:model="deletePassword" required placeholder="{{ __('Confirm your password') }}" />
+                    @if($user->password)
+                        <x-password-input wire:model="deletePassword" required placeholder="{{ __('Confirm your password') }}" />
+                    @endif
                     <button type="submit" wire:loading.attr="disabled" wire:target="confirmDeleteAccount,deleteAccount" class="w-full py-3 text-sm font-bold text-white bg-red-500 rounded-xl shadow-md shadow-red-500/20 hover:bg-red-600 active:scale-[0.98] transition-all disabled:opacity-50">
                         <span wire:loading.remove wire:target="confirmDeleteAccount,deleteAccount">{{ __('Delete Account') }}</span>
                         <span wire:loading wire:target="confirmDeleteAccount,deleteAccount">{{ __('Deleting...') }}</span>
