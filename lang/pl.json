@@ -310,5 +310,11 @@
 
     "You're offline": "Jesteś offline",
     "Please check your connection and try again. Your data will sync automatically when you're back online.": "Sprawdź swoje połączenie i spróbuj ponownie. Twoje dane zostaną automatycznie zsynchronizowane, gdy wrócisz do sieci.",
-    "Try again": "Spróbuj ponownie"
+    "Try again": "Spróbuj ponownie",
+
+    "Set Password": "Ustaw hasło",
+
+    "Continue with Google": "Kontynuuj z Google",
+    "or": "lub",
+    "Google authentication failed. Please try again.": "Uwierzytelnianie Google nie powiodło się. Spróbuj ponownie."
 }
