@@ -29,11 +29,11 @@
         </div>
     </header>
 
-    <main class="max-w-2xl mx-auto px-6 pt-24 pb-10 animate-slide-up" style="padding-bottom: calc(env(safe-area-inset-bottom) + 3rem);">
+    <main class="max-w-2xl mx-auto px-6 pt-10 pb-10 animate-slide-up" style="padding-bottom: calc(env(safe-area-inset-bottom) + 3rem);">
         {{ $slot }}
 
         <footer class="mt-16 pt-8 border-t border-gray-100 text-center">
-            <p class="text-xs text-gray-300">&copy; {{ date('Y') }} Notifyr. All rights reserved.</p>
+            <p class="text-xs text-gray-300">&copy; {{ date('Y') }} Notifyr. {{ __('All rights reserved.') }}</p>
         </footer>
     </main>
 
