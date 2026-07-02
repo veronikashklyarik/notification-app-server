@@ -76,4 +76,10 @@
         <a href="{{ route('register') }}" class="font-semibold text-indigo-600 hover:text-indigo-500">{{ __('Create one') }}</a>
     </p>
 
+    <p class="mt-6 text-xs text-center text-gray-300">
+        <a href="{{ route('legal.privacy') }}" class="hover:text-gray-400 transition-colors">{{ __('Privacy Policy') }}</a>
+        <span class="mx-1.5">&middot;</span>
+        <a href="{{ route('legal.terms') }}" class="hover:text-gray-400 transition-colors">{{ __('Terms of Service') }}</a>
+    </p>
+
 </x-layouts.guest>

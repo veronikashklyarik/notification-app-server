@@ -23,6 +23,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => redirect()->route('home'));
 Route::get('offline', fn () => view('pwa.offline'))->name('offline');
+Route::get('privacy-policy', fn () => view('legal.privacy'))->name('legal.privacy');
+Route::get('terms', fn () => view('legal.terms'))->name('legal.terms');
 Route::middleware(['auth', 'verified'])->get('install', fn () => view('install'))->name('install');
 
 Route::middleware('guest')->group(function (): void {

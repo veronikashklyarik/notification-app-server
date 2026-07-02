@@ -317,5 +317,9 @@
 
     "Continue with Google": "Продолжить с Google",
     "or": "или",
-    "Google authentication failed. Please try again.": "Ошибка аутентификации Google. Попробуйте ещё раз."
+    "Google authentication failed. Please try again.": "Ошибка аутентификации Google. Попробуйте ещё раз.",
+
+    "Privacy Policy": "Политика конфиденциальности",
+    "Terms of Service": "Условия использования",
+    "Back": "Назад"
 }
