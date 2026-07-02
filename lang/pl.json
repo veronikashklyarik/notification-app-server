@@ -316,5 +316,9 @@
 
     "Continue with Google": "Kontynuuj z Google",
     "or": "lub",
-    "Google authentication failed. Please try again.": "Uwierzytelnianie Google nie powiodło się. Spróbuj ponownie."
+    "Google authentication failed. Please try again.": "Uwierzytelnianie Google nie powiodło się. Spróbuj ponownie.",
+
+    "Privacy Policy": "Polityka prywatności",
+    "Terms of Service": "Warunki korzystania",
+    "Back": "Wstecz"
 }
