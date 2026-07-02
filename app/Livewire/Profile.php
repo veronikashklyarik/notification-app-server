@@ -192,17 +192,23 @@ class Profile extends Component
 
     public function changePassword(): void
     {
-        $this->validate([
-            'current_password' => 'required',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
-
         $user = Auth::user();
 
-        if (! Hash::check($this->current_password, $user->password)) {
-            $this->addError('current_password', __('The current password is incorrect.'));
+        if ($user->password) {
+            $this->validate([
+                'current_password' => 'required',
+                'password' => 'required|string|min:8|confirmed',
+            ]);
 
-            return;
+            if (! Hash::check($this->current_password, $user->password)) {
+                $this->addError('current_password', __('The current password is incorrect.'));
+
+                return;
+            }
+        } else {
+            $this->validate([
+                'password' => 'required|string|min:8|confirmed',
+            ]);
         }
 
         $user->update(['password' => Hash::make($this->password)]);
@@ -238,20 +244,27 @@ class Profile extends Component
 
     public function confirmDeleteAccount(): void
     {
-        $this->validate(['deletePassword' => 'required']);
+        $user = Auth::user();
+
+        if ($user->password) {
+            $this->validate(['deletePassword' => 'required']);
+        }
+
         $this->dispatch('show-delete-account-confirmation');
     }
 
     public function deleteAccount(): void
     {
-        $this->validate(['deletePassword' => 'required']);
-
         $user = Auth::user();
 
-        if (! Hash::check($this->deletePassword, $user->password)) {
-            $this->addError('deletePassword', __('The password is incorrect.'));
+        if ($user->password) {
+            $this->validate(['deletePassword' => 'required']);
 
-            return;
+            if (! Hash::check($this->deletePassword, $user->password)) {
+                $this->addError('deletePassword', __('The password is incorrect.'));
+
+                return;
+            }
         }
 
         Auth::logout();

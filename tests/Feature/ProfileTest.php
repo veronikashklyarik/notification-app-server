@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Notifications\WebEmailVerificationNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -150,5 +151,161 @@ class ProfileTest extends TestCase
         $component = Livewire::actingAs($user)->test(Profile::class);
 
         $this->assertSame(120, $component->get('reminderInterval'));
+    }
+
+    // --- Change password ---
+
+    public function test_regular_user_can_change_password_with_correct_current_password(): void
+    {
+        $user = User::factory()->create();
+
+        Livewire::actingAs($user)
+            ->test(Profile::class)
+            ->set('current_password', 'password')
+            ->set('password', 'newpassword123')
+            ->set('password_confirmation', 'newpassword123')
+            ->call('changePassword')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('profile.edit'));
+
+        $this->assertTrue(Hash::check('newpassword123', $user->fresh()->password));
+    }
+
+    public function test_regular_user_cannot_change_password_without_current_password(): void
+    {
+        $user = User::factory()->create();
+
+        Livewire::actingAs($user)
+            ->test(Profile::class)
+            ->set('password', 'newpassword123')
+            ->set('password_confirmation', 'newpassword123')
+            ->call('changePassword')
+            ->assertHasErrors(['current_password']);
+    }
+
+    public function test_regular_user_cannot_change_password_with_wrong_current_password(): void
+    {
+        $user = User::factory()->create();
+
+        Livewire::actingAs($user)
+            ->test(Profile::class)
+            ->set('current_password', 'wrongpassword')
+            ->set('password', 'newpassword123')
+            ->set('password_confirmation', 'newpassword123')
+            ->call('changePassword')
+            ->assertHasErrors(['current_password']);
+    }
+
+    public function test_google_user_can_set_password_without_current_password(): void
+    {
+        $user = User::factory()->create(['google_id' => '123', 'password' => null]);
+
+        Livewire::actingAs($user)
+            ->test(Profile::class)
+            ->set('password', 'newpassword123')
+            ->set('password_confirmation', 'newpassword123')
+            ->call('changePassword')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('profile.edit'));
+
+        $this->assertTrue(Hash::check('newpassword123', $user->fresh()->password));
+    }
+
+    public function test_google_user_cannot_set_password_when_confirmation_does_not_match(): void
+    {
+        $user = User::factory()->create(['google_id' => '123', 'password' => null]);
+
+        Livewire::actingAs($user)
+            ->test(Profile::class)
+            ->set('password', 'newpassword123')
+            ->set('password_confirmation', 'differentpassword')
+            ->call('changePassword')
+            ->assertHasErrors(['password']);
+    }
+
+    // --- Delete account ---
+
+    public function test_regular_user_can_delete_account_with_correct_password(): void
+    {
+        $user = User::factory()->create();
+
+        Livewire::actingAs($user)
+            ->test(Profile::class)
+            ->set('deletePassword', 'password')
+            ->call('deleteAccount')
+            ->assertRedirect(route('login'));
+
+        $this->assertSoftDeleted('users', ['id' => $user->id]);
+    }
+
+    public function test_regular_user_cannot_delete_account_without_password(): void
+    {
+        $user = User::factory()->create();
+
+        Livewire::actingAs($user)
+            ->test(Profile::class)
+            ->call('deleteAccount')
+            ->assertHasErrors(['deletePassword']);
+
+        $this->assertModelExists($user);
+    }
+
+    public function test_regular_user_cannot_delete_account_with_wrong_password(): void
+    {
+        $user = User::factory()->create();
+
+        Livewire::actingAs($user)
+            ->test(Profile::class)
+            ->set('deletePassword', 'wrongpassword')
+            ->call('deleteAccount')
+            ->assertHasErrors(['deletePassword']);
+
+        $this->assertModelExists($user);
+    }
+
+    public function test_google_user_can_delete_account_without_password(): void
+    {
+        $user = User::factory()->create(['google_id' => '123', 'password' => null]);
+
+        Livewire::actingAs($user)
+            ->test(Profile::class)
+            ->call('deleteAccount')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('login'));
+
+        $this->assertSoftDeleted('users', ['id' => $user->id]);
+    }
+
+    public function test_google_user_confirm_delete_dispatches_event_without_password(): void
+    {
+        $user = User::factory()->create(['google_id' => '123', 'password' => null]);
+
+        Livewire::actingAs($user)
+            ->test(Profile::class)
+            ->call('confirmDeleteAccount')
+            ->assertHasNoErrors()
+            ->assertDispatched('show-delete-account-confirmation');
+    }
+
+    public function test_regular_user_confirm_delete_requires_password(): void
+    {
+        $user = User::factory()->create();
+
+        Livewire::actingAs($user)
+            ->test(Profile::class)
+            ->call('confirmDeleteAccount')
+            ->assertHasErrors(['deletePassword']);
+    }
+
+    public function test_regular_user_confirm_delete_dispatches_event_with_correct_password(): void
+    {
+        $user = User::factory()->create();
+
+        Livewire::actingAs($user)
+            ->test(Profile::class)
+            ->set('deletePassword', 'password')
+            ->call('confirmDeleteAccount')
+            ->assertHasNoErrors()
+            ->assertDispatched('show-delete-account-confirmation');
     }
 }
