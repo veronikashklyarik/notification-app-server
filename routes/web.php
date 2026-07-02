@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\PushSubscriptionController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\EmailVerificationNoticeController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\RegisterController;
@@ -25,6 +26,9 @@ Route::get('offline', fn () => view('pwa.offline'))->name('offline');
 Route::middleware(['auth', 'verified'])->get('install', fn () => view('install'))->name('install');
 
 Route::middleware('guest')->group(function (): void {
+    Route::get('auth/google', [GoogleAuthController::class, 'redirect'])->name('auth.google');
+    Route::get('auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
+
     Route::get('login', [LoginController::class, 'create'])->name('login');
     Route::post('login', [LoginController::class, 'store']);
 
