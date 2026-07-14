@@ -17,6 +17,32 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property string $name
+ * @property string|null $description
+ * @property ScheduleType $schedule_type
+ * @property array<array{day: int, times: array<int, string>}>|null $week_days
+ * @property array<array{date: string, times: array<int, string>}>|null $specific_dates
+ * @property int|null $every_n_days
+ * @property int|null $cyclical_value
+ * @property string|null $cyclical_unit
+ * @property array<int>|null $cyclical_week_days
+ * @property string|null $cyclical_month_type
+ * @property array<int>|null $cyclical_month_days
+ * @property string|null $cyclical_month_position
+ * @property int|null $cyclical_month_weekday
+ * @property array<int>|null $cyclical_year_months
+ * @property int|null $cyclical_year_day
+ * @property bool $cyclical_year_use_weekday
+ * @property int|null $cyclical_use_for
+ * @property int|null $cyclical_pause_for
+ * @property array<int, string>|null $times
+ * @property Carbon|null $starts_at
+ * @property Carbon|null $ends_at
+ * @property bool $is_active
+ */
 #[Fillable([
     'user_id',
     'name',
@@ -197,7 +223,7 @@ class Notification extends Model
         }
 
         $names = [1 => __('Mon'), 2 => __('Tue'), 3 => __('Wed'), 4 => __('Thu'), 5 => __('Fri'), 6 => __('Sat'), 7 => __('Sun')];
-        $dayNums = array_map(fn ($e) => is_array($e) ? (int) ($e['day'] ?? 0) : (int) $e, $days);
+        $dayNums = array_map(fn ($e) => (int) $e['day'], $days);
         sort($dayNums);
 
         return implode(', ', array_map(fn ($d) => $names[$d] ?? $d, $dayNums));
@@ -217,7 +243,7 @@ class Notification extends Model
         }
 
         if ($unit === 'weeks' && ! empty($this->cyclical_week_days)) {
-            $sorted = $this->cyclical_week_days;
+            $sorted = $this->cyclical_week_days ?? [];
             sort($sorted);
             $names = implode(', ', array_map(fn ($d) => $dayNames[(int) $d] ?? $d, $sorted));
 
@@ -225,7 +251,7 @@ class Notification extends Model
         }
 
         if ($unit === 'months' && $this->cyclical_month_type === 'each' && ! empty($this->cyclical_month_days)) {
-            $sorted = $this->cyclical_month_days;
+            $sorted = $this->cyclical_month_days ?? [];
             sort($sorted);
             $ordinals = array_map(fn ($d) => $this->ordinal((int) $d), $sorted);
             $last = array_pop($ordinals);
@@ -246,15 +272,17 @@ class Notification extends Model
 
         if ($unit === 'years' && ! empty($this->cyclical_year_months)) {
             $monthNames = [1 => __('Jan'), 2 => __('Feb'), 3 => __('Mar'), 4 => __('Apr'), 5 => __('May'), 6 => __('Jun'), 7 => __('Jul'), 8 => __('Aug'), 9 => __('Sep'), 10 => __('Oct'), 11 => __('Nov'), 12 => __('Dec')];
-            $sorted = $this->cyclical_year_months;
+            $sorted = $this->cyclical_year_months ?? [];
             sort($sorted);
             $months = implode(', ', array_map(fn ($m) => $monthNames[(int) $m] ?? $m, $sorted));
             $base = trans_choice('Every :count year in :months|Every :count years in :months', $value, ['count' => $value, 'months' => $months]);
 
-            if ($this->cyclical_year_use_weekday && $this->cyclical_month_position && $this->cyclical_month_weekday) {
+            $yearPosition = $this->cyclical_month_position;
+            $yearWeekday = $this->cyclical_month_weekday;
+            if ($this->cyclical_year_use_weekday && $yearPosition !== null && $yearWeekday !== null) {
                 $positions = ['first' => __('1st'), 'second' => __('2nd'), 'third' => __('3rd'), 'fourth' => __('4th'), 'fifth' => __('5th'), 'last' => __('last')];
-                $pos = $positions[$this->cyclical_month_position] ?? $this->cyclical_month_position;
-                $day = $dayNames[(int) $this->cyclical_month_weekday] ?? $this->cyclical_month_weekday;
+                $pos = $positions[$yearPosition] ?? $yearPosition;
+                $day = $dayNames[$yearWeekday] ?? $yearWeekday;
                 $base .= ' '.__('on the :pos :day', ['pos' => $pos, 'day' => $day]);
             } elseif ($this->cyclical_year_day && ! $this->cyclical_year_use_weekday) {
                 $base .= ' '.__('on the :day', ['day' => $this->ordinal((int) $this->cyclical_year_day)]);
@@ -294,7 +322,7 @@ class Notification extends Model
             return __('On specific dates');
         }
 
-        $dateParts = array_map(fn ($e) => is_array($e) ? ($e['date'] ?? '') : $e, $dates);
+        $dateParts = array_map(fn ($e) => $e['date'], $dates);
         $dateParts = array_filter($dateParts);
         sort($dateParts);
 

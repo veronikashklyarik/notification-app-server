@@ -247,18 +247,6 @@ parameters:
 			path: app/Livewire/NotificationEdit.php
 
 		-
-			message: '#^Cannot access property \$value on string\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: app/Livewire/NotificationEdit.php
-
-		-
-			message: '#^Cannot call method format\(\) on string\.$#'
-			identifier: method.nonObject
-			count: 2
-			path: app/Livewire/NotificationEdit.php
-
-		-
 			message: '#^Attribute class Livewire\\Attributes\\Protect does not exist\.$#'
 			identifier: attribute.notFound
 			count: 1
@@ -283,66 +271,6 @@ parameters:
 			path: app/Models/Notification.php
 
 		-
-			message: '#^Cannot call method format\(\) on string\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: app/Models/Notification.php
-
-		-
-			message: '#^Match arm comparison between string and App\\Enums\\ScheduleType\:\:AsNeeded is always false\.$#'
-			identifier: match.alwaysFalse
-			count: 1
-			path: app/Models/Notification.php
-
-		-
-			message: '#^Match arm comparison between string and App\\Enums\\ScheduleType\:\:Cyclical is always false\.$#'
-			identifier: match.alwaysFalse
-			count: 1
-			path: app/Models/Notification.php
-
-		-
-			message: '#^Match arm comparison between string and App\\Enums\\ScheduleType\:\:EveryDay is always false\.$#'
-			identifier: match.alwaysFalse
-			count: 1
-			path: app/Models/Notification.php
-
-		-
-			message: '#^Match arm comparison between string and App\\Enums\\ScheduleType\:\:EveryNDays is always false\.$#'
-			identifier: match.alwaysFalse
-			count: 1
-			path: app/Models/Notification.php
-
-		-
-			message: '#^Match arm comparison between string and App\\Enums\\ScheduleType\:\:WeekDays is always false\.$#'
-			identifier: match.alwaysFalse
-			count: 1
-			path: app/Models/Notification.php
-
-		-
-			message: '#^Match expression does not handle remaining value\: string$#'
-			identifier: match.unhandled
-			count: 1
-			path: app/Models/Notification.php
-
-		-
-			message: '#^Parameter \#1 \$array of function sort expects TArray of array\<T\>, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Models/Notification.php
-
-		-
-			message: '#^Parameter \#2 \$array of function implode expects array, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Models/Notification.php
-
-		-
-			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\ScheduleType\:\:AsNeeded will always evaluate to true\.$#'
-			identifier: notIdentical.alwaysTrue
-			count: 1
-			path: app/Models/Notification.php
-
-		-
 			message: '#^Using nullsafe property access "\?\-\>timezone" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 3
@@ -351,61 +279,7 @@ parameters:
 		-
 			message: '#^Cannot call method copy\(\) on string\.$#'
 			identifier: method.nonObject
-			count: 3
-			path: app/Services/NotificationEventService.php
-
-		-
-			message: '#^Match arm comparison between string and App\\Enums\\ScheduleType\:\:AsNeeded is always false\.$#'
-			identifier: match.alwaysFalse
 			count: 1
-			path: app/Services/NotificationEventService.php
-
-		-
-			message: '#^Match arm comparison between string and App\\Enums\\ScheduleType\:\:Cyclical is always false\.$#'
-			identifier: match.alwaysFalse
-			count: 2
-			path: app/Services/NotificationEventService.php
-
-		-
-			message: '#^Match arm comparison between string and App\\Enums\\ScheduleType\:\:EveryDay is always false\.$#'
-			identifier: match.alwaysFalse
-			count: 2
-			path: app/Services/NotificationEventService.php
-
-		-
-			message: '#^Match arm comparison between string and App\\Enums\\ScheduleType\:\:EveryNDays is always false\.$#'
-			identifier: match.alwaysFalse
-			count: 2
-			path: app/Services/NotificationEventService.php
-
-		-
-			message: '#^Match arm comparison between string and App\\Enums\\ScheduleType\:\:WeekDays is always false\.$#'
-			identifier: match.alwaysFalse
-			count: 2
-			path: app/Services/NotificationEventService.php
-
-		-
-			message: '#^Match expression does not handle remaining value\: string$#'
-			identifier: match.unhandled
-			count: 1
-			path: app/Services/NotificationEventService.php
-
-		-
-			message: '#^Method App\\Services\\NotificationEventService\:\:getNextOccurrenceDate\(\) never returns Illuminate\\Support\\Carbon so it can be removed from the return type\.$#'
-			identifier: return.unusedType
-			count: 1
-			path: app/Services/NotificationEventService.php
-
-		-
-			message: '#^Parameter \#2 \$haystack of function in_array expects array, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Services/NotificationEventService.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\ScheduleType\:\:AsNeeded will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
-			count: 2
 			path: app/Services/NotificationEventService.php
 
 		-

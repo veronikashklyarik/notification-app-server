@@ -173,7 +173,7 @@ class NotificationEventService
         int $limit,
         ?Carbon $startFrom,
     ): void {
-        $timezone = $notification->user?->timezone ?? 'UTC';
+        $timezone = $notification->user->timezone ?? 'UTC';
         $now = $startFrom ?? now($timezone);
         $globalTimes = $this->getEffectiveTimes($notification);
         $specificDates = $notification->specific_dates ?? [];
@@ -182,19 +182,14 @@ class NotificationEventService
             return;
         }
 
-        usort($specificDates, function ($a, $b) {
-            $da = is_array($a) ? ($a['date'] ?? '') : $a;
-            $db = is_array($b) ? ($b['date'] ?? '') : $b;
-
-            return strcmp($da, $db);
-        });
+        usort($specificDates, fn ($a, $b) => strcmp($a['date'], $b['date']));
 
         $completedScheduledAts = $this->getCompletedScheduledAts($notification);
         $events = [];
 
         foreach ($specificDates as $entry) {
-            $dateStr = is_array($entry) ? ($entry['date'] ?? null) : $entry;
-            $times = (is_array($entry) && ! empty($entry['times'])) ? $entry['times'] : $globalTimes;
+            $dateStr = $entry['date'];
+            $times = ! empty($entry['times']) ? $entry['times'] : $globalTimes;
             sort($times);
 
             if (! $dateStr) {
@@ -235,15 +230,11 @@ class NotificationEventService
         int $limit,
         ?Carbon $startFrom,
     ): void {
-        $timezone = $notification->user?->timezone ?? 'UTC';
+        $timezone = $notification->user->timezone ?? 'UTC';
         $now = $startFrom ?? now($timezone);
         $useFor = max(1, $notification->cyclical_use_for ?? 1);
         $pauseFor = max(0, $notification->cyclical_pause_for ?? 0);
         $cycleLength = $useFor + $pauseFor;
-
-        if ($cycleLength <= 0) {
-            return;
-        }
 
         $start = $notification->starts_at
             ? $notification->starts_at->copy()->setTimezone($timezone)->startOfDay()
@@ -297,7 +288,7 @@ class NotificationEventService
             ScheduleType::EveryDay => true,
             ScheduleType::WeekDays => in_array(
                 $date->isoWeekday(),
-                array_map(fn ($e) => is_array($e) ? (int) ($e['day'] ?? 0) : (int) $e, $notification->week_days ?? []),
+                array_map(fn ($e) => (int) $e['day'], $notification->week_days ?? []),
             ),
             ScheduleType::EveryNDays => true,
             ScheduleType::Cyclical => $this->isValidCyclicalDay($notification, $date, $timezone),
@@ -387,7 +378,7 @@ class NotificationEventService
             return null;
         }
 
-        $days = array_map(fn ($e) => is_array($e) ? (int) ($e['day'] ?? 0) : (int) $e, $weekDays);
+        $days = array_map(fn ($e) => (int) $e['day'], $weekDays);
 
         for ($i = 0; $i < 8; $i++) {
             $candidate = $from->copy()->addDays($i)->startOfDay();
@@ -508,25 +499,17 @@ class NotificationEventService
         foreach ($months as $month) {
             $candidate = $this->getYearlyMonthTarget($notification, $base->year, $month, $anchor, $timezone);
 
-            if ($candidate && $candidate->gt($base->copy()->startOfDay())) {
+            if ($candidate->gt($base->copy()->startOfDay())) {
                 return $candidate;
             }
         }
 
         $nextYear = $base->year + $value;
 
-        foreach ($months as $month) {
-            $candidate = $this->getYearlyMonthTarget($notification, $nextYear, $month, $anchor, $timezone);
-
-            if ($candidate) {
-                return $candidate;
-            }
-        }
-
-        return $base->copy()->addYears($value)->startOfDay();
+        return $this->getYearlyMonthTarget($notification, $nextYear, $months[0], $anchor, $timezone);
     }
 
-    private function getYearlyMonthTarget(Notification $notification, int $year, int $month, Carbon $anchor, string $timezone = 'UTC'): ?Carbon
+    private function getYearlyMonthTarget(Notification $notification, int $year, int $month, Carbon $anchor, string $timezone = 'UTC'): Carbon
     {
         $baseMonth = Carbon::create($year, $month, 1, 0, 0, 0, $timezone)->startOfDay();
 
@@ -587,7 +570,7 @@ class NotificationEventService
     }
 
     /**
-     * @return array<string, true>
+     * @return array<string, int>
      */
     private function getCompletedScheduledAts(Notification $notification): array
     {
@@ -621,8 +604,8 @@ class NotificationEventService
             $isoDay = $date->isoWeekday();
 
             foreach ($notification->week_days ?? [] as $entry) {
-                if (is_array($entry) && (int) ($entry['day'] ?? 0) === $isoDay) {
-                    $times = $entry['times'] ?? [];
+                if ((int) $entry['day'] === $isoDay) {
+                    $times = $entry['times'];
 
                     return ! empty($times) ? $times : $this->getEffectiveTimes($notification);
                 }

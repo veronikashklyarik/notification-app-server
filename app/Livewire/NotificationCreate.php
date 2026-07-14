@@ -200,16 +200,15 @@ class NotificationCreate extends Component
     public function toggleWeekDay(int $day): void
     {
         foreach ($this->week_days as $index => $entry) {
-            if ((int) ($entry['day'] ?? 0) === $day) {
+            if ((int) $entry['day'] === $day) {
                 array_splice($this->week_days, $index, 1);
-                $this->week_days = array_values($this->week_days);
 
                 return;
             }
         }
 
         $this->week_days[] = ['day' => $day, 'times' => ['09:00']];
-        usort($this->week_days, fn ($a, $b) => ($a['day'] ?? 0) <=> ($b['day'] ?? 0));
+        usort($this->week_days, fn ($a, $b) => $a['day'] <=> $b['day']);
     }
 
     public function updatedWeekDays(mixed $value, ?string $key = null): void

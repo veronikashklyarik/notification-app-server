@@ -81,22 +81,8 @@ class NotificationEdit extends Component
         $this->name = $notification->name;
         $this->description = $notification->description ?? '';
         $this->schedule_type = $notification->schedule_type->value;
-        $rawWeekDays = $notification->week_days ?? [];
-        $this->week_days = array_map(function ($e) {
-            if (is_array($e)) {
-                return $e;
-            }
-
-            return ['day' => (int) $e, 'times' => ['09:00']];
-        }, $rawWeekDays);
-        $raw = $notification->specific_dates ?? [];
-        $this->specific_dates = array_map(function ($entry) {
-            if (is_string($entry)) {
-                return ['date' => $entry, 'times' => ['09:00']];
-            }
-
-            return $entry;
-        }, $raw);
+        $this->week_days = $notification->week_days ?? [];
+        $this->specific_dates = $notification->specific_dates ?? [];
         $this->every_n_days = $notification->every_n_days ?? 2;
         $this->cyclical_value = $notification->cyclical_value ?? 1;
         $this->cyclical_unit = $notification->cyclical_unit ?? 'days';
@@ -244,16 +230,15 @@ class NotificationEdit extends Component
     public function toggleWeekDay(int $day): void
     {
         foreach ($this->week_days as $index => $entry) {
-            if ((int) ($entry['day'] ?? 0) === $day) {
+            if ((int) $entry['day'] === $day) {
                 array_splice($this->week_days, $index, 1);
-                $this->week_days = array_values($this->week_days);
 
                 return;
             }
         }
 
         $this->week_days[] = ['day' => $day, 'times' => ['09:00']];
-        usort($this->week_days, fn ($a, $b) => ($a['day'] ?? 0) <=> ($b['day'] ?? 0));
+        usort($this->week_days, fn ($a, $b) => $a['day'] <=> $b['day']);
     }
 
     public function updatedWeekDays(mixed $value, ?string $key = null): void

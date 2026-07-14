@@ -1,50 +1,54 @@
 <?php
 
-use App\Enums\ScheduleType;
-use App\Models\Notification;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        Notification::where('schedule_type', ScheduleType::WeekDays)
+        DB::table('notifications')
+            ->where('schedule_type', 'week_days')
             ->whereNotNull('week_days')
-            ->get()
-            ->each(function (Notification $notification): void {
-                $raw = $notification->week_days ?? [];
+            ->get(['id', 'week_days', 'times'])
+            ->each(function ($row): void {
+                $raw = json_decode($row->week_days, true);
 
                 if (empty($raw) || is_array($raw[0] ?? null)) {
                     return;
                 }
 
-                $times = $notification->times ?? ['09:00'];
-                if (empty($times)) {
-                    $times = ['09:00'];
-                }
+                $times = json_decode($row->times ?? '[]', true) ?: ['09:00'];
 
-                $notification->week_days = array_map(
+                $newValue = array_map(
                     fn ($d) => ['day' => (int) $d, 'times' => $times],
                     $raw,
                 );
-                $notification->save();
+
+                DB::table('notifications')
+                    ->where('id', $row->id)
+                    ->update(['week_days' => json_encode($newValue)]);
             });
     }
 
     public function down(): void
     {
-        Notification::where('schedule_type', ScheduleType::WeekDays)
+        DB::table('notifications')
+            ->where('schedule_type', 'week_days')
             ->whereNotNull('week_days')
-            ->get()
-            ->each(function (Notification $notification): void {
-                $raw = $notification->week_days ?? [];
+            ->get(['id', 'week_days'])
+            ->each(function ($row): void {
+                $raw = json_decode($row->week_days, true);
 
                 if (empty($raw) || ! is_array($raw[0] ?? null)) {
                     return;
                 }
 
-                $notification->week_days = array_map(fn ($e) => (int) ($e['day'] ?? 0), $raw);
-                $notification->save();
+                $oldValue = array_map(fn ($e) => (int) ($e['day'] ?? 0), $raw);
+
+                DB::table('notifications')
+                    ->where('id', $row->id)
+                    ->update(['week_days' => json_encode($oldValue)]);
             });
     }
 };
