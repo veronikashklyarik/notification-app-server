@@ -45,8 +45,9 @@
                     <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">{{ __('Days of Week') }}</p>
                     <div class="flex flex-wrap gap-1.5">
                         @php $dayNames = [1 => __('Mon'), 2 => __('Tue'), 3 => __('Wed'), 4 => __('Thu'), 5 => __('Fri'), 6 => __('Sat'), 7 => __('Sun')]; @endphp
-                        @foreach($notification->week_days as $day)
-                            <span class="px-3 py-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 rounded-lg">{{ $dayNames[$day] ?? $day }}</span>
+                        @foreach($notification->week_days as $entry)
+                            @php $dayNum = is_array($entry) ? (int)($entry['day'] ?? 0) : (int)$entry; @endphp
+                            <span class="px-3 py-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 rounded-lg">{{ $dayNames[$dayNum] ?? $dayNum }}</span>
                         @endforeach
                     </div>
                 </div>

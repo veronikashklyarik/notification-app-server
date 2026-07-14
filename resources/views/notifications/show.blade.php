@@ -48,7 +48,7 @@
             @if($notification->schedule_type === \App\Enums\ScheduleType::WeekDays && !empty($notification->week_days))
                 @php
                     $dayNames = [1 => 'Mon', 2 => 'Tue', 3 => 'Wed', 4 => 'Thu', 5 => 'Fri', 6 => 'Sat', 7 => 'Sun'];
-                    $selectedDays = $notification->week_days;
+                    $selectedDays = array_map(fn($e) => is_array($e) ? (int)($e['day'] ?? 0) : (int)$e, $notification->week_days);
                     sort($selectedDays);
                 @endphp
                 <div class="flex flex-wrap gap-1 mt-1">
