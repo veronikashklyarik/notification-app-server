@@ -40,14 +40,44 @@
                 @endif
             </div>
 
-            @if($notification->week_days)
+            @if($notification->schedule_type === \App\Enums\ScheduleType::WeekDays && $notification->week_days)
+                @php $dayNames = [1 => __('Mon'), 2 => __('Tue'), 3 => __('Wed'), 4 => __('Thu'), 5 => __('Fri'), 6 => __('Sat'), 7 => __('Sun')]; @endphp
                 <div>
                     <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">{{ __('Days of Week') }}</p>
-                    <div class="flex flex-wrap gap-1.5">
-                        @php $dayNames = [1 => __('Mon'), 2 => __('Tue'), 3 => __('Wed'), 4 => __('Thu'), 5 => __('Fri'), 6 => __('Sat'), 7 => __('Sun')]; @endphp
+                    <div class="flex flex-col gap-2">
                         @foreach($notification->week_days as $entry)
-                            @php $dayNum = is_array($entry) ? (int)($entry['day'] ?? 0) : (int)$entry; @endphp
-                            <span class="px-3 py-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 rounded-lg">{{ $dayNames[$dayNum] ?? $dayNum }}</span>
+                            @php
+                                $dayNum = is_array($entry) ? (int)($entry['day'] ?? 0) : (int)$entry;
+                                $dayTimes = is_array($entry) ? ($entry['times'] ?? []) : [];
+                            @endphp
+                            <div class="flex items-center gap-2">
+                                <span class="px-3 py-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 rounded-lg shrink-0">{{ $dayNames[$dayNum] ?? $dayNum }}</span>
+                                @if(!empty($dayTimes))
+                                    <span class="text-xs text-gray-500">{{ implode(', ', $dayTimes) }}</span>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
+            @if($notification->schedule_type === \App\Enums\ScheduleType::SpecificDates && !empty($notification->specific_dates))
+                <div>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">{{ __('Dates') }}</p>
+                    <div class="space-y-2">
+                        @foreach($notification->specific_dates as $entry)
+                            @php
+                                $dateStr = is_array($entry) ? ($entry['date'] ?? '') : $entry;
+                                $entryTimes = is_array($entry) ? ($entry['times'] ?? []) : [];
+                            @endphp
+                            @if($dateStr)
+                                <div class="flex items-center justify-between p-2.5 rounded-xl bg-gray-50">
+                                    <span class="text-sm font-semibold text-gray-900">{{ \Illuminate\Support\Carbon::parse($dateStr)->translatedFormat('M j, Y') }}</span>
+                                    @if(!empty($entryTimes))
+                                        <span class="text-xs text-gray-500">{{ implode(', ', $entryTimes) }}</span>
+                                    @endif
+                                </div>
+                            @endif
                         @endforeach
                     </div>
                 </div>

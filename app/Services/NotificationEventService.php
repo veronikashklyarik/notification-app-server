@@ -506,7 +506,7 @@ class NotificationEventService
             : $base;
 
         foreach ($months as $month) {
-            $candidate = $this->getYearlyMonthTarget($notification, $base->year, $month, $anchor);
+            $candidate = $this->getYearlyMonthTarget($notification, $base->year, $month, $anchor, $timezone);
 
             if ($candidate && $candidate->gt($base->copy()->startOfDay())) {
                 return $candidate;
@@ -516,7 +516,7 @@ class NotificationEventService
         $nextYear = $base->year + $value;
 
         foreach ($months as $month) {
-            $candidate = $this->getYearlyMonthTarget($notification, $nextYear, $month, $anchor);
+            $candidate = $this->getYearlyMonthTarget($notification, $nextYear, $month, $anchor, $timezone);
 
             if ($candidate) {
                 return $candidate;
@@ -526,9 +526,9 @@ class NotificationEventService
         return $base->copy()->addYears($value)->startOfDay();
     }
 
-    private function getYearlyMonthTarget(Notification $notification, int $year, int $month, Carbon $anchor): ?Carbon
+    private function getYearlyMonthTarget(Notification $notification, int $year, int $month, Carbon $anchor, string $timezone = 'UTC'): ?Carbon
     {
-        $baseMonth = Carbon::create($year, $month, 1)->startOfDay();
+        $baseMonth = Carbon::create($year, $month, 1, 0, 0, 0, $timezone)->startOfDay();
 
         if ($notification->cyclical_year_use_weekday
             && $notification->cyclical_month_position

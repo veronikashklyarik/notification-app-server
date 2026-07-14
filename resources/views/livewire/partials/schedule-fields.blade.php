@@ -210,48 +210,34 @@
 
         {{-- Days: Use for / Pause for --}}
         @if($cyclical_unit === 'days')
-            <div>
-                <div class="flex items-center mb-2 gap-1">
-                    <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('Cycle') }}</label>
-                    <span class="text-xs font-normal text-gray-400 normal-case">({{ __('optional') }})</span>
-                    <div x-data="{ t: false }" class="relative inline-flex items-center ml-0.5">
-                        <button type="button" @mouseenter="t=true" @mouseleave="t=false"
-                            class="w-4 h-4 rounded-full bg-gray-100 text-gray-400 text-[10px] font-bold hover:bg-gray-200 hover:text-gray-600 transition-colors flex items-center justify-center shrink-0">?</button>
-                        <div x-show="t" x-cloak
-                            class="absolute left-5 top-0 z-30 w-60 text-xs text-gray-600 bg-white border border-gray-200 rounded-xl p-3 shadow-xl leading-relaxed">
-                            {{ __('Active for X days, then off for Y days, then repeats. Leave blank to send every day with no break.') }}
-                        </div>
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block mb-1.5 text-xs text-gray-500">{{ __('Active for') }}</label>
-                        <div class="flex items-center gap-1.5">
-                            <input type="number" wire:model.live="cyclical_use_for" min="1" placeholder="14"
-                                class="input-styled w-full text-center">
-                            <span class="text-xs text-gray-400 shrink-0">{{ __('days') }}</span>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block mb-1.5 text-xs text-gray-500">{{ __('Off for') }}</label>
-                        <div class="flex items-center gap-1.5">
-                            <input type="number" wire:model.live="cyclical_pause_for" min="0" placeholder="7"
-                                class="input-styled w-full text-center">
-                            <span class="text-xs text-gray-400 shrink-0">{{ __('days') }}</span>
-                        </div>
-                    </div>
-                </div>
+            <div x-data="{ hasCycle: {{ $cyclical_use_for ? 'true' : 'false' }} }">
+                <label class="flex items-center gap-2.5 cursor-pointer">
+                    <input type="checkbox" :checked="hasCycle"
+                           @change="hasCycle = $event.target.checked; if (!hasCycle) { $wire.set('cyclical_use_for', null); $wire.set('cyclical_pause_for', null); }"
+                           class="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500">
+                    <span class="text-xs font-semibold text-gray-700 uppercase tracking-wider">{{ __('Cycle') }}</span>
+                    <span class="text-xs font-normal text-gray-400 normal-case">{{ __('active for N days, then off for M days') }}</span>
+                </label>
 
-                {{-- Visual on/off bar --}}
-                @if($cyclical_use_for && $cyclical_pause_for)
-                    @php $barActive = max(1,(int)$cyclical_use_for); $barOff = max(1,(int)$cyclical_pause_for); $barTotal = $barActive + $barOff; @endphp
-                    <div class="mt-3 flex rounded-lg overflow-hidden h-5 text-[9px] font-semibold">
-                        <div class="flex items-center justify-center bg-indigo-400 text-white truncate px-1" style="flex: {{ $barActive }}">{{ __('Active') }} {{ $barActive }}d</div>
-                        <div class="flex items-center justify-center bg-gray-200 text-gray-500 truncate px-1" style="flex: {{ $barOff }}">{{ __('Off') }} {{ $barOff }}d</div>
-                        <div class="flex items-center justify-center bg-indigo-200 text-indigo-400 truncate px-1 opacity-60" style="flex: {{ $barActive }}">{{ __('Active') }} {{ $barActive }}d</div>
-                        <div class="flex items-center justify-center bg-gray-100 text-gray-400 truncate px-1 opacity-60" style="flex: {{ $barOff }}">{{ __('Off') }} {{ $barOff }}d</div>
+                <div x-show="hasCycle" x-cloak class="mt-3 space-y-3">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block mb-1.5 text-xs text-gray-500">{{ __('Active for') }}</label>
+                            <div class="flex items-center gap-1.5">
+                                <input type="number" wire:model.live="cyclical_use_for" min="1" placeholder="14"
+                                    class="input-styled w-full text-center">
+                                <span class="text-xs text-gray-400 shrink-0">{{ __('days') }}</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block mb-1.5 text-xs text-gray-500">{{ __('Off for') }}</label>
+                            <div class="flex items-center gap-1.5">
+                                <input type="number" wire:model.live="cyclical_pause_for" min="0" placeholder="7"
+                                    class="input-styled w-full text-center">
+                                <span class="text-xs text-gray-400 shrink-0">{{ __('days') }}</span>
+                            </div>
+                        </div>
                     </div>
-                @endif
 
                 {{-- Cycle preview --}}
                 @if($cyclical_use_for && $cyclical_pause_for)
@@ -313,6 +299,7 @@
                         </div>
                     @endif
                 @endif
+                </div>{{-- /x-show hasCycle --}}
             </div>
         @endif
 
@@ -437,6 +424,9 @@
                             class="input-styled w-20 text-center">
                         <span class="text-xs text-gray-400 shrink-0">{{ __('day of the month') }}</span>
                     </div>
+                    @if($cyclical_year_day && (int)$cyclical_year_day > 28)
+                        <p class="text-xs text-amber-600 mt-1.5">{{ __('For months with fewer days, the last available day will be used.') }}</p>
+                    @endif
                 @endif
 
                 <label class="flex items-center gap-2.5 mt-3 cursor-pointer">
