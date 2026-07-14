@@ -146,6 +146,7 @@
                             <input type="time" wire:model.live="week_days.{{ $di }}.times.{{ $ti }}" class="input-styled flex-1">
                             @if(count($entryTimes) > 1)
                                 <button type="button" wire:click="removeWeekDayTime({{ $di }}, {{ $ti }})"
+                                    aria-label="{{ __('Remove time') }}"
                                     class="w-8 h-8 flex items-center justify-center rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -219,7 +220,7 @@
                     <span class="text-xs font-normal text-gray-400 normal-case">{{ __('active for N days, then off for M days') }}</span>
                 </label>
 
-                <div x-show="hasCycle" x-cloak class="mt-3 space-y-3">
+                <div x-show="hasCycle" x-cloak x-transition class="mt-3 space-y-3">
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block mb-1.5 text-xs text-gray-500">{{ __('Active for') }}</label>
@@ -463,6 +464,7 @@
                         {{ $dateStr ? \Illuminate\Support\Carbon::createFromFormat('Y-m-d', $dateStr)->format('d M Y') : '' }}
                     </span>
                     <button type="button" wire:click="removeSpecificDate({{ $index }})"
+                        aria-label="{{ __('Remove date') }}"
                         class="w-8 h-8 flex items-center justify-center rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -475,6 +477,7 @@
                             class="input-styled flex-1">
                         @if(count($dateTimes) > 1)
                             <button type="button" wire:click="removeTimeFromDate({{ $index }}, {{ $ti }})"
+                                aria-label="{{ __('Remove time') }}"
                                 class="w-8 h-8 flex items-center justify-center rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -586,6 +589,7 @@
                     } else {
                         $upTimes = $times ?? [];
                     }
+                    sort($upTimes);
                 @endphp
                 <div class="flex items-center gap-2 text-xs text-gray-600">
                     <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 shrink-0"></span>

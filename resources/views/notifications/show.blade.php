@@ -52,6 +52,7 @@
                         @php
                             $dayNum = is_array($entry) ? (int)($entry['day'] ?? 0) : (int)$entry;
                             $dayTimes = is_array($entry) ? ($entry['times'] ?? []) : [];
+                            sort($dayTimes);
                         @endphp
                         <div class="flex items-center gap-2">
                             <span class="px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-700">{{ $dayNames[$dayNum] ?? $dayNum }}</span>
@@ -65,10 +66,17 @@
 
             @if($notification->schedule_type === \App\Enums\ScheduleType::SpecificDates && !empty($notification->specific_dates))
                 <div class="space-y-1 mt-2">
-                    @foreach($notification->specific_dates as $entry)
+                    @php
+                        $sortedSpecificDates = collect($notification->specific_dates)
+                            ->filter(fn($e) => is_array($e) ? ($e['date'] ?? '') : $e)
+                            ->sortBy(fn($e) => is_array($e) ? ($e['date'] ?? '') : $e)
+                            ->values();
+                    @endphp
+                    @foreach($sortedSpecificDates as $entry)
                         @php
                             $dateStr = is_array($entry) ? ($entry['date'] ?? '') : $entry;
                             $entryTimes = is_array($entry) ? ($entry['times'] ?? []) : [];
+                            sort($entryTimes);
                         @endphp
                         @if($dateStr)
                             <div class="flex items-center gap-3">

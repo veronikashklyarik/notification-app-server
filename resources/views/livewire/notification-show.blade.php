@@ -49,6 +49,7 @@
                             @php
                                 $dayNum = is_array($entry) ? (int)($entry['day'] ?? 0) : (int)$entry;
                                 $dayTimes = is_array($entry) ? ($entry['times'] ?? []) : [];
+                                sort($dayTimes);
                             @endphp
                             <div class="flex items-center gap-2">
                                 <span class="px-3 py-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 rounded-lg shrink-0">{{ $dayNames[$dayNum] ?? $dayNum }}</span>
@@ -65,10 +66,17 @@
                 <div>
                     <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">{{ __('Dates') }}</p>
                     <div class="space-y-2">
-                        @foreach($notification->specific_dates as $entry)
+                        @php
+                            $sortedDates = collect($notification->specific_dates)
+                                ->filter(fn($e) => is_array($e) ? ($e['date'] ?? '') : $e)
+                                ->sortBy(fn($e) => is_array($e) ? ($e['date'] ?? '') : $e)
+                                ->values();
+                        @endphp
+                        @foreach($sortedDates as $entry)
                             @php
                                 $dateStr = is_array($entry) ? ($entry['date'] ?? '') : $entry;
                                 $entryTimes = is_array($entry) ? ($entry['times'] ?? []) : [];
+                                sort($entryTimes);
                             @endphp
                             @if($dateStr)
                                 <div class="flex items-center justify-between p-2.5 rounded-xl bg-gray-50">

@@ -294,9 +294,19 @@ class Notification extends Model
             return __('On specific dates');
         }
 
-        sort($dates);
-        $count = count($dates);
+        $dateParts = array_map(fn ($e) => is_array($e) ? ($e['date'] ?? '') : $e, $dates);
+        $dateParts = array_filter($dateParts);
+        sort($dateParts);
 
-        return trans_choice(':count date selected|:count dates selected', $count, ['count' => $count]);
+        $count = count($dateParts);
+        $preview = array_slice($dateParts, 0, 3);
+        $previewLabels = array_map(fn ($d) => Carbon::parse($d)->translatedFormat('M j'), $preview);
+        $label = implode(', ', $previewLabels);
+
+        if ($count > 3) {
+            $label .= '…';
+        }
+
+        return $label;
     }
 }

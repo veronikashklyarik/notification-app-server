@@ -342,7 +342,9 @@ class FlexibleScheduleTest extends TestCase
     {
         $notification = Notification::factory()->specificDates(['2039-08-10', '2039-09-05'])->make();
 
-        $this->assertStringContainsString('2', $notification->frequency_label);
+        // Label now shows the actual dates (e.g. "Aug 10, Sep 5") instead of a count
+        $this->assertStringContainsString('Aug', $notification->frequency_label);
+        $this->assertStringContainsString('Sep', $notification->frequency_label);
     }
 
     public function test_cyclical_weekly_with_days_frequency_label(): void
