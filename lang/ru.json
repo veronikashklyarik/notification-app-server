@@ -364,5 +364,20 @@
     "'Each' fires on specific dates (e.g. 1st and 15th). 'On the...' fires on the Nth weekday (e.g. 3rd Tuesday).": "«Каждого» срабатывает в конкретные даты (напр., 1-го и 15-го). «В...» — в N-й день недели (напр., 3-й вторник).",
     "Notify at each time in the list": "Уведомление в каждое время из списка",
     "Reminders begin from this date": "Напоминания начинаются с этой даты",
-    "Leave blank to repeat indefinitely": "Оставьте пустым для бесконечного повторения"
+    "Leave blank to repeat indefinitely": "Оставьте пустым для бесконечного повторения",
+    "last": "последний",
+    "Remove time": "Удалить время",
+    "Remove date": "Удалить дату",
+    "Choose days of the week below": "Выберите дни недели ниже",
+    "active for N days, then off for M days": "активно N дней, перерыв M дней",
+    "For months with fewer days, the last available day will be used.": "Для месяцев с меньшим количеством дней будет использован последний доступный день.",
+    "Specific Days of the Week": "Определённые дни недели",
+    "Every Few Days": "Каждые несколько дней",
+    "On Specific Dates": "В определённые даты",
+    "Every day at the same time": "Каждый день в одно и то же время",
+    "On Mondays, on Weekdays": "По понедельникам, по будням",
+    "Every other day, every 3 days": "Через день, каждые 3 дня",
+    "Every 2 weeks on Mon & Wed, or on the 1st Friday of each month": "Каждые 2 недели в пн и ср, или в 1-ю пятницу каждого месяца",
+    "Pick exact dates, e.g. for irregular schedules": "Точные даты — для нерегулярного расписания",
+    "No automatic reminders — manually log each time": "Без автоматических напоминаний — фиксировать вручную"
 }
