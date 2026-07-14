@@ -386,6 +386,52 @@ class FlexibleScheduleTest extends TestCase
     // Edit
     // -------------------------------------------------------------------------
 
+    public function test_duplicate_week_day_times_are_prevented(): void
+    {
+        $user = User::factory()->create();
+
+        $component = Livewire::actingAs($user)
+            ->test(NotificationCreate::class)
+            ->set('schedule_type', 'week_days')
+            ->call('toggleWeekDay', 1);
+
+        // First add: 09:00 (from toggleWeekDay seed) — add one more → 10:00
+        $component->call('addWeekDayTime', 0);
+        $times = $component->get('week_days')[0]['times'];
+        $this->assertCount(2, $times);
+        $this->assertContains('09:00', $times);
+        $this->assertContains('10:00', $times);
+
+        // Add again → 11:00, not a duplicate
+        $component->call('addWeekDayTime', 0);
+        $times = $component->get('week_days')[0]['times'];
+        $this->assertCount(3, $times);
+        $this->assertEquals(array_unique($times), $times);
+    }
+
+    public function test_duplicate_specific_date_times_are_prevented(): void
+    {
+        $user = User::factory()->create();
+
+        $component = Livewire::actingAs($user)
+            ->test(NotificationCreate::class)
+            ->set('schedule_type', 'specific_dates')
+            ->call('addSpecificDate', '2039-08-10');
+
+        // Default first time is 09:00; add one more → 10:00
+        $component->call('addTimeToDate', 0);
+        $times = $component->get('specific_dates')[0]['times'];
+        $this->assertCount(2, $times);
+        $this->assertContains('09:00', $times);
+        $this->assertContains('10:00', $times);
+
+        // Add again → 11:00
+        $component->call('addTimeToDate', 0);
+        $times = $component->get('specific_dates')[0]['times'];
+        $this->assertCount(3, $times);
+        $this->assertEquals(array_unique($times), $times);
+    }
+
     public function test_edit_loads_specific_dates_fields(): void
     {
         $user = User::factory()->create();

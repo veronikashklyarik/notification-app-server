@@ -194,7 +194,11 @@ class NotificationCreate extends Component
 
     public function addWeekDayTime(int $dayIndex): void
     {
-        $this->week_days[$dayIndex]['times'][] = '09:00';
+        $existing = $this->week_days[$dayIndex]['times'] ?? [];
+        $next = $this->nextAvailableTime($existing);
+        if ($next !== null) {
+            $this->week_days[$dayIndex]['times'][] = $next;
+        }
     }
 
     public function removeWeekDayTime(int $dayIndex, int $timeIndex): void
@@ -220,7 +224,29 @@ class NotificationCreate extends Component
 
     public function addTimeToDate(int $index): void
     {
-        $this->specific_dates[$index]['times'][] = '09:00';
+        $existing = $this->specific_dates[$index]['times'] ?? [];
+        $next = $this->nextAvailableTime($existing);
+        if ($next !== null) {
+            $this->specific_dates[$index]['times'][] = $next;
+        }
+    }
+
+    private function nextAvailableTime(array $existing): ?string
+    {
+        for ($h = 9; $h <= 23; $h++) {
+            $t = sprintf('%02d:00', $h);
+            if (! in_array($t, $existing)) {
+                return $t;
+            }
+        }
+        for ($h = 0; $h <= 8; $h++) {
+            $t = sprintf('%02d:00', $h);
+            if (! in_array($t, $existing)) {
+                return $t;
+            }
+        }
+
+        return null;
     }
 
     public function removeTimeFromDate(int $index, int $timeIndex): void
