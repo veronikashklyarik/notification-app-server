@@ -521,6 +521,27 @@
         : now()->startOfDay();
     $upEnd  = $ends_at ? \Illuminate\Support\Carbon::parse($ends_at)->endOfDay() : null;
 
+    // Helper: find the Nth ISO weekday (1=Mon…7=Sun) occurrence in a given month.
+    // $occurrence = 1..5 for first..fifth, -1 for last.
+    // Returns Carbon|null (null when the month has no such occurrence).
+    $nthWeekdayOfMonth = function (int $year, int $month, int $targetDow, int $occurrence): ?\Illuminate\Support\Carbon {
+        if ($occurrence === -1) {
+            $date = \Illuminate\Support\Carbon::create($year, $month)->endOfMonth()->startOfDay();
+            while ((int) $date->dayOfWeekIso !== $targetDow) { $date->subDay(); }
+            return $date;
+        }
+        $date  = \Illuminate\Support\Carbon::create($year, $month, 1)->startOfDay();
+        $count = 0;
+        while ($date->month === $month) {
+            if ((int) $date->dayOfWeekIso === $targetDow) {
+                $count++;
+                if ($count === $occurrence) { return $date; }
+            }
+            $date->addDay();
+        }
+        return null;
+    };
+
     if ($schedule_type === 'every_day') {
         $c = $upFrom->copy();
         for ($i = 0; $i < 4; $i++) {
@@ -535,16 +556,39 @@
             if ($upEnd && $c->gt($upEnd)) { break; }
             if (in_array((int) $c->dayOfWeekIso, $sel)) { $upcomingDates[] = $c->copy(); }
         }
+    } elseif ($schedule_type === 'specific_dates' && !empty($specific_dates)) {
+        $today    = now()->startOfDay();
+        $allDates = array_filter(array_map(fn($e) => is_array($e) ? ($e['date'] ?? '') : $e, $specific_dates));
+        sort($allDates);
+        foreach ($allDates as $d) {
+            if (! $d) { continue; }
+            $date = \Illuminate\Support\Carbon::createFromFormat('Y-m-d', $d)->startOfDay();
+            if ($date->lt($today)) { continue; }
+            if ($upEnd && $date->gt($upEnd)) { continue; }
+            $upcomingDates[] = $date;
+            if (count($upcomingDates) >= 4) { break; }
+        }
     } elseif ($schedule_type === 'cyclical') {
         $n    = max(1, (int) ($cyclical_value ?? 1));
         $unit = $cyclical_unit ?? 'days';
 
-        if ($unit === 'days' && !$cyclical_use_for) {
+        if ($unit === 'days' && ! $cyclical_use_for) {
             $c = $upFrom->copy();
             for ($i = 0; $i < 4; $i++) {
                 if ($upEnd && $c->gt($upEnd)) { break; }
                 $upcomingDates[] = $c->copy();
                 $c->addDays($n);
+            }
+        } elseif ($unit === 'days' && $cyclical_use_for) {
+            $useFor      = max(1, (int) $cyclical_use_for);
+            $pauseFor    = max(0, (int) ($cyclical_pause_for ?? 0));
+            $cycleLength = $useFor + $pauseFor;
+            $c           = $upFrom->copy();
+            for ($a = 0; count($upcomingDates) < 4 && $a < 10000; $a++, $c->addDay()) {
+                if ($upEnd && $c->gt($upEnd)) { break; }
+                if ((int) $upFrom->diffInDays($c, true) % $cycleLength < $useFor) {
+                    $upcomingDates[] = $c->copy();
+                }
             }
         } elseif ($unit === 'weeks') {
             if (!empty($cyclical_week_days)) {
@@ -573,6 +617,43 @@
                 $mDiff = ($c->year * 12 + ($c->month - 1)) - $fromBase;
                 if ($mDiff >= 0 && $mDiff % $n === 0 && in_array((int) $c->day, $mDays)) { $upcomingDates[] = $c->copy(); }
             }
+        } elseif ($unit === 'months' && $cyclical_month_type === 'on_the' && $cyclical_month_position && $cyclical_month_weekday) {
+            $posMap      = ['first' => 1, 'second' => 2, 'third' => 3, 'fourth' => 4, 'fifth' => 5, 'last' => -1];
+            $occurrence  = $posMap[$cyclical_month_position] ?? 1;
+            $targetDow   = (int) $cyclical_month_weekday;
+            $fromBase    = $upFrom->year * 12 + ($upFrom->month - 1);
+            $c           = \Illuminate\Support\Carbon::create($upFrom->year, $upFrom->month, 1)->startOfDay();
+            for ($a = 0; count($upcomingDates) < 4 && $a < 200; $a++, $c->addMonth()) {
+                $mDiff = ($c->year * 12 + ($c->month - 1)) - $fromBase;
+                if ($mDiff < 0 || $mDiff % $n !== 0) { continue; }
+                $date = $nthWeekdayOfMonth($c->year, $c->month, $targetDow, $occurrence);
+                if (! $date || $date->lt($upFrom)) { continue; }
+                if ($upEnd && $date->gt($upEnd)) { break; }
+                $upcomingDates[] = $date;
+            }
+        } elseif ($unit === 'years' && !empty($cyclical_year_months)) {
+            $posMap     = ['first' => 1, 'second' => 2, 'third' => 3, 'fourth' => 4, 'fifth' => 5, 'last' => -1];
+            $yearMonths = array_map('intval', (array) $cyclical_year_months);
+            sort($yearMonths);
+            $fromYear = $upFrom->year;
+            for ($yr = $fromYear; count($upcomingDates) < 4 && $yr <= $fromYear + $n * 8; $yr++) {
+                if (($yr - $fromYear) % $n !== 0) { continue; }
+                foreach ($yearMonths as $month) {
+                    if (count($upcomingDates) >= 4) { break; }
+                    if ($cyclical_year_use_weekday && $cyclical_month_position && $cyclical_month_weekday) {
+                        $occurrence = $posMap[$cyclical_month_position] ?? 1;
+                        $date       = $nthWeekdayOfMonth($yr, $month, (int) $cyclical_month_weekday, $occurrence);
+                        if (! $date) { continue; }
+                    } else {
+                        $day     = $cyclical_year_day ? (int) $cyclical_year_day : 1;
+                        $lastDay = \Illuminate\Support\Carbon::create($yr, $month)->endOfMonth()->day;
+                        $date    = \Illuminate\Support\Carbon::create($yr, $month, min($day, $lastDay))->startOfDay();
+                    }
+                    if ($date->lt($upFrom)) { continue; }
+                    if ($upEnd && $date->gt($upEnd)) { break; }
+                    $upcomingDates[] = $date;
+                }
+            }
         }
     }
 @endphp
@@ -583,9 +664,13 @@
             @foreach($upcomingDates as $upDate)
                 @php
                     if ($schedule_type === 'week_days') {
-                        $upIso  = (int)$upDate->dayOfWeekIso;
+                        $upIso   = (int) $upDate->dayOfWeekIso;
                         $upEntry = collect($week_days)->first(fn($e) => (int)($e['day'] ?? 0) === $upIso);
                         $upTimes = $upEntry['times'] ?? [];
+                    } elseif ($schedule_type === 'specific_dates') {
+                        $upDateStr = $upDate->format('Y-m-d');
+                        $upEntry   = collect($specific_dates)->first(fn($e) => is_array($e) ? ($e['date'] ?? '') === $upDateStr : $e === $upDateStr);
+                        $upTimes   = is_array($upEntry) ? ($upEntry['times'] ?? []) : [];
                     } else {
                         $upTimes = $times ?? [];
                     }
