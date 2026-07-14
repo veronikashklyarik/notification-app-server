@@ -424,9 +424,7 @@
                             class="input-styled w-20 text-center">
                         <span class="text-xs text-gray-400 shrink-0">{{ __('day of the month') }}</span>
                     </div>
-                    @if($cyclical_year_day && (int)$cyclical_year_day > 28)
-                        <p class="text-xs text-amber-600 mt-1.5">{{ __('For months with fewer days, the last available day will be used.') }}</p>
-                    @endif
+                    <p class="text-xs text-gray-400 mt-1.5">{{ __('For months with fewer days, the last available day will be used.') }}</p>
                 @endif
 
                 <label class="flex items-center gap-2.5 mt-3 cursor-pointer">
@@ -546,13 +544,22 @@
                 $c->addDays($n);
             }
         } elseif ($unit === 'weeks') {
-            $sel      = !empty($cyclical_week_days) ? array_map('intval', (array) $cyclical_week_days) : range(1, 7);
-            $fromWeek = $upFrom->copy()->startOfWeek(\Illuminate\Support\Carbon::MONDAY);
-            $c        = $upFrom->copy();
-            for ($a = 0; count($upcomingDates) < 4 && $a < 200; $a++, $c->addDay()) {
-                if ($upEnd && $c->gt($upEnd)) { break; }
-                $wDiff = (int) abs($fromWeek->diffInWeeks($c->copy()->startOfWeek(\Illuminate\Support\Carbon::MONDAY)));
-                if ($wDiff % $n === 0 && in_array((int) $c->dayOfWeekIso, $sel)) { $upcomingDates[] = $c->copy(); }
+            if (!empty($cyclical_week_days)) {
+                $sel      = array_map('intval', (array) $cyclical_week_days);
+                $fromWeek = $upFrom->copy()->startOfWeek(\Illuminate\Support\Carbon::MONDAY);
+                $c        = $upFrom->copy();
+                for ($a = 0; count($upcomingDates) < 4 && $a < 200; $a++, $c->addDay()) {
+                    if ($upEnd && $c->gt($upEnd)) { break; }
+                    $wDiff = (int) abs($fromWeek->diffInWeeks($c->copy()->startOfWeek(\Illuminate\Support\Carbon::MONDAY)));
+                    if ($wDiff % $n === 0 && in_array((int) $c->dayOfWeekIso, $sel)) { $upcomingDates[] = $c->copy(); }
+                }
+            } else {
+                $c = $upFrom->copy();
+                for ($i = 0; $i < 4; $i++) {
+                    if ($upEnd && $c->gt($upEnd)) { break; }
+                    $upcomingDates[] = $c->copy();
+                    $c->addWeeks($n);
+                }
             }
         } elseif ($unit === 'months' && $cyclical_month_type === 'each' && !empty($cyclical_month_days)) {
             $mDays    = array_map('intval', (array) $cyclical_month_days);
