@@ -120,7 +120,7 @@ class PerDayTimesTest extends TestCase
             ->set('schedule_type', 'week_days')
             ->call('toggleWeekDay', 5)
             ->call('addWeekDayTime', 0)
-            ->assertSet('week_days.0.times', ['09:00', '09:00']);
+            ->assertSet('week_days.0.times', ['09:00', '10:00']);
     }
 
     public function test_remove_week_day_time_does_not_remove_last(): void

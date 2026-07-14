@@ -103,7 +103,7 @@ class Notification extends Model
         });
 
         static::saved(function (Notification $notification) {
-            $scheduleFields = ['starts_at', 'ends_at', 'times', 'schedule_type', 'week_days', 'specific_dates', 'is_active', 'every_n_days', 'cyclical_value', 'cyclical_unit', 'cyclical_week_days', 'cyclical_month_type', 'cyclical_month_days', 'cyclical_month_position', 'cyclical_month_weekday', 'cyclical_year_months', 'cyclical_year_use_weekday', 'cyclical_use_for', 'cyclical_pause_for'];
+            $scheduleFields = ['starts_at', 'ends_at', 'times', 'schedule_type', 'week_days', 'specific_dates', 'is_active', 'every_n_days', 'cyclical_value', 'cyclical_unit', 'cyclical_week_days', 'cyclical_month_type', 'cyclical_month_days', 'cyclical_month_position', 'cyclical_month_weekday', 'cyclical_year_months', 'cyclical_year_day', 'cyclical_year_use_weekday', 'cyclical_use_for', 'cyclical_pause_for'];
 
             if ($notification->wasChanged($scheduleFields) || $notification->wasRecentlyCreated) {
                 app(NotificationEventService::class)->regenerateEvents($notification);

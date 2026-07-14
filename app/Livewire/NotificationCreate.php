@@ -23,7 +23,7 @@ class NotificationCreate extends Component
     /** @var array<int, array{day: int, times: array<int, string>}> */
     public array $week_days = [];
 
-    /** @var array<int, string> */
+    /** @var array<int, array{date: string, times: array<int, string>}> */
     public array $specific_dates = [];
 
     public ?int $every_n_days = 2;
