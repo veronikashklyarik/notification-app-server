@@ -432,6 +432,43 @@ class FlexibleScheduleTest extends TestCase
         $this->assertEquals(array_unique($times), $times);
     }
 
+    public function test_add_time_prevents_duplicate_global_times(): void
+    {
+        $user = User::factory()->create();
+
+        $component = Livewire::actingAs($user)
+            ->test(NotificationCreate::class)
+            ->set('schedule_type', 'every_day');
+
+        // Default is ['08:00']; add one more — should not be 08:00
+        $component->call('addTime');
+        $times = $component->get('times');
+        $this->assertCount(2, $times);
+        $this->assertEquals(count($times), count(array_unique($times)));
+
+        // Add another
+        $component->call('addTime');
+        $times = $component->get('times');
+        $this->assertCount(3, $times);
+        $this->assertEquals(count($times), count(array_unique($times)));
+    }
+
+    public function test_direct_edit_duplicate_global_time_is_corrected(): void
+    {
+        $user = User::factory()->create();
+
+        $component = Livewire::actingAs($user)
+            ->test(NotificationCreate::class)
+            ->set('schedule_type', 'every_day')
+            ->call('addTime'); // now ['08:00', '09:00']
+
+        // User edits second field to match first
+        $component->set('times.1', '08:00');
+        $times = $component->get('times');
+        $this->assertCount(2, $times);
+        $this->assertEquals(count($times), count(array_unique($times)));
+    }
+
     public function test_direct_edit_duplicate_week_day_time_is_corrected(): void
     {
         $user = User::factory()->create();

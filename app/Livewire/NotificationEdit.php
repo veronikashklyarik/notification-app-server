@@ -210,7 +210,27 @@ class NotificationEdit extends Component
 
     public function addTime(): void
     {
-        $this->times[] = '08:00';
+        $next = $this->nextAvailableTime($this->times);
+        if ($next !== null) {
+            $this->times[] = $next;
+        }
+    }
+
+    public function updatedTimes(mixed $value, ?string $key = null): void
+    {
+        if (! is_string($value) || $key === null || ! preg_match('/^(\d+)$/', $key, $m)) {
+            return;
+        }
+        $timeIndex = (int) $m[1];
+        $counts = array_count_values($this->times);
+        if (($counts[$value] ?? 0) > 1) {
+            $others = $this->times;
+            unset($others[$timeIndex]);
+            $next = $this->nextAvailableTime(array_values($others));
+            if ($next !== null) {
+                $this->times[$timeIndex] = $next;
+            }
+        }
     }
 
     public function removeTime(int $index): void
