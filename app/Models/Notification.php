@@ -251,7 +251,12 @@ class Notification extends Model
             $months = implode(', ', array_map(fn ($m) => $monthNames[(int) $m] ?? $m, $sorted));
             $base = trans_choice('Every :count year in :months|Every :count years in :months', $value, ['count' => $value, 'months' => $months]);
 
-            if ($this->cyclical_year_day && ! $this->cyclical_year_use_weekday) {
+            if ($this->cyclical_year_use_weekday && $this->cyclical_month_position && $this->cyclical_month_weekday) {
+                $positions = ['first' => __('1st'), 'second' => __('2nd'), 'third' => __('3rd'), 'fourth' => __('4th'), 'fifth' => __('5th'), 'last' => __('last')];
+                $pos = $positions[$this->cyclical_month_position] ?? $this->cyclical_month_position;
+                $day = $dayNames[(int) $this->cyclical_month_weekday] ?? $this->cyclical_month_weekday;
+                $base .= ' '.__('on the :pos :day', ['pos' => $pos, 'day' => $day]);
+            } elseif ($this->cyclical_year_day && ! $this->cyclical_year_use_weekday) {
                 $base .= ' '.__('on the :day', ['day' => $this->ordinal((int) $this->cyclical_year_day)]);
             }
 
