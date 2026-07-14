@@ -385,12 +385,12 @@
 
                 @if($cyclical_month_type === 'on_the')
                     <div class="flex items-center gap-2 flex-wrap">
-                        <select wire:model="cyclical_month_position" class="input-styled flex-1">
+                        <select wire:model.live="cyclical_month_position" class="input-styled flex-1">
                             @foreach(['first' => '1st', 'second' => '2nd', 'third' => '3rd', 'fourth' => '4th', 'fifth' => '5th', 'last' => 'Last'] as $val => $lbl)
                                 <option value="{{ $val }}">{{ __($lbl) }}</option>
                             @endforeach
                         </select>
-                        <select wire:model="cyclical_month_weekday" class="input-styled flex-1">
+                        <select wire:model.live="cyclical_month_weekday" class="input-styled flex-1">
                             @foreach([1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5 => 'Friday', 6 => 'Saturday', 7 => 'Sunday'] as $num => $name)
                                 <option value="{{ $num }}">{{ __($name) }}</option>
                             @endforeach
@@ -435,12 +435,12 @@
 
                 @if($cyclical_year_use_weekday)
                     <div class="flex items-center gap-2 flex-wrap mt-2">
-                        <select wire:model="cyclical_month_position" class="input-styled flex-1">
+                        <select wire:model.live="cyclical_month_position" class="input-styled flex-1">
                             @foreach(['first' => '1st', 'second' => '2nd', 'third' => '3rd', 'fourth' => '4th', 'fifth' => '5th', 'last' => 'Last'] as $val => $lbl)
                                 <option value="{{ $val }}">{{ __($lbl) }}</option>
                             @endforeach
                         </select>
-                        <select wire:model="cyclical_month_weekday" class="input-styled flex-1">
+                        <select wire:model.live="cyclical_month_weekday" class="input-styled flex-1">
                             @foreach([1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5 => 'Friday', 6 => 'Saturday', 7 => 'Sunday'] as $num => $name)
                                 <option value="{{ $num }}">{{ __($name) }}</option>
                             @endforeach
