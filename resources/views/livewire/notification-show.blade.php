@@ -32,7 +32,7 @@
                     <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{ __('Schedule') }}</p>
                     <p class="mt-1 text-sm font-semibold text-gray-900">{{ $notification->frequency_label ?? str_replace('_', ' ', $notification->schedule_type->value) }}</p>
                 </div>
-                @if($notification->times)
+                @if($notification->times && !in_array($notification->schedule_type, [\App\Enums\ScheduleType::WeekDays, \App\Enums\ScheduleType::SpecificDates]))
                     <div class="p-3 rounded-2xl bg-gray-50">
                         <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{ __('Times') }}</p>
                         <p class="mt-1 text-sm font-semibold text-gray-900">{{ implode(', ', $notification->times) }}</p>

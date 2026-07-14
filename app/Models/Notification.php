@@ -181,7 +181,7 @@ class Notification extends Model
             ScheduleType::AsNeeded => __('As needed'),
         };
 
-        if (! in_array($this->schedule_type, [ScheduleType::AsNeeded, ScheduleType::SpecificDates]) && ! empty($this->times)) {
+        if (! in_array($this->schedule_type, [ScheduleType::AsNeeded, ScheduleType::SpecificDates, ScheduleType::WeekDays]) && ! empty($this->times)) {
             $schedule .= ' '.__('at :times', ['times' => implode(', ', $this->times)]);
         }
 

@@ -60,7 +60,7 @@
                 </div>
             @endif
 
-            @if($notification->schedule_type !== \App\Enums\ScheduleType::AsNeeded && !empty($notification->times))
+            @if(!in_array($notification->schedule_type, [\App\Enums\ScheduleType::AsNeeded, \App\Enums\ScheduleType::WeekDays]) && !empty($notification->times))
                 <div class="flex flex-wrap gap-1 mt-2">
                     @foreach($notification->times as $time)
                         <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">

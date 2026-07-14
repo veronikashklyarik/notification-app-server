@@ -283,6 +283,10 @@ class NotificationEdit extends Component
 
         $validated = $this->validate();
 
+        if (in_array($this->schedule_type, ['week_days', 'specific_dates'])) {
+            $validated['times'] = null;
+        }
+
         $this->notification->update($validated);
 
         session()->flash('success', __('Reminder updated.'));

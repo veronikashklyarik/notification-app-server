@@ -237,6 +237,10 @@ class NotificationCreate extends Component
 
         $validated = $this->validate();
 
+        if (in_array($this->schedule_type, ['week_days', 'specific_dates'])) {
+            $validated['times'] = null;
+        }
+
         $notification = Auth::user()->reminders()->create($validated);
 
         session()->flash('success', __('Reminder created.'));

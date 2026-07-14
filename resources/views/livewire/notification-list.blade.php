@@ -111,7 +111,7 @@
                                 <span class="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold text-indigo-700 bg-indigo-50 rounded-md">
                                     {{ $notification->frequency_label ?? str_replace('_', ' ', $notification->schedule_type->value) }}
                                 </span>
-                                @if($notification->times)
+                                @if($notification->times && !in_array($notification->schedule_type, [\App\Enums\ScheduleType::WeekDays, \App\Enums\ScheduleType::SpecificDates]))
                                     <span class="text-xs text-gray-400">{{ implode(', ', $notification->times) }}</span>
                                 @endif
                             </div>
