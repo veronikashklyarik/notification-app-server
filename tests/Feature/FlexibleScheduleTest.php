@@ -432,6 +432,42 @@ class FlexibleScheduleTest extends TestCase
         $this->assertEquals(array_unique($times), $times);
     }
 
+    public function test_direct_edit_duplicate_week_day_time_is_corrected(): void
+    {
+        $user = User::factory()->create();
+
+        $component = Livewire::actingAs($user)
+            ->test(NotificationCreate::class)
+            ->set('schedule_type', 'week_days')
+            ->call('toggleWeekDay', 1)
+            ->call('addWeekDayTime', 0); // now has ['09:00', '10:00']
+
+        // User manually edits second field to match first — should auto-correct to 11:00
+        $component->set('week_days.0.times.1', '09:00');
+        $times = $component->get('week_days')[0]['times'];
+        $this->assertCount(2, $times);
+        $this->assertContains('09:00', $times);
+        $this->assertNotContains('09:00', array_slice($times, 1)); // no duplicate
+        $this->assertEquals(count($times), count(array_unique($times)));
+    }
+
+    public function test_direct_edit_duplicate_specific_date_time_is_corrected(): void
+    {
+        $user = User::factory()->create();
+
+        $component = Livewire::actingAs($user)
+            ->test(NotificationCreate::class)
+            ->set('schedule_type', 'specific_dates')
+            ->call('addSpecificDate', '2039-08-10')
+            ->call('addTimeToDate', 0); // now has ['09:00', '10:00']
+
+        // User manually edits second field to match first — should auto-correct
+        $component->set('specific_dates.0.times.1', '09:00');
+        $times = $component->get('specific_dates')[0]['times'];
+        $this->assertCount(2, $times);
+        $this->assertEquals(count($times), count(array_unique($times)));
+    }
+
     public function test_edit_loads_specific_dates_fields(): void
     {
         $user = User::factory()->create();

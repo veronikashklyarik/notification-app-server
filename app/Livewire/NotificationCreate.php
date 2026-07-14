@@ -192,6 +192,44 @@ class NotificationCreate extends Component
         usort($this->week_days, fn ($a, $b) => ($a['day'] ?? 0) <=> ($b['day'] ?? 0));
     }
 
+    public function updatedWeekDays(mixed $value, ?string $key = null): void
+    {
+        if (! is_string($value) || $key === null || ! preg_match('/^(\d+)\.times\.(\d+)$/', $key, $m)) {
+            return;
+        }
+        $dayIndex = (int) $m[1];
+        $timeIndex = (int) $m[2];
+        $times = $this->week_days[$dayIndex]['times'] ?? [];
+        $counts = array_count_values($times);
+        if (($counts[$value] ?? 0) > 1) {
+            $others = $times;
+            unset($others[$timeIndex]);
+            $next = $this->nextAvailableTime(array_values($others));
+            if ($next !== null) {
+                $this->week_days[$dayIndex]['times'][$timeIndex] = $next;
+            }
+        }
+    }
+
+    public function updatedSpecificDates(mixed $value, ?string $key = null): void
+    {
+        if (! is_string($value) || $key === null || ! preg_match('/^(\d+)\.times\.(\d+)$/', $key, $m)) {
+            return;
+        }
+        $index = (int) $m[1];
+        $timeIndex = (int) $m[2];
+        $times = $this->specific_dates[$index]['times'] ?? [];
+        $counts = array_count_values($times);
+        if (($counts[$value] ?? 0) > 1) {
+            $others = $times;
+            unset($others[$timeIndex]);
+            $next = $this->nextAvailableTime(array_values($others));
+            if ($next !== null) {
+                $this->specific_dates[$index]['times'][$timeIndex] = $next;
+            }
+        }
+    }
+
     public function addWeekDayTime(int $dayIndex): void
     {
         $existing = $this->week_days[$dayIndex]['times'] ?? [];
