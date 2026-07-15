@@ -300,11 +300,11 @@ trait HasScheduleFields
 
         $dayNames = $this->dayNameMap();
         $sorted = $this->week_days;
-        usort($sorted, fn ($a, $b) => (int) ($a['day'] ?? 0) <=> (int) ($b['day'] ?? 0));
+        usort($sorted, fn ($a, $b) => (int) $a['day'] <=> (int) $b['day']);
 
         return implode(', ', array_map(function ($e) use ($dayNames) {
-            $label = $dayNames[(int) ($e['day'] ?? 0)] ?? (int) ($e['day'] ?? 0);
-            $times = $e['times'] ?? [];
+            $label = $dayNames[(int) $e['day']] ?? (int) $e['day'];
+            $times = $e['times'];
             if (! empty($times)) {
                 $label .= ' '.implode('/', $times);
             }
@@ -316,7 +316,7 @@ trait HasScheduleFields
     private function cyclicalDescription(string $allTimes): string
     {
         $n = $this->cyclical_value ?? 1;
-        $unit = $this->cyclical_unit ?? 'weeks';
+        $unit = $this->cyclical_unit;
         $dayNames = $this->dayNameMap();
         $monthAbbr = $this->monthAbbrMap();
         $posLabels = $this->positionLabelMap();
@@ -396,7 +396,7 @@ trait HasScheduleFields
                 $c->addDay();
             }
         } elseif ($this->schedule_type === 'week_days' && ! empty($this->week_days)) {
-            $sel = array_map(fn ($e) => is_array($e) ? (int) ($e['day'] ?? 0) : (int) $e, $this->week_days);
+            $sel = array_map(fn ($e) => (int) $e['day'], $this->week_days);
             $c = $upFrom->copy();
             for ($a = 0; count($dates) < 4 && $a < 100; $a++, $c->addDay()) {
                 if ($upEnd && $c->gt($upEnd)) {
@@ -408,12 +408,9 @@ trait HasScheduleFields
             }
         } elseif ($this->schedule_type === 'specific_dates' && ! empty($this->specific_dates)) {
             $today = now()->startOfDay();
-            $allDates = array_filter(array_map(fn ($e) => is_array($e) ? ($e['date'] ?? '') : $e, $this->specific_dates));
+            $allDates = array_filter(array_map(fn ($e) => $e['date'], $this->specific_dates));
             sort($allDates);
             foreach ($allDates as $d) {
-                if (! $d) {
-                    continue;
-                }
                 $date = Carbon::createFromFormat('Y-m-d', $d)->startOfDay();
                 if ($date->lt($today) || ($upEnd && $date->gt($upEnd))) {
                     continue;
@@ -437,7 +434,7 @@ trait HasScheduleFields
     {
         $dates = [];
         $n = max(1, (int) ($this->cyclical_value ?? 1));
-        $unit = $this->cyclical_unit ?? 'days';
+        $unit = $this->cyclical_unit;
 
         if ($unit === 'days' && ! $this->cyclical_use_for) {
             $c = $upFrom->copy();
@@ -448,7 +445,7 @@ trait HasScheduleFields
                 $dates[] = $c->copy();
                 $c->addDays($n);
             }
-        } elseif ($unit === 'days' && $this->cyclical_use_for) {
+        } elseif ($unit === 'days') {
             $useFor = max(1, (int) $this->cyclical_use_for);
             $pauseFor = max(0, (int) ($this->cyclical_pause_for ?? 0));
             $cycleLength = $useFor + $pauseFor;
@@ -528,8 +525,8 @@ trait HasScheduleFields
                     if (count($dates) >= 4) {
                         break;
                     }
-                    if ($this->cyclical_year_use_weekday && $this->cyclical_month_position && $this->cyclical_month_weekday) {
-                        $occurrence = $posMap[$this->cyclical_month_position] ?? 1;
+                    if ($this->cyclical_year_use_weekday && $this->cyclical_month_weekday) {
+                        $occurrence = array_key_exists($this->cyclical_month_position, $posMap) ? $posMap[$this->cyclical_month_position] : 1;
                         $date = $this->nthWeekdayOfMonth($yr, $month, (int) $this->cyclical_month_weekday, $occurrence);
                         if (! $date) {
                             continue;
@@ -581,14 +578,14 @@ trait HasScheduleFields
     {
         if ($this->schedule_type === 'week_days') {
             $iso = (int) $date->dayOfWeekIso;
-            $entry = collect($this->week_days)->first(fn ($e) => (int) ($e['day'] ?? 0) === $iso);
+            $entry = collect($this->week_days)->first(fn ($e) => (int) $e['day'] === $iso);
             $times = $entry['times'] ?? [];
         } elseif ($this->schedule_type === 'specific_dates') {
             $dateStr = $date->format('Y-m-d');
-            $entry = collect($this->specific_dates)->first(fn ($e) => is_array($e) ? ($e['date'] ?? '') === $dateStr : $e === $dateStr);
-            $times = is_array($entry) ? ($entry['times'] ?? []) : [];
+            $entry = collect($this->specific_dates)->first(fn ($e) => $e['date'] === $dateStr);
+            $times = $entry['times'] ?? [];
         } else {
-            $times = $this->times ?? [];
+            $times = $this->times;
         }
 
         sort($times);

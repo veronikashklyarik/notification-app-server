@@ -227,7 +227,7 @@ class Notification extends Model
 
         return implode(', ', array_map(function ($e) use ($names) {
             $label = $names[(int) $e['day']] ?? (int) $e['day'];
-            $times = $e['times'] ?? [];
+            $times = $e['times'];
             if (! empty($times)) {
                 $label .= ' '.implode('/', $times);
             }
