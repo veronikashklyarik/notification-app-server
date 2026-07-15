@@ -123,6 +123,32 @@ class YearlyScheduleDayTest extends TestCase
         $this->assertStringContainsString('7', $label);
     }
 
+    public function test_yearly_with_explicit_day_does_not_fire_on_other_days_in_target_month(): void
+    {
+        $user = User::factory()->create(['timezone' => 'UTC']);
+
+        // Simulates regeneration mid-month when today is in the target month but not the target day
+        Carbon::setTestNow('2039-10-01 06:00:00');
+
+        $notification = Notification::factory()
+            ->cyclical(1, 'years')
+            ->for($user)
+            ->create([
+                'cyclical_year_months' => [10],
+                'cyclical_year_day' => 7,
+                'starts_at' => '2039-01-01',
+                'times' => ['09:00'],
+            ]);
+
+        $events = $notification->events()->orderBy('scheduled_at')->take(3)->get();
+
+        // Should only fire on Oct 7, not Oct 1
+        $this->assertEquals('2039-10-07 09:00:00', $events[0]->scheduled_at->toDateTimeString());
+        $this->assertEquals('2040-10-07 09:00:00', $events[1]->scheduled_at->toDateTimeString());
+
+        Carbon::setTestNow();
+    }
+
     public function test_yearly_explicit_day_validation(): void
     {
         $user = User::factory()->create();

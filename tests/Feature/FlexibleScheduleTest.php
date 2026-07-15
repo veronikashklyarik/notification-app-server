@@ -505,6 +505,26 @@ class FlexibleScheduleTest extends TestCase
         $this->assertEquals(count($times), count(array_unique($times)));
     }
 
+    public function test_specific_dates_respects_ends_at(): void
+    {
+        $user = User::factory()->create(['timezone' => 'UTC']);
+
+        Carbon::setTestNow('2039-07-01 10:00:00');
+
+        $notification = Notification::factory()->specificDates(
+            ['2039-07-15', '2039-08-10', '2039-09-05'],
+            '09:00',
+        )->for($user)->create(['ends_at' => '2039-08-31']);
+
+        $events = $notification->events()->orderBy('scheduled_at')->get();
+
+        $this->assertCount(2, $events);
+        $this->assertEquals('2039-07-15 09:00:00', $events[0]->scheduled_at->toDateTimeString());
+        $this->assertEquals('2039-08-10 09:00:00', $events[1]->scheduled_at->toDateTimeString());
+
+        Carbon::setTestNow();
+    }
+
     public function test_edit_loads_specific_dates_fields(): void
     {
         $user = User::factory()->create();

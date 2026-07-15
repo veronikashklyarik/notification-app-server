@@ -173,7 +173,7 @@ class NotificationEventService
         int $limit,
         ?Carbon $startFrom,
     ): void {
-        $timezone = $notification->user->timezone ?? 'UTC';
+        $timezone = $notification->user?->timezone ?? 'UTC';
         $now = $startFrom ?? now($timezone);
         $globalTimes = $this->getEffectiveTimes($notification);
         $specificDates = $notification->specific_dates ?? [];
@@ -201,7 +201,7 @@ class NotificationEventService
             foreach ($times as $time) {
                 $candidate = $this->applyTime($date->copy(), $time);
 
-                if ($candidate->gt($now)) {
+                if ($candidate->gt($now) && $this->checkEndsAt($notification, $candidate, $timezone)) {
                     $utc = $candidate->copy()->utc();
 
                     if (! isset($completedScheduledAts[$utc->toDateTimeString()])) {
@@ -230,7 +230,7 @@ class NotificationEventService
         int $limit,
         ?Carbon $startFrom,
     ): void {
-        $timezone = $notification->user->timezone ?? 'UTC';
+        $timezone = $notification->user?->timezone ?? 'UTC';
         $now = $startFrom ?? now($timezone);
         $useFor = max(1, $notification->cyclical_use_for ?? 1);
         $pauseFor = max(0, $notification->cyclical_pause_for ?? 0);
@@ -342,6 +342,15 @@ class NotificationEventService
 
                 return $date->isSameDay($target);
             }
+
+            $anchor = $notification->starts_at
+                ? $notification->starts_at->copy()->setTimezone($timezone)
+                : $date;
+            $targetDay = $notification->cyclical_year_day
+                ? min((int) $notification->cyclical_year_day, $date->daysInMonth)
+                : min($anchor->day, $date->daysInMonth);
+
+            return $date->day === $targetDay;
         }
 
         return true;
