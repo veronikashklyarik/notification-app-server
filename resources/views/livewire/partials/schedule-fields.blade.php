@@ -334,7 +334,7 @@
             <div class="border-2 border-gray-200 rounded-xl p-3 mb-2">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-sm font-semibold text-gray-700">
-                        {{ $dateStr ? \Illuminate\Support\Carbon::createFromFormat('Y-m-d', $dateStr)->format('d M Y') : '' }}
+                        {{ $dateStr ? \Illuminate\Support\Carbon::createFromFormat('Y-m-d', $dateStr)->translatedFormat('d M Y') : '' }}
                     </span>
                     <button type="button" wire:click="removeSpecificDate({{ $index }})"
                         aria-label="{{ __('Remove date') }}"
