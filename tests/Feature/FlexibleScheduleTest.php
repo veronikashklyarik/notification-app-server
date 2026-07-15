@@ -525,6 +525,56 @@ class FlexibleScheduleTest extends TestCase
         Carbon::setTestNow();
     }
 
+    public function test_specific_dates_frequency_label_truncates_after_three(): void
+    {
+        $notification = Notification::factory()->specificDates([
+            '2039-08-05', '2039-08-10', '2039-08-15', '2039-08-20',
+        ])->make();
+
+        $label = $notification->frequency_label;
+        $this->assertStringContainsString('…', $label);
+    }
+
+    public function test_specific_dates_frequency_label_with_no_dates(): void
+    {
+        $notification = Notification::factory()->make([
+            'schedule_type' => ScheduleType::SpecificDates,
+            'specific_dates' => [],
+        ]);
+
+        $this->assertEquals(__('On specific dates'), $notification->frequency_label);
+    }
+
+    public function test_cyclical_pause_respects_ends_at(): void
+    {
+        $user = User::factory()->create(['timezone' => 'UTC']);
+
+        Carbon::setTestNow('2039-07-01 06:00:00');
+
+        $notification = Notification::factory()
+            ->cyclical(1, 'days')
+            ->for($user)
+            ->create([
+                'cyclical_use_for' => 3,
+                'cyclical_pause_for' => 2,
+                'starts_at' => '2039-07-01',
+                'ends_at' => '2039-07-04',
+                'times' => ['09:00'],
+            ]);
+
+        // Only Jul 1,2,3 should be generated; Jul 4 is the last day of ends_at
+        // but ends_at is stored as end-of-day (23:59:59), so Jul 4 at 09:00 is within it
+        $events = $notification->events()->orderBy('scheduled_at')->get();
+        $dates = $events->map(fn ($e) => $e->scheduled_at->format('Y-m-d'))->all();
+
+        $this->assertContains('2039-07-01', $dates);
+        $this->assertContains('2039-07-02', $dates);
+        $this->assertContains('2039-07-03', $dates);
+        $this->assertNotContains('2039-07-06', $dates);
+
+        Carbon::setTestNow();
+    }
+
     public function test_edit_loads_specific_dates_fields(): void
     {
         $user = User::factory()->create();
@@ -538,5 +588,21 @@ class FlexibleScheduleTest extends TestCase
 
         $this->assertContains('2039-08-10', array_column($component->get('specific_dates'), 'date'));
         $this->assertContains('2039-09-05', array_column($component->get('specific_dates'), 'date'));
+    }
+
+    public function test_notification_edit_rejects_cross_user_mount(): void
+    {
+        $owner = User::factory()->create();
+        $attacker = User::factory()->create();
+
+        $notification = Notification::factory()
+            ->for($owner)
+            ->create(['name' => 'Owner notification']);
+
+        Livewire::actingAs($attacker)
+            ->test(NotificationEdit::class, ['notification' => $notification])
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('notifications', ['id' => $notification->id, 'name' => 'Owner notification']);
     }
 }

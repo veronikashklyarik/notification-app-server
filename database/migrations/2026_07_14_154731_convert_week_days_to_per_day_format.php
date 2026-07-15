@@ -7,28 +7,30 @@ return new class extends Migration
 {
     public function up(): void
     {
-        DB::table('notifications')
-            ->where('schedule_type', 'week_days')
-            ->whereNotNull('week_days')
-            ->get(['id', 'week_days', 'times'])
-            ->each(function ($row): void {
-                $raw = json_decode($row->week_days, true);
+        DB::transaction(function (): void {
+            DB::table('notifications')
+                ->where('schedule_type', 'week_days')
+                ->whereNotNull('week_days')
+                ->get(['id', 'week_days', 'times'])
+                ->each(function ($row): void {
+                    $raw = json_decode($row->week_days, true);
 
-                if (empty($raw) || is_array($raw[0] ?? null)) {
-                    return;
-                }
+                    if (empty($raw) || is_array($raw[0] ?? null)) {
+                        return;
+                    }
 
-                $times = json_decode($row->times ?? '[]', true) ?: ['09:00'];
+                    $times = json_decode($row->times ?? '[]', true) ?: ['09:00'];
 
-                $newValue = array_map(
-                    fn ($d) => ['day' => (int) $d, 'times' => $times],
-                    $raw,
-                );
+                    $newValue = array_map(
+                        fn ($d) => ['day' => (int) $d, 'times' => $times],
+                        $raw,
+                    );
 
-                DB::table('notifications')
-                    ->where('id', $row->id)
-                    ->update(['week_days' => json_encode($newValue)]);
-            });
+                    DB::table('notifications')
+                        ->where('id', $row->id)
+                        ->update(['week_days' => json_encode($newValue)]);
+                });
+        });
     }
 
     public function down(): void

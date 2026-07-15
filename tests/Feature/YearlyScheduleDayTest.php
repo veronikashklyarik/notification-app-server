@@ -163,4 +163,33 @@ class YearlyScheduleDayTest extends TestCase
             ->call('save')
             ->assertHasErrors('cyclical_year_day');
     }
+
+    public function test_yearly_use_weekday_fires_on_nth_weekday_of_month(): void
+    {
+        $user = User::factory()->create(['timezone' => 'UTC']);
+
+        Carbon::setTestNow('2039-01-01 06:00:00');
+
+        // 2nd Monday of October 2039: Oct 9 (Oct 1=Sun, Oct 2=Mon so 2nd Mon = Oct 9)
+        $notification = Notification::factory()
+            ->cyclical(1, 'years')
+            ->for($user)
+            ->create([
+                'cyclical_year_months' => [10],
+                'cyclical_year_use_weekday' => true,
+                'cyclical_month_position' => 'second',
+                'cyclical_month_weekday' => 1, // Monday
+                'starts_at' => '2039-01-01',
+                'times' => ['09:00'],
+            ]);
+
+        $events = $notification->events()->orderBy('scheduled_at')->take(2)->get();
+
+        // Oct 2039: 1=Sat, so 2nd Monday = Oct 10
+        $this->assertEquals('2039-10-10 09:00:00', $events[0]->scheduled_at->toDateTimeString());
+        // Oct 2040: 2nd Monday = Oct 8
+        $this->assertEquals('2040-10-08 09:00:00', $events[1]->scheduled_at->toDateTimeString());
+
+        Carbon::setTestNow();
+    }
 }
