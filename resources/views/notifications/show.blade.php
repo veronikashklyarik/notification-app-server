@@ -46,21 +46,51 @@
             <p class="text-sm font-medium text-gray-900 mb-2">{{ $notification->frequency_label }}</p>
 
             @if($notification->schedule_type === \App\Enums\ScheduleType::WeekDays && !empty($notification->week_days))
-                @php
-                    $dayNames = [1 => 'Mon', 2 => 'Tue', 3 => 'Wed', 4 => 'Thu', 5 => 'Fri', 6 => 'Sat', 7 => 'Sun'];
-                    $selectedDays = $notification->week_days;
-                    sort($selectedDays);
-                @endphp
-                <div class="flex flex-wrap gap-1 mt-1">
-                    @foreach(range(1, 7) as $d)
-                        <span class="px-2 py-0.5 rounded text-xs font-medium {{ in_array($d, $selectedDays) ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-400' }}">
-                            {{ $dayNames[$d] }}
-                        </span>
+                @php $dayNames = [1 => 'Mon', 2 => 'Tue', 3 => 'Wed', 4 => 'Thu', 5 => 'Fri', 6 => 'Sat', 7 => 'Sun']; @endphp
+                <div class="space-y-1 mt-2">
+                    @foreach($notification->week_days as $entry)
+                        @php
+                            $dayNum = is_array($entry) ? (int)($entry['day'] ?? 0) : (int)$entry;
+                            $dayTimes = is_array($entry) ? ($entry['times'] ?? []) : [];
+                            sort($dayTimes);
+                        @endphp
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-700">{{ $dayNames[$dayNum] ?? $dayNum }}</span>
+                            @if(!empty($dayTimes))
+                                <span class="text-xs text-gray-500">{{ implode(', ', $dayTimes) }}</span>
+                            @endif
+                        </div>
                     @endforeach
                 </div>
             @endif
 
-            @if($notification->schedule_type !== \App\Enums\ScheduleType::AsNeeded && !empty($notification->times))
+            @if($notification->schedule_type === \App\Enums\ScheduleType::SpecificDates && !empty($notification->specific_dates))
+                <div class="space-y-1 mt-2">
+                    @php
+                        $sortedSpecificDates = collect($notification->specific_dates)
+                            ->filter(fn($e) => is_array($e) ? ($e['date'] ?? '') : $e)
+                            ->sortBy(fn($e) => is_array($e) ? ($e['date'] ?? '') : $e)
+                            ->values();
+                    @endphp
+                    @foreach($sortedSpecificDates as $entry)
+                        @php
+                            $dateStr = is_array($entry) ? ($entry['date'] ?? '') : $entry;
+                            $entryTimes = is_array($entry) ? ($entry['times'] ?? []) : [];
+                            sort($entryTimes);
+                        @endphp
+                        @if($dateStr)
+                            <div class="flex items-center gap-3">
+                                <span class="text-xs font-medium text-gray-700">{{ \Illuminate\Support\Carbon::parse($dateStr)->format('M j, Y') }}</span>
+                                @if(!empty($entryTimes))
+                                    <span class="text-xs text-gray-400">{{ implode(', ', $entryTimes) }}</span>
+                                @endif
+                            </div>
+                        @endif
+                    @endforeach
+                </div>
+            @endif
+
+            @if(!in_array($notification->schedule_type, [\App\Enums\ScheduleType::AsNeeded, \App\Enums\ScheduleType::WeekDays]) && !empty($notification->times))
                 <div class="flex flex-wrap gap-1 mt-2">
                     @foreach($notification->times as $time)
                         <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
