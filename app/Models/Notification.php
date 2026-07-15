@@ -223,10 +223,17 @@ class Notification extends Model
         }
 
         $names = [1 => __('Mon'), 2 => __('Tue'), 3 => __('Wed'), 4 => __('Thu'), 5 => __('Fri'), 6 => __('Sat'), 7 => __('Sun')];
-        $dayNums = array_map(fn ($e) => (int) $e['day'], $days);
-        sort($dayNums);
+        usort($days, fn ($a, $b) => (int) $a['day'] <=> (int) $b['day']);
 
-        return implode(', ', array_map(fn ($d) => $names[$d] ?? $d, $dayNums));
+        return implode(', ', array_map(function ($e) use ($names) {
+            $label = $names[(int) $e['day']] ?? (int) $e['day'];
+            $times = $e['times'] ?? [];
+            if (! empty($times)) {
+                $label .= ' '.implode('/', $times);
+            }
+
+            return $label;
+        }, $days));
     }
 
     private function cyclicalLabel(): string
@@ -291,13 +298,18 @@ class Notification extends Model
             return $base;
         }
 
-        return __('Every :count :unit', ['count' => $value, 'unit' => __($unit)]);
+        return match ($unit) {
+            'weeks' => trans_choice('Every :count week|Every :count weeks', $value, ['count' => $value]),
+            'months' => trans_choice('Every :count month|Every :count months', $value, ['count' => $value]),
+            'years' => trans_choice('Every :count year|Every :count years', $value, ['count' => $value]),
+            default => trans_choice('Every :count day|Every :count days', $value, ['count' => $value]),
+        };
     }
 
     private function ordinal(int $n): string
     {
         $locale = app()->getLocale();
-        if ($locale === 'ru') {
+        if ($locale !== 'en') {
             return $n.__('ordinal_suffix');
         }
         $mod100 = $n % 100;

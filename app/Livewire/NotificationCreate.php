@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Enums\ScheduleType;
+use App\Livewire\Concerns\HasScheduleFields;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -14,55 +15,11 @@ use Livewire\Component;
 #[Protect]
 class NotificationCreate extends Component
 {
+    use HasScheduleFields;
+
     public string $name = '';
 
     public string $description = '';
-
-    public string $schedule_type = 'every_day';
-
-    /** @var array<int, array{day: int, times: array<int, string>}> */
-    public array $week_days = [];
-
-    /** @var array<int, array{date: string, times: array<int, string>}> */
-    public array $specific_dates = [];
-
-    public ?int $every_n_days = 2;
-
-    public ?int $cyclical_value = 1;
-
-    public string $cyclical_unit = 'days';
-
-    /** @var array<int, int> */
-    public array $cyclical_week_days = [];
-
-    public string $cyclical_month_type = 'each';
-
-    /** @var array<int, int> */
-    public array $cyclical_month_days = [];
-
-    public string $cyclical_month_position = 'first';
-
-    public ?int $cyclical_month_weekday = 1;
-
-    /** @var array<int, int> */
-    public array $cyclical_year_months = [];
-
-    public ?int $cyclical_year_day = null;
-
-    public bool $cyclical_year_use_weekday = false;
-
-    public ?int $cyclical_use_for = null;
-
-    public ?int $cyclical_pause_for = null;
-
-    /** @var array<int, string> */
-    public array $times = ['08:00'];
-
-    public ?string $starts_at = null;
-
-    public ?string $ends_at = null;
-
-    public bool $is_active = true;
 
     public string $backUrl = '';
 
@@ -162,155 +119,6 @@ class NotificationCreate extends Component
         }
 
         return $rules;
-    }
-
-    public function addTime(): void
-    {
-        $next = $this->nextAvailableTime($this->times);
-        if ($next !== null) {
-            $this->times[] = $next;
-        }
-    }
-
-    public function updatedTimes(mixed $value, ?string $key = null): void
-    {
-        if (! is_string($value) || $key === null || ! preg_match('/^(\d+)$/', $key, $m)) {
-            return;
-        }
-        $timeIndex = (int) $m[1];
-        $counts = array_count_values($this->times);
-        if (($counts[$value] ?? 0) > 1) {
-            $others = $this->times;
-            unset($others[$timeIndex]);
-            $next = $this->nextAvailableTime(array_values($others));
-            if ($next !== null) {
-                $this->times[$timeIndex] = $next;
-            }
-        }
-    }
-
-    public function removeTime(int $index): void
-    {
-        if (count($this->times) > 1) {
-            unset($this->times[$index]);
-            $this->times = array_values($this->times);
-        }
-    }
-
-    public function toggleWeekDay(int $day): void
-    {
-        foreach ($this->week_days as $index => $entry) {
-            if ((int) $entry['day'] === $day) {
-                array_splice($this->week_days, $index, 1);
-
-                return;
-            }
-        }
-
-        $this->week_days[] = ['day' => $day, 'times' => ['09:00']];
-        usort($this->week_days, fn ($a, $b) => $a['day'] <=> $b['day']);
-    }
-
-    public function updatedWeekDays(mixed $value, ?string $key = null): void
-    {
-        if (! is_string($value) || $key === null || ! preg_match('/^(\d+)\.times\.(\d+)$/', $key, $m)) {
-            return;
-        }
-        $dayIndex = (int) $m[1];
-        $timeIndex = (int) $m[2];
-        $times = $this->week_days[$dayIndex]['times'] ?? [];
-        $counts = array_count_values($times);
-        if (($counts[$value] ?? 0) > 1) {
-            $others = $times;
-            unset($others[$timeIndex]);
-            $next = $this->nextAvailableTime(array_values($others));
-            if ($next !== null) {
-                $this->week_days[$dayIndex]['times'][$timeIndex] = $next;
-            }
-        }
-    }
-
-    public function updatedSpecificDates(mixed $value, ?string $key = null): void
-    {
-        if (! is_string($value) || $key === null || ! preg_match('/^(\d+)\.times\.(\d+)$/', $key, $m)) {
-            return;
-        }
-        $index = (int) $m[1];
-        $timeIndex = (int) $m[2];
-        $times = $this->specific_dates[$index]['times'] ?? [];
-        $counts = array_count_values($times);
-        if (($counts[$value] ?? 0) > 1) {
-            $others = $times;
-            unset($others[$timeIndex]);
-            $next = $this->nextAvailableTime(array_values($others));
-            if ($next !== null) {
-                $this->specific_dates[$index]['times'][$timeIndex] = $next;
-            }
-        }
-    }
-
-    public function addWeekDayTime(int $dayIndex): void
-    {
-        $existing = $this->week_days[$dayIndex]['times'] ?? [];
-        $next = $this->nextAvailableTime($existing);
-        if ($next !== null) {
-            $this->week_days[$dayIndex]['times'][] = $next;
-        }
-    }
-
-    public function removeWeekDayTime(int $dayIndex, int $timeIndex): void
-    {
-        if (count($this->week_days[$dayIndex]['times'] ?? []) > 1) {
-            array_splice($this->week_days[$dayIndex]['times'], $timeIndex, 1);
-        }
-    }
-
-    public function addSpecificDate(string $date): void
-    {
-        $existing = array_column($this->specific_dates, 'date');
-        if ($date && ! in_array($date, $existing)) {
-            $this->specific_dates[] = ['date' => $date, 'times' => ['09:00']];
-            usort($this->specific_dates, fn ($a, $b) => strcmp($a['date'], $b['date']));
-        }
-    }
-
-    public function removeSpecificDate(int $index): void
-    {
-        array_splice($this->specific_dates, $index, 1);
-    }
-
-    public function addTimeToDate(int $index): void
-    {
-        $existing = $this->specific_dates[$index]['times'] ?? [];
-        $next = $this->nextAvailableTime($existing);
-        if ($next !== null) {
-            $this->specific_dates[$index]['times'][] = $next;
-        }
-    }
-
-    private function nextAvailableTime(array $existing): ?string
-    {
-        for ($h = 9; $h <= 23; $h++) {
-            $t = sprintf('%02d:00', $h);
-            if (! in_array($t, $existing)) {
-                return $t;
-            }
-        }
-        for ($h = 0; $h <= 8; $h++) {
-            $t = sprintf('%02d:00', $h);
-            if (! in_array($t, $existing)) {
-                return $t;
-            }
-        }
-
-        return null;
-    }
-
-    public function removeTimeFromDate(int $index, int $timeIndex): void
-    {
-        if (count($this->specific_dates[$index]['times'] ?? []) > 1) {
-            array_splice($this->specific_dates[$index]['times'], $timeIndex, 1);
-        }
     }
 
     public function save(): void
