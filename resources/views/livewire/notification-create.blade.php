@@ -31,11 +31,17 @@
 
         @include('livewire.partials.schedule-fields')
 
-        <label class="flex items-center justify-between p-4 bg-white border-2 border-gray-200 rounded-xl cursor-pointer hover:border-gray-300 transition-colors">
+        <div x-data="{ on: $wire.entangle('is_active') }"
+             class="flex items-center justify-between px-1">
             <span class="text-sm font-semibold text-gray-700">{{ __('Active') }}</span>
-            <input type="checkbox" wire:model="is_active"
-                class="w-5 h-5 text-indigo-600 rounded-md border-gray-300 focus:ring-indigo-500">
-        </label>
+            <button type="button"
+                    @click="on = !on"
+                    :class="on ? 'bg-indigo-500' : 'bg-gray-200'"
+                    class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 focus:outline-none">
+                <span :class="on ? 'translate-x-5' : 'translate-x-0.5'"
+                      class="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200"></span>
+            </button>
+        </div>
 
         @include('livewire.partials.reminder-interval')
 

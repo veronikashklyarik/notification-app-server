@@ -52,7 +52,7 @@ class SendReminderNotifications extends Command
             }
 
             DB::transaction(function () use ($event): void {
-                if ($event->notification === null || $event->notification->trashed()) {
+                if ($event->notification->trashed()) {
                     return;
                 }
 

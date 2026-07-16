@@ -1,28 +1,28 @@
-<div x-data="{ open: $wire.reminderInterval != null }" class="rounded-xl border-2 border-gray-200 bg-white overflow-hidden">
-    <button type="button"
-        x-show="!open"
-        @click="open = true"
-        class="w-full flex items-center justify-between p-4 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
-        <span>{{ __('Reminder Interval') }}</span>
-        <span class="text-xs font-normal text-gray-400">{{ __('No reminders') }} &mdash; <span class="text-indigo-500">{{ __('Add') }}</span></span>
-    </button>
-
-    <div x-show="open" x-cloak>
-        <div class="px-4 pt-4 pb-3">
-            <label for="reminderInterval" class="block mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('Reminder Interval') }}</label>
-            <select id="reminderInterval" wire:model="reminderInterval" class="input-styled w-full">
+<div x-data="{ on: $wire.reminderInterval != null }">
+    <div class="flex items-center justify-between px-1">
+        <span class="text-sm font-semibold text-gray-700">{{ __('Reminder Interval') }}</span>
+        <button type="button"
+                @click="on = !on; if (on) { $wire.set('reminderInterval', 15) } else { $wire.set('reminderInterval', null) }"
+                :class="on ? 'bg-indigo-500' : 'bg-gray-200'"
+                class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 focus:outline-none">
+            <span :class="on ? 'translate-x-5' : 'translate-x-0.5'"
+                  class="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200"></span>
+        </button>
+    </div>
+    <div x-show="on" x-cloak
+         x-transition:enter="transition ease-out duration-150"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-100"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0">
+        <div class="px-1 pb-1">
+            <select wire:model="reminderInterval" class="input-styled w-full mt-3">
                 @foreach(\App\Models\Notification::REMINDER_INTERVALS as $minutes => $label)
                     <option value="{{ $minutes }}">{{ __($label) }}</option>
                 @endforeach
             </select>
             <p class="mt-1.5 text-xs text-gray-400">{{ __('Repeat push notifications for pending events at this interval') }}</p>
-        </div>
-        <div class="px-4 pb-3">
-            <button type="button"
-                @click="open = false; $wire.set('reminderInterval', null)"
-                class="text-xs text-gray-400 hover:text-red-500 transition-colors">
-                &times; {{ __('Remove reminder') }}
-            </button>
         </div>
     </div>
 </div>
