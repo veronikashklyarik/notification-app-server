@@ -16,16 +16,14 @@ class SendReminderNotificationsTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function userWithReminder(int $intervalMinutes): User
-    {
-        return User::factory()->create(['reminder_interval' => $intervalMinutes]);
-    }
-
-    private function pendingNotifiedEvent(User $user, int $notifiedMinutesAgo, ?int $remindedMinutesAgo = null): NotificationEvent
+    private function pendingNotifiedEvent(User $user, int $intervalMinutes, int $notifiedMinutesAgo, ?int $remindedMinutesAgo = null): NotificationEvent
     {
         return NotificationEvent::factory()->create([
             'user_id' => $user->id,
-            'notification_id' => Notification::factory()->create(['user_id' => $user->id]),
+            'notification_id' => Notification::factory()->create([
+                'user_id' => $user->id,
+                'reminder_interval' => $intervalMinutes,
+            ]),
             'status' => EventStatus::Pending,
             'scheduled_at' => now()->subHour(),
             'notified_at' => now()->subMinutes($notifiedMinutesAgo),
@@ -37,9 +35,9 @@ class SendReminderNotificationsTest extends TestCase
     {
         Queue::fake();
 
-        $user = $this->userWithReminder(60);
+        $user = User::factory()->create();
         PushSubscription::factory()->create(['user_id' => $user->id]);
-        $event = $this->pendingNotifiedEvent($user, notifiedMinutesAgo: 65);
+        $event = $this->pendingNotifiedEvent($user, intervalMinutes: 60, notifiedMinutesAgo: 65);
 
         $this->artisan('app:send-reminder-notifications')->assertSuccessful();
 
@@ -52,9 +50,9 @@ class SendReminderNotificationsTest extends TestCase
     {
         Queue::fake();
 
-        $user = $this->userWithReminder(60);
+        $user = User::factory()->create();
         PushSubscription::factory()->create(['user_id' => $user->id]);
-        $event = $this->pendingNotifiedEvent($user, notifiedMinutesAgo: 120, remindedMinutesAgo: 65);
+        $event = $this->pendingNotifiedEvent($user, intervalMinutes: 60, notifiedMinutesAgo: 120, remindedMinutesAgo: 65);
 
         $this->artisan('app:send-reminder-notifications')->assertSuccessful();
 
@@ -66,9 +64,9 @@ class SendReminderNotificationsTest extends TestCase
     {
         Queue::fake();
 
-        $user = $this->userWithReminder(60);
+        $user = User::factory()->create();
         PushSubscription::factory()->create(['user_id' => $user->id]);
-        $this->pendingNotifiedEvent($user, notifiedMinutesAgo: 30);
+        $this->pendingNotifiedEvent($user, intervalMinutes: 60, notifiedMinutesAgo: 30);
 
         $this->artisan('app:send-reminder-notifications')->assertSuccessful();
 
@@ -79,9 +77,9 @@ class SendReminderNotificationsTest extends TestCase
     {
         Queue::fake();
 
-        $user = $this->userWithReminder(60);
+        $user = User::factory()->create();
         PushSubscription::factory()->create(['user_id' => $user->id]);
-        $this->pendingNotifiedEvent($user, notifiedMinutesAgo: 120, remindedMinutesAgo: 30);
+        $this->pendingNotifiedEvent($user, intervalMinutes: 60, notifiedMinutesAgo: 120, remindedMinutesAgo: 30);
 
         $this->artisan('app:send-reminder-notifications')->assertSuccessful();
 
@@ -92,13 +90,16 @@ class SendReminderNotificationsTest extends TestCase
     {
         Queue::fake();
 
-        $user = $this->userWithReminder(60);
+        $user = User::factory()->create();
         PushSubscription::factory()->create(['user_id' => $user->id]);
 
         foreach ([EventStatus::Done, EventStatus::Cancelled, EventStatus::Postponed] as $status) {
             NotificationEvent::factory()->create([
                 'user_id' => $user->id,
-                'notification_id' => Notification::factory()->create(['user_id' => $user->id]),
+                'notification_id' => Notification::factory()->create([
+                    'user_id' => $user->id,
+                    'reminder_interval' => 60,
+                ]),
                 'status' => $status,
                 'scheduled_at' => now()->subHour(),
                 'notified_at' => now()->subHours(2),
@@ -111,13 +112,23 @@ class SendReminderNotificationsTest extends TestCase
         Queue::assertNothingPushed();
     }
 
-    public function test_does_not_send_reminder_when_user_has_no_reminder_interval(): void
+    public function test_does_not_send_reminder_when_notification_has_no_reminder_interval(): void
     {
         Queue::fake();
 
-        $user = User::factory()->create(['reminder_interval' => null]);
+        $user = User::factory()->create();
         PushSubscription::factory()->create(['user_id' => $user->id]);
-        $this->pendingNotifiedEvent($user, notifiedMinutesAgo: 120);
+
+        NotificationEvent::factory()->create([
+            'user_id' => $user->id,
+            'notification_id' => Notification::factory()->create([
+                'user_id' => $user->id,
+                'reminder_interval' => null,
+            ]),
+            'status' => EventStatus::Pending,
+            'scheduled_at' => now()->subHour(),
+            'notified_at' => now()->subHours(2),
+        ]);
 
         $this->artisan('app:send-reminder-notifications')->assertSuccessful();
 
@@ -128,12 +139,15 @@ class SendReminderNotificationsTest extends TestCase
     {
         Queue::fake();
 
-        $user = $this->userWithReminder(60);
+        $user = User::factory()->create();
         PushSubscription::factory()->create(['user_id' => $user->id]);
 
         NotificationEvent::factory()->create([
             'user_id' => $user->id,
-            'notification_id' => Notification::factory()->create(['user_id' => $user->id]),
+            'notification_id' => Notification::factory()->create([
+                'user_id' => $user->id,
+                'reminder_interval' => 60,
+            ]),
             'status' => EventStatus::Pending,
             'scheduled_at' => now()->subHour(),
             'notified_at' => null,
@@ -148,9 +162,12 @@ class SendReminderNotificationsTest extends TestCase
     {
         Queue::fake();
 
-        $user = $this->userWithReminder(60);
+        $user = User::factory()->create();
         PushSubscription::factory()->create(['user_id' => $user->id]);
-        $notification = Notification::factory()->create(['user_id' => $user->id]);
+        $notification = Notification::factory()->create([
+            'user_id' => $user->id,
+            'reminder_interval' => 60,
+        ]);
         $event = NotificationEvent::factory()->create([
             'user_id' => $user->id,
             'notification_id' => $notification->id,
@@ -171,9 +188,9 @@ class SendReminderNotificationsTest extends TestCase
     {
         Queue::fake();
 
-        $user = $this->userWithReminder(60);
+        $user = User::factory()->create();
         // No PushSubscription created
-        $event = $this->pendingNotifiedEvent($user, notifiedMinutesAgo: 65);
+        $event = $this->pendingNotifiedEvent($user, intervalMinutes: 60, notifiedMinutesAgo: 65);
 
         $this->artisan('app:send-reminder-notifications')->assertSuccessful();
 
@@ -186,13 +203,33 @@ class SendReminderNotificationsTest extends TestCase
     {
         Queue::fake();
 
-        $user = $this->userWithReminder(60);
+        $user = User::factory()->create();
         PushSubscription::factory()->create(['user_id' => $user->id]);
         // Exactly 60 minutes ago — diffInMinutes returns 60 which is NOT < 60
-        $this->pendingNotifiedEvent($user, notifiedMinutesAgo: 60);
+        $this->pendingNotifiedEvent($user, intervalMinutes: 60, notifiedMinutesAgo: 60);
 
         $this->artisan('app:send-reminder-notifications')->assertSuccessful();
 
         Queue::assertPushed(SendPushNotificationJob::class);
+    }
+
+    public function test_different_notifications_can_have_different_reminder_intervals(): void
+    {
+        Queue::fake();
+
+        $user = User::factory()->create();
+        PushSubscription::factory()->create(['user_id' => $user->id]);
+
+        // 15-minute interval, notified 20 minutes ago — should send
+        $eventSoon = $this->pendingNotifiedEvent($user, intervalMinutes: 15, notifiedMinutesAgo: 20);
+
+        // 60-minute interval, notified 20 minutes ago — should NOT send
+        $eventLater = $this->pendingNotifiedEvent($user, intervalMinutes: 60, notifiedMinutesAgo: 20);
+
+        $this->artisan('app:send-reminder-notifications')->assertSuccessful();
+
+        $this->assertNotNull($eventSoon->fresh()->reminded_at);
+        $this->assertNull($eventLater->fresh()->reminded_at);
+        Queue::assertPushed(SendPushNotificationJob::class, 1);
     }
 }

@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Enums\ScheduleType;
 use App\Livewire\Concerns\HasScheduleFields;
+use App\Models\Notification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -22,6 +23,8 @@ class NotificationCreate extends Component
     public string $description = '';
 
     public string $backUrl = '';
+
+    public ?int $reminderInterval = null;
 
     public function mount(): void
     {
@@ -67,6 +70,7 @@ class NotificationCreate extends Component
             'starts_at' => ['nullable', 'date'],
             'ends_at' => ['nullable', 'date', 'after_or_equal:starts_at'],
             'is_active' => ['boolean'],
+            'reminderInterval' => ['nullable', 'integer', Rule::in(array_keys(Notification::REMINDER_INTERVALS))],
         ];
 
         if ($this->schedule_type === 'week_days') {
@@ -131,6 +135,8 @@ class NotificationCreate extends Component
         if (in_array($this->schedule_type, ['week_days', 'specific_dates'])) {
             $validated['times'] = null;
         }
+
+        $validated['reminder_interval'] = $this->reminderInterval;
 
         $notification = Auth::user()->reminders()->create($validated);
 

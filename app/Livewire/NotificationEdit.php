@@ -27,6 +27,8 @@ class NotificationEdit extends Component
 
     public string $backUrl = '';
 
+    public ?int $reminderInterval = null;
+
     public function mount(Notification $notification): void
     {
         $this->authorize('update', $notification);
@@ -56,6 +58,7 @@ class NotificationEdit extends Component
         $this->starts_at = $notification->starts_at?->format('Y-m-d');
         $this->ends_at = $notification->ends_at?->format('Y-m-d');
         $this->is_active = $notification->is_active;
+        $this->reminderInterval = $notification->reminder_interval;
     }
 
     /**
@@ -96,6 +99,7 @@ class NotificationEdit extends Component
             'starts_at' => ['nullable', 'date'],
             'ends_at' => ['nullable', 'date', 'after_or_equal:starts_at'],
             'is_active' => ['boolean'],
+            'reminderInterval' => ['nullable', 'integer', Rule::in(array_keys(Notification::REMINDER_INTERVALS))],
         ];
 
         if ($this->schedule_type === 'week_days') {
@@ -162,6 +166,8 @@ class NotificationEdit extends Component
         if (in_array($this->schedule_type, ['week_days', 'specific_dates'])) {
             $validated['times'] = null;
         }
+
+        $validated['reminder_interval'] = $this->reminderInterval;
 
         $this->notification->update($validated);
 

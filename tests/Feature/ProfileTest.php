@@ -101,58 +101,6 @@ class ProfileTest extends TestCase
             ->assertHasErrors(['avatar']);
     }
 
-    public function test_update_profile_saves_reminder_interval(): void
-    {
-        $user = User::factory()->create(['reminder_interval' => null]);
-
-        Livewire::actingAs($user)
-            ->test(Profile::class)
-            ->set('profileName', $user->name)
-            ->set('timezone', 'UTC')
-            ->set('reminderInterval', 60)
-            ->call('updateProfile')
-            ->assertHasNoErrors();
-
-        $this->assertSame(60, $user->fresh()->reminder_interval);
-    }
-
-    public function test_update_profile_clears_reminder_interval_when_empty(): void
-    {
-        $user = User::factory()->create(['reminder_interval' => 60]);
-
-        Livewire::actingAs($user)
-            ->test(Profile::class)
-            ->set('profileName', $user->name)
-            ->set('timezone', 'UTC')
-            ->set('reminderInterval', null)
-            ->call('updateProfile')
-            ->assertHasNoErrors();
-
-        $this->assertNull($user->fresh()->reminder_interval);
-    }
-
-    public function test_update_profile_rejects_invalid_reminder_interval(): void
-    {
-        $user = User::factory()->create();
-
-        Livewire::actingAs($user)
-            ->test(Profile::class)
-            ->set('profileName', $user->name)
-            ->set('timezone', 'UTC')
-            ->set('reminderInterval', 45)
-            ->call('updateProfile')
-            ->assertHasErrors(['reminderInterval']);
-    }
-
-    public function test_mount_populates_reminder_interval_from_user(): void
-    {
-        $user = User::factory()->create(['reminder_interval' => 120]);
-
-        $component = Livewire::actingAs($user)->test(Profile::class);
-
-        $this->assertSame(120, $component->get('reminderInterval'));
-    }
-
     // --- Change password ---
 
     public function test_regular_user_can_change_password_with_correct_current_password(): void
