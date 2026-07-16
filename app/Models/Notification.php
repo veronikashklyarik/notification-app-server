@@ -42,6 +42,7 @@ use Illuminate\Support\Facades\Auth;
  * @property Carbon|null $starts_at
  * @property Carbon|null $ends_at
  * @property bool $is_active
+ * @property int|null $reminder_interval
  */
 #[Fillable([
     'user_id',
@@ -67,11 +68,23 @@ use Illuminate\Support\Facades\Auth;
     'starts_at',
     'ends_at',
     'is_active',
+    'reminder_interval',
 ])]
 class Notification extends Model
 {
     /** @use HasFactory<NotificationFactory> */
     use HasFactory, MassPrunable, SoftDeletes;
+
+    /** @var array<int, string> */
+    public const array REMINDER_INTERVALS = [
+        15 => 'Every 15 minutes',
+        30 => 'Every 30 minutes',
+        60 => 'Every hour',
+        120 => 'Every 2 hours',
+        240 => 'Every 4 hours',
+        480 => 'Every 8 hours',
+        1440 => 'Every 24 hours',
+    ];
 
     /**
      * @var array<string, mixed>
@@ -105,6 +118,7 @@ class Notification extends Model
             'is_active' => 'boolean',
             'every_n_days' => 'integer',
             'cyclical_value' => 'integer',
+            'reminder_interval' => 'integer',
         ];
     }
 

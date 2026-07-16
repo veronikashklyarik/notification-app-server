@@ -37,6 +37,8 @@
                 class="w-5 h-5 text-indigo-600 rounded-md border-gray-300 focus:ring-indigo-500">
         </label>
 
+        @include('livewire.partials.reminder-interval')
+
         <button type="submit" class="btn-primary w-full py-3.5 text-sm mt-2" wire:loading.attr="disabled">
             <span wire:loading.remove wire:target="save">{{ __('Create Reminder') }}</span>
             <span wire:loading wire:target="save">{{ __('Creating...') }}</span>
