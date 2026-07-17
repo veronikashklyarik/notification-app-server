@@ -81,34 +81,6 @@ self.addEventListener('fetch', (event) => {
     }
 });
 
-const REMINDER_LABELS = {
-    en: (n, title) => `${n} reminder${n === 1 ? '' : 's'} for ${title}`,
-    ru: (n, title) => {
-        const form = n % 10 === 1 && n % 100 !== 11 ? 'напоминание'
-            : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 'напоминания'
-            : 'напоминаний';
-        return `${n} ${form} для ${title}`;
-    },
-    uk: (n, title) => {
-        const form = n % 10 === 1 && n % 100 !== 11 ? 'нагадування'
-            : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 'нагадування'
-            : 'нагадувань';
-        return `${n} ${form} для ${title}`;
-    },
-    de: (n, title) => `${n} Erinnerung${n === 1 ? '' : 'en'} für ${title}`,
-    fr: (n, title) => `${n} rappel${n === 1 ? '' : 's'} pour ${title}`,
-    es: (n, title) => `${n} recordatorio${n === 1 ? '' : 's'} para ${title}`,
-    pt: (n, title) => `${n} lembrete${n === 1 ? '' : 's'} para ${title}`,
-    it: (n, title) => `${n} promemoria per ${title}`,
-    pl: (n, title) => `${n} przypomnień dla ${title}`,
-};
-
-function formatReminderBody(count, title) {
-    const lang = (self.navigator?.language ?? 'en').split('-')[0].toLowerCase();
-    const fmt = REMINDER_LABELS[lang] ?? REMINDER_LABELS.en;
-    return fmt(count, title);
-}
-
 // Web Push: display notification when received from server
 self.addEventListener('push', (event) => {
     let data = { title: 'Notifyr', body: '' };
@@ -121,28 +93,20 @@ self.addEventListener('push', (event) => {
         }
     }
 
-    const tag = data.tag ?? 'notifyr';
-
     event.waitUntil(
-        self.registration.getNotifications({ tag }).then((existing) => {
-            const count = existing.length > 0 ? (existing[0].data?.count ?? 1) + 1 : 1;
-            const body = count > 1 ? formatReminderBody(count, data.title) : (data.body || '');
-
-            return self.registration.showNotification(data.title, {
-                body,
-                icon: data.icon ?? '/icon-192.png',
-                badge: data.badge ?? '/badge-72.png',
-                tag,
-                renotify: count > 1,
-                requireInteraction: data.requireInteraction ?? false,
-                vibrate: [100, 50, 100],
-                data: { url: data.url ?? '/', count },
-            });
+        self.registration.showNotification(data.title, {
+            body: data.body,
+            icon: data.icon ?? '/icon-192.png',
+            badge: data.badge ?? '/badge-72.png',
+            tag: data.tag ?? 'notifyr',
+            requireInteraction: data.requireInteraction ?? false,
+            vibrate: [100, 50, 100],
+            data: { url: data.url ?? '/' },
         })
     );
 });
 
-// Web Push: dismiss notification(s) for a specific event when acted on from inside the app
+// Web Push: close all notifications when the user acts on one from inside the app
 self.addEventListener('message', (event) => {
     if (event.data?.type !== 'dismiss-notification') {
         return;
@@ -150,9 +114,7 @@ self.addEventListener('message', (event) => {
 
     event.waitUntil(
         self.registration.getNotifications().then((notifications) => {
-            notifications
-                .filter((n) => n.data?.url === event.data.url)
-                .forEach((n) => n.close());
+            notifications.forEach((n) => n.close());
         })
     );
 });
