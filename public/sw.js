@@ -106,6 +106,21 @@ self.addEventListener('push', (event) => {
     );
 });
 
+// Web Push: dismiss notification(s) for a specific event when acted on from inside the app
+self.addEventListener('message', (event) => {
+    if (event.data?.type !== 'dismiss-notification') {
+        return;
+    }
+
+    event.waitUntil(
+        self.registration.getNotifications().then((notifications) => {
+            notifications
+                .filter((n) => n.data?.url === event.data.url)
+                .forEach((n) => n.close());
+        })
+    );
+});
+
 // Web Push: open/focus the app when the notification is clicked
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
