@@ -64,6 +64,7 @@ class Home extends Component
             'completed_at' => now(),
         ]);
 
+        $this->dispatch('dismiss-push-notification', url: route('events.show', $event));
         $this->loadEvents();
     }
 
@@ -77,6 +78,7 @@ class Home extends Component
             'completed_at' => now(),
         ]);
 
+        $this->dispatch('dismiss-push-notification', url: route('events.show', $event));
         $this->loadEvents();
     }
 

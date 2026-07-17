@@ -42,7 +42,7 @@ class SendPendingNotifications extends Command
                 $url = route('events.show', $event);
 
                 foreach ($event->user->pushSubscriptions as $subscription) {
-                    dispatch(new SendPushNotificationJob($subscription, $title, $body, ['url' => $url]))->afterCommit();
+                    dispatch(new SendPushNotificationJob($subscription, $title, $body, ['url' => $url, 'tag' => 'event-'.$event->id]))->afterCommit();
                 }
             });
         }

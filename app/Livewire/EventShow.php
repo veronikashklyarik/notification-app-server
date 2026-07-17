@@ -78,6 +78,7 @@ class EventShow extends Component
 
         $this->event->update($data);
 
+        $this->dispatch('dismiss-push-notification', url: route('events.show', $this->event));
         $this->redirect($this->backUrl);
     }
 
@@ -90,6 +91,7 @@ class EventShow extends Component
             'completed_at' => now(),
         ]);
 
+        $this->dispatch('dismiss-push-notification', url: route('events.show', $this->event));
         $this->redirect($this->backUrl);
     }
 
@@ -102,6 +104,7 @@ class EventShow extends Component
             'completed_at' => now(),
         ]);
 
+        $this->dispatch('dismiss-push-notification', url: route('events.show', $this->event));
         $this->redirect($this->backUrl);
     }
 

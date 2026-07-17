@@ -234,6 +234,15 @@
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('/sw.js').catch(() => {});
         }
+
+        window.addEventListener('dismiss-push-notification', (e) => {
+            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({
+                    type: 'dismiss-notification',
+                    url: e.detail.url,
+                });
+            }
+        });
     </script>
 </body>
 </html>

@@ -75,6 +75,7 @@ class EventList extends Component
             'completed_at' => now(),
         ]);
 
+        $this->dispatch('dismiss-push-notification', url: route('events.show', $event));
         $this->loadEvents();
     }
 
@@ -88,6 +89,7 @@ class EventList extends Component
             'completed_at' => now(),
         ]);
 
+        $this->dispatch('dismiss-push-notification', url: route('events.show', $event));
         $this->loadEvents();
     }
 

@@ -106,6 +106,19 @@ self.addEventListener('push', (event) => {
     );
 });
 
+// Web Push: close all notifications when the user acts on one from inside the app
+self.addEventListener('message', (event) => {
+    if (event.data?.type !== 'dismiss-notification') {
+        return;
+    }
+
+    event.waitUntil(
+        self.registration.getNotifications().then((notifications) => {
+            notifications.forEach((n) => n.close());
+        })
+    );
+});
+
 // Web Push: open/focus the app when the notification is clicked
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
