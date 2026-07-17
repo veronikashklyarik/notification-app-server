@@ -93,15 +93,23 @@ self.addEventListener('push', (event) => {
         }
     }
 
+    const tag = data.tag ?? 'notifyr';
+
     event.waitUntil(
-        self.registration.showNotification(data.title, {
-            body: data.body,
-            icon: data.icon ?? '/icon-192.png',
-            badge: data.badge ?? '/badge-72.png',
-            tag: data.tag ?? 'notifyr',
-            requireInteraction: data.requireInteraction ?? false,
-            vibrate: [100, 50, 100],
-            data: { url: data.url ?? '/' },
+        self.registration.getNotifications({ tag }).then((existing) => {
+            const count = existing.length > 0 ? (existing[0].data?.count ?? 1) + 1 : 1;
+            const body = count > 1 ? `×${count} ${data.body || data.title}` : (data.body || '');
+
+            return self.registration.showNotification(data.title, {
+                body,
+                icon: data.icon ?? '/icon-192.png',
+                badge: data.badge ?? '/badge-72.png',
+                tag,
+                renotify: count > 1,
+                requireInteraction: data.requireInteraction ?? false,
+                vibrate: [100, 50, 100],
+                data: { url: data.url ?? '/', count },
+            });
         })
     );
 });
