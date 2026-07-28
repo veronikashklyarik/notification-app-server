@@ -19,6 +19,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'postpone_history',
     'comment',
     'completed_at',
+    'notified_at',
+    'reminded_at',
 ])]
 class NotificationEvent extends Model
 {
@@ -38,6 +40,8 @@ class NotificationEvent extends Model
             'postponed_until' => 'datetime',
             'postpone_history' => 'array',
             'completed_at' => 'datetime',
+            'notified_at' => 'datetime',
+            'reminded_at' => 'datetime',
         ];
     }
 

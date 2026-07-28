@@ -23,8 +23,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('notifications', function (Blueprint $table): void {
-            $table->timestamp('starts_at')->nullable()->change();
-            $table->timestamp('ends_at')->nullable()->change();
+            $table->datetime('starts_at')->nullable()->change();
+            $table->datetime('ends_at')->nullable()->change();
         });
     }
 };

@@ -48,7 +48,7 @@ class ResetPasswordController extends Controller
         );
 
         if ($status === Password::PasswordReset) {
-            return redirect()->route('login')->with('status', 'Your password has been reset. Please sign in.');
+            return redirect()->route('login')->with('status', __('Your password has been reset. Please sign in.'));
         }
 
         return back()->withErrors(['email' => __($status)])->withInput($request->only('email'));

@@ -35,7 +35,7 @@
                         </label>
                         <input type="file" id="avatar" name="avatar" accept="image/*" class="hidden"
                                onchange="previewAvatar(this)">
-                        <p class="text-xs text-gray-400 mt-1.5">JPG, PNG, GIF or WebP · Max 2 MB</p>
+                        <p class="text-xs text-gray-400 mt-1.5">JPG, PNG or WebP · Max 2 MB</p>
                         @error('avatar')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror

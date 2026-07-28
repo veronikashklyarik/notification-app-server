@@ -123,4 +123,17 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Mobile App Deep Link Scheme
+    |--------------------------------------------------------------------------
+    |
+    | The custom URL scheme registered by the mobile app. After email
+    | verification the server redirects to this scheme so the OS opens
+    | the app directly instead of leaving the user in the browser.
+    |
+    */
+
+    'deeplink_scheme' => env('APP_MOBILE_DEEPLINK_SCHEME', 'notifyr'),
+
 ];

@@ -25,12 +25,18 @@ class RegisterController extends Controller
      */
     public function store(RegisterRequest $request): RedirectResponse
     {
-        $user = User::query()->create($request->validated());
+        $user = User::query()->create(array_merge(
+            $request->validated(),
+            [
+                'timezone' => $request->validated('timezone') ?? 'UTC',
+                'locale' => $request->cookie('app_locale') ?? $request->session()->get('locale') ?? config('app.locale', 'en'),
+            ],
+        ));
 
         event(new Registered($user));
 
         Auth::login($user);
 
-        return redirect()->route('verification.notice');
+        return redirect()->route('home');
     }
 }

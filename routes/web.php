@@ -1,21 +1,36 @@
 <?php
 
+use App\Http\Controllers\Api\V1\PushSubscriptionController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\EmailVerificationNoticeController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ResendVerificationEmailController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\HistoryController;
-use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\ProfileController;
+use App\Livewire\EventList;
+use App\Livewire\EventShow;
+use App\Livewire\Home;
+use App\Livewire\NotificationCreate;
+use App\Livewire\NotificationEdit;
+use App\Livewire\NotificationList;
+use App\Livewire\NotificationShow;
+use App\Livewire\Profile;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', fn () => redirect()->route('notifications.index'));
+Route::get('/', fn () => redirect()->route('home'));
+Route::get('offline', fn () => view('pwa.offline'))->name('offline');
+Route::get('privacy-policy', fn () => view('legal.privacy'))->name('legal.privacy');
+Route::get('terms', fn () => view('legal.terms'))->name('legal.terms');
+Route::middleware(['auth', 'verified'])->get('install', fn () => view('install'))->name('install');
 
 Route::middleware('guest')->group(function (): void {
+    Route::get('auth/google', [GoogleAuthController::class, 'redirect'])->name('auth.google');
+    Route::get('auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
+
     Route::get('login', [LoginController::class, 'create'])->name('login');
     Route::post('login', [LoginController::class, 'store']);
 
@@ -41,11 +56,23 @@ Route::middleware('auth')->group(function (): void {
         ->name('verification.send');
 });
 
-Route::middleware(['auth', 'verified'])->group(function (): void {
-    Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
+Route::middleware('auth')->group(function (): void {
+    Route::post('push-subscriptions/subscribe', [PushSubscriptionController::class, 'store'])->name('push-subscriptions.subscribe');
+    Route::delete('push-subscriptions/unsubscribe', [PushSubscriptionController::class, 'destroy'])->name('push-subscriptions.unsubscribe');
+});
 
-    Route::resource('notifications', NotificationController::class);
+Route::middleware('auth')->group(function (): void {
+    Route::get('home', Home::class)->name('home');
+
+    Route::get('profile', Profile::class)->name('profile.edit');
+
+    Route::get('notifications', NotificationList::class)->name('notifications.index');
+    Route::get('notifications/create', NotificationCreate::class)->name('notifications.create');
+    Route::get('notifications/{notification}', NotificationShow::class)->name('notifications.show');
+    Route::get('notifications/{notification}/edit', NotificationEdit::class)->name('notifications.edit');
 
     Route::get('history', [HistoryController::class, 'index'])->name('history.index');
+
+    Route::get('events', EventList::class)->name('events.index');
+    Route::get('events/{event}', EventShow::class)->name('events.show');
 });

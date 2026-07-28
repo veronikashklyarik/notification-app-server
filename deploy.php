@@ -35,12 +35,17 @@ host('64.227.122.5')
 
 desc('Install & build npm packages');
 task('npm:build', function () {
-    run('cd {{release_path}} && npm ci && npm run build');
+    run('cd {{release_path}} && npm install && npm run build');
 });
 
 desc('Restart PHP-FPM to clear OPcache');
 task('php:fpm:restart', function () {
     run('sudo systemctl restart php8.4-fpm');
+});
+
+desc('Restart the queue worker via supervisorctl');
+task('queue:restart', function () {
+    run('cd {{release_path}} && {{bin/php}} artisan queue:restart');
 });
 
 // Hooks
@@ -49,3 +54,4 @@ after('artisan:migrate', 'npm:build');
 after('deploy:failed', 'deploy:unlock');
 after('deploy:success', 'crontab:sync');
 after('deploy:success', 'php:fpm:restart');
+after('deploy:success', 'queue:restart');

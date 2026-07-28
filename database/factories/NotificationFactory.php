@@ -19,18 +19,36 @@ class NotificationFactory extends Factory
      */
     public function definition(): array
     {
-        $scheduleType = $this->faker->randomElement(ScheduleType::cases());
+        $scheduleType = $this->faker->randomElement(array_filter(
+            ScheduleType::cases(),
+            fn (ScheduleType $t) => ! in_array($t, [ScheduleType::AsNeeded, ScheduleType::EveryNDays]),
+        ));
 
         return [
             'user_id' => User::factory(),
             'name' => $this->faker->sentence(3),
             'description' => $this->faker->optional()->paragraph(),
             'schedule_type' => $scheduleType,
-            'week_days' => $scheduleType === ScheduleType::WeekDays ? $this->faker->randomElements([1, 2, 3, 4, 5, 6, 7], $this->faker->numberBetween(2, 5)) : null,
+            'week_days' => $scheduleType === ScheduleType::WeekDays
+                ? array_map(
+                    fn ($d) => ['day' => $d, 'times' => ['09:00']],
+                    $this->faker->randomElements([1, 2, 3, 4, 5, 6, 7], $this->faker->numberBetween(2, 5)),
+                )
+                : null,
+            'specific_dates' => null,
             'every_n_days' => $scheduleType === ScheduleType::EveryNDays ? $this->faker->numberBetween(2, 14) : null,
             'cyclical_value' => $scheduleType === ScheduleType::Cyclical ? $this->faker->numberBetween(1, 6) : null,
             'cyclical_unit' => $scheduleType === ScheduleType::Cyclical ? $this->faker->randomElement(['weeks', 'months']) : null,
-            'times' => $scheduleType !== ScheduleType::AsNeeded ? ['09:00'] : null,
+            'cyclical_week_days' => null,
+            'cyclical_month_type' => null,
+            'cyclical_month_days' => null,
+            'cyclical_month_position' => null,
+            'cyclical_month_weekday' => null,
+            'cyclical_year_months' => null,
+            'cyclical_year_use_weekday' => false,
+            'cyclical_use_for' => null,
+            'cyclical_pause_for' => null,
+            'times' => ! in_array($scheduleType, [ScheduleType::AsNeeded, ScheduleType::SpecificDates]) ? ['09:00'] : null,
             'starts_at' => now(),
             'ends_at' => null,
             'is_active' => true,
@@ -67,15 +85,21 @@ class NotificationFactory extends Factory
      *
      * @param  array<int>  $days  ISO weekday numbers (1 = Monday … 7 = Sunday)
      */
-    public function weekDays(array $days, string $time = '09:00'): static
+    /**
+     * @param  array<int>  $days  ISO weekday numbers (1 = Monday … 7 = Sunday)
+     * @param  array<int, string>|string  $times  Per-day time(s); a string is broadcast to all days
+     */
+    public function weekDays(array $days, array|string $times = '09:00'): static
     {
+        $timesArray = is_string($times) ? [$times] : $times;
+
         return $this->state(fn (array $attributes) => [
             'schedule_type' => ScheduleType::WeekDays,
-            'week_days' => $days,
+            'week_days' => array_map(fn ($d) => ['day' => $d, 'times' => $timesArray], $days),
             'every_n_days' => null,
             'cyclical_value' => null,
             'cyclical_unit' => null,
-            'times' => [$time],
+            'times' => null,
         ]);
     }
 
@@ -106,6 +130,24 @@ class NotificationFactory extends Factory
             'cyclical_value' => $value,
             'cyclical_unit' => $unit,
             'times' => ['09:00'],
+        ]);
+    }
+
+    /**
+     * Indicate the notification fires on specific explicit dates.
+     *
+     * @param  array<int, string>  $dates  Y-m-d formatted date strings
+     */
+    public function specificDates(array $dates, string $time = '09:00'): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'schedule_type' => ScheduleType::SpecificDates,
+            'week_days' => null,
+            'specific_dates' => array_map(fn ($date) => ['date' => $date, 'times' => [$time]], $dates),
+            'every_n_days' => null,
+            'cyclical_value' => null,
+            'cyclical_unit' => null,
+            'times' => null,
         ]);
     }
 }

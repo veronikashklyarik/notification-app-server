@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\Auth\ChangePasswordController;
 use App\Http\Controllers\Api\V1\Auth\DeleteAccountController;
+use App\Http\Controllers\Api\V1\Auth\EmailVerificationController;
 use App\Http\Controllers\Api\V1\Auth\LoginController;
 use App\Http\Controllers\Api\V1\Auth\LogoutController;
 use App\Http\Controllers\Api\V1\Auth\RefreshTokenController;
@@ -10,12 +11,22 @@ use App\Http\Controllers\Api\V1\DeviceTokenController;
 use App\Http\Controllers\Api\V1\EventController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\ProfileController;
+use App\Http\Controllers\Api\V1\PushSubscriptionController;
 use App\Http\Controllers\Api\V1\VersionController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function (): void {
     // Version check (public endpoint)
     Route::get('version/check', [VersionController::class, 'check'])->name('api.v1.version.check');
+
+    // VAPID public key (public endpoint — no auth required)
+    Route::get('push-subscriptions/vapid-public-key', [PushSubscriptionController::class, 'vapidPublicKey'])
+        ->middleware('throttle:6,1')
+        ->name('api.v1.push-subscriptions.vapid-public-key');
+
+    Route::get('auth/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+        ->middleware(['signed', 'throttle:6,1'])
+        ->name('api.v1.auth.email.verify');
 
     Route::prefix('auth')->middleware('throttle:api-auth')->group(function (): void {
         Route::post('register', [RegisterController::class, 'store'])->name('api.v1.auth.register');
@@ -30,13 +41,18 @@ Route::prefix('v1')->group(function (): void {
             Route::delete('logout', [LogoutController::class, 'destroy'])->name('api.v1.auth.logout');
             Route::put('password', [ChangePasswordController::class, 'update'])->name('api.v1.auth.password');
             Route::delete('account', [DeleteAccountController::class, 'destroy'])->name('api.v1.auth.account.destroy');
+            Route::post('email/verify/send', [EmailVerificationController::class, 'send'])->name('api.v1.auth.email.verify.send');
         });
 
         Route::get('profile', [ProfileController::class, 'show'])->name('api.v1.profile');
         Route::put('profile', [ProfileController::class, 'update'])->name('api.v1.profile.update');
+        Route::post('profile/avatar', [ProfileController::class, 'updateAvatar'])->name('api.v1.profile.avatar');
 
         Route::post('device-tokens', [DeviceTokenController::class, 'store'])->name('api.v1.device-tokens.store');
         Route::delete('device-tokens', [DeviceTokenController::class, 'destroy'])->name('api.v1.device-tokens.destroy');
+
+        Route::post('push-subscriptions', [PushSubscriptionController::class, 'store'])->name('api.v1.push-subscriptions.store');
+        Route::delete('push-subscriptions', [PushSubscriptionController::class, 'destroy'])->name('api.v1.push-subscriptions.destroy');
 
         Route::apiResource('notifications', NotificationController::class)->names([
             'index' => 'api.v1.notifications.index',

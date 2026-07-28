@@ -20,6 +20,7 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'avatar_url' => $this->avatar_url,
             'timezone' => $this->timezone ?? 'UTC',
+            'email_verified_at' => $this->email_verified_at,
             'created_at' => $this->created_at,
         ];
     }

@@ -20,7 +20,7 @@
               x-data="notificationForm(
                   '{{ old('schedule_type', $notification->schedule_type->value) }}',
                   {!! \Illuminate\Support\Js::from(old('times', $notification->times ?? ['09:00'])) !!},
-                  {!! \Illuminate\Support\Js::from(array_map('intval', (array) old('week_days', $notification->week_days ?? []))) !!},
+                  {!! \Illuminate\Support\Js::from(array_map(fn($e) => is_array($e) ? (int)($e['day'] ?? 0) : (int)$e, (array) old('week_days', $notification->week_days ?? []))) !!},
                   {{ old('every_n_days', $notification->every_n_days ?? 1) }},
                   {{ old('cyclical_value', $notification->cyclical_value ?? 1) }},
                   '{{ old('cyclical_unit', $notification->cyclical_unit ?? 'weeks') }}'

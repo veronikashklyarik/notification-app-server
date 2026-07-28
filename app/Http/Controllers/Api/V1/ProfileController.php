@@ -3,11 +3,18 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\UpdateAvatarRequest;
 use App\Http\Requests\Api\V1\UpdateProfileRequest;
 use App\Http\Resources\Api\V1\UserResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Intervention\Image\Drivers\Imagick\Driver as ImagickDriver;
+use Intervention\Image\Encoders\WebpEncoder;
+use Intervention\Image\ImageManager;
+use Throwable;
 
 class ProfileController extends Controller
 {
@@ -42,6 +49,40 @@ class ProfileController extends Controller
         }
 
         $user->update($data);
+
+        return response()->json([
+            'user' => new UserResource($user->fresh()),
+        ]);
+    }
+
+    /**
+     * Update Avatar
+     *
+     * Replace the authenticated user's profile photo.
+     */
+    public function updateAvatar(UpdateAvatarRequest $request): JsonResponse
+    {
+        $user = $request->user();
+
+        try {
+            if ($user->avatar) {
+                Storage::delete($user->avatar);
+            }
+
+            $file = $request->file('avatar');
+            $webpContents = (string) (new ImageManager(new ImagickDriver))
+                ->decodeBinary(file_get_contents($file->getRealPath()))
+                ->encode(new WebpEncoder(quality: 80));
+
+            $path = 'avatars/'.Str::uuid().'.webp';
+            Storage::disk('public')->put($path, $webpContents);
+
+            $user->update(['avatar' => $path]);
+        } catch (Throwable $e) {
+            Log::error('Avatar upload failed', ['user_id' => $user->id, 'error' => $e->getMessage()]);
+
+            return response()->json(['message' => 'Failed to store the avatar. Please try again.'], 500);
+        }
 
         return response()->json([
             'user' => new UserResource($user->fresh()),

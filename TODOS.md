@@ -1,0 +1,14 @@
+# TODOS
+
+## Deferred from autoplan review (2026-06-24)
+
+### Phase 2 (post PWA migration)
+- [x] Avatar upload (profile settings) **Completed:** 2026-06-26
+- [x] E2E browser tests (Pest v4) for critical paths: login → home, create notification, mark event done
+
+### Future scope
+- [x] Web Push API notifications **Completed:** 2026-06-29
+- [ ] Real-time Livewire broadcasts (upgrade from wire:poll)
+- [ ] Dark mode support
+- [ ] Accessibility (WCAG compliance)
+- [ ] Offline queue/sync (service worker background sync)

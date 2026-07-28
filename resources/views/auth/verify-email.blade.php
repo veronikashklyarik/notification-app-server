@@ -1,7 +1,7 @@
-<x-layouts.guest title="Verify email">
+<x-layouts.guest title="{{ __('Verify email') }}">
 
-    <h2 class="text-xl font-semibold text-gray-900 mb-2">Check your email</h2>
-    <p class="text-sm text-gray-500 mb-6">We sent a verification link to your email address. Click the link to activate your account.</p>
+    <h2 class="text-xl font-semibold text-gray-900 mb-2">{{ __('Check your email') }}</h2>
+    <p class="text-sm text-gray-500 mb-6">{{ __('We sent a verification link to your email address. Click the link to activate your account.') }}</p>
 
     @if(session('status') === 'A new verification link has been sent to your email address.')
         <div class="mb-5 flex items-center gap-3 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-xl text-sm">
@@ -17,7 +17,7 @@
             @csrf
             <button type="submit"
                     class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors">
-                Resend verification email
+                {{ __('Resend verification email') }}
             </button>
         </form>
 
@@ -25,7 +25,7 @@
             @csrf
             <button type="submit"
                     class="w-full py-2.5 px-4 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-lg border border-gray-300 transition-colors">
-                Sign out
+                {{ __('Sign out') }}
             </button>
         </form>
     </div>

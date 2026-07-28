@@ -49,7 +49,7 @@ class VersionController extends Controller
             'latest_version' => $versionInfo->latest_version,
             'update_required' => $updateRequired,
             'force_update' => $forceUpdate,
-            'message' => $versionInfo->message ?? 'Your app is up to date',
+            'message' => $versionInfo->message,
             'download_url' => $versionInfo->download_url,
         ]);
     }

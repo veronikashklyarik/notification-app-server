@@ -17,7 +17,8 @@ return new class extends Migration
             $table->string('token')->unique();
             $table->string('platform'); // ios, android
             $table->string('device_name')->nullable();
-            $table->timestamps();
+            $table->datetime('created_at')->nullable();
+            $table->datetime('updated_at')->nullable();
         });
     }
 

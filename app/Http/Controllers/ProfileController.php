@@ -6,7 +6,11 @@ use App\Http\Requests\UpdateProfileRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
+use Intervention\Image\Drivers\Imagick\Driver as ImagickDriver;
+use Intervention\Image\Encoders\WebpEncoder;
+use Intervention\Image\ImageManager;
 
 class ProfileController extends Controller
 {
@@ -30,7 +34,15 @@ class ProfileController extends Controller
             if ($user->avatar) {
                 Storage::delete($user->avatar);
             }
-            $data['avatar'] = $request->file('avatar')->store('avatars', 'public');
+
+            $file = $request->file('avatar');
+            $webpContents = (string) (new ImageManager(new ImagickDriver))
+                ->decodeBinary(file_get_contents($file->getRealPath()))
+                ->encode(new WebpEncoder(quality: 80));
+
+            $path = 'avatars/'.Str::uuid().'.webp';
+            Storage::disk('public')->put($path, $webpContents);
+            $data['avatar'] = $path;
         }
 
         $user->fill($data);

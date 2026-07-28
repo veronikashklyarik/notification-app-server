@@ -14,3 +14,5 @@ Schedule::command('model:prune', [
 ])->monthly();
 
 Schedule::command('app:maintain-notification-events')->daily();
+Schedule::command('app:send-pending-notifications')->everyMinute()->withoutOverlapping();
+Schedule::command('app:send-reminder-notifications')->everyMinute()->withoutOverlapping();

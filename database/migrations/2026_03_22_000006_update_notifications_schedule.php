@@ -22,7 +22,7 @@ return new class extends Migration
             $table->unsignedSmallInteger('cyclical_value')->nullable()->after('every_n_days');
             $table->string('cyclical_unit')->nullable()->after('cyclical_value');
             $table->json('times')->nullable()->after('cyclical_unit');
-            $table->timestamp('ends_at')->nullable()->after('starts_at');
+            $table->datetime('ends_at')->nullable()->after('starts_at');
         });
     }
 

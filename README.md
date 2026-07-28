@@ -40,6 +40,7 @@ A Laravel server-side application for managing recurring notifications with a cl
 - Update name, email, avatar (JPG/PNG/GIF/WebP, max 2 MB)
 - Change password (requires current password)
 - Timezone selector — grouped by region, defaults to `UTC`
+- Reminder interval — choose how often to re-receive push notifications for still-pending events (every 15 min, 30 min, 1, 2, 4, 8, or 24 hours; leave unset to disable reminders)
 
 ### Notifications
 - Create recurring notifications with flexible scheduling:
@@ -60,6 +61,7 @@ A Laravel server-side application for managing recurring notifications with a cl
 - Optional comment and postpone-until date per entry
 - Postpone history tracking — multiple postponements recorded per event
 - Automatic maintenance — old events pruned to keep last 90 non-pending entries
+- Reminder push notifications — pending events re-notify at the user's configured interval until resolved
 - All timestamps displayed in the user's timezone
 
 ### Timezone Handling
@@ -138,6 +140,7 @@ New registrations always receive a 1-day token (no Remember Me session exists ye
 | `postpone_history` | array | Array of past postponement timestamps |
 | `comment` | string | Optional note added when marking done/cancelled/postponed |
 | `completed_at` | datetime | When status changed from pending (ISO-8601, UTC) |
+| `reminded_at` | datetime | When the last reminder push notification was sent (ISO-8601, UTC); null if no reminder has fired |
 
 **Update event** (PATCH `/api/v1/events/{id}`):
 - Required: `status` (done/cancelled/postponed)
@@ -150,7 +153,8 @@ New registrations always receive a 1-day token (no Remember Me session exists ye
 ```
 app/
 ├── Console/Commands/
-│   └── MaintainNotificationEvents.php  # Top up pending events, prune old history
+│   ├── MaintainNotificationEvents.php  # Top up pending events, prune old history
+│   └── SendReminderNotifications.php   # Dispatch reminder push notifications for still-pending events
 ├── Enums/
 │   ├── EventStatus.php         # Pending, Done, Cancelled, Postponed
 │   └── ScheduleType.php        # EveryDay, WeekDays, EveryNDays, Cyclical, AsNeeded
@@ -218,7 +222,9 @@ database/
 │   ├── 2026_03_22_000005_add_timezone_to_users_table.php
 │   ├── 2026_03_22_000006_update_notifications_schedule.php
 │   ├── 2026_03_22_000007_change_date_columns_on_notifications.php
-│   └── 2026_03_26_141106_create_notification_events_and_refactor.php
+│   ├── 2026_03_26_141106_create_notification_events_and_refactor.php
+│   ├── 2026_07_01_122755_add_reminded_at_to_notification_events_table.php
+│   └── 2026_07_01_122755_add_reminder_interval_to_users_table.php
 └── seeders/
     └── DatabaseSeeder.php
 
@@ -289,23 +295,21 @@ npm run dev
 
 ## Maintenance
 
-### Event maintenance command
+### Scheduled commands
 
-The application requires periodic maintenance to keep notification events up-to-date:
+The application uses three scheduled commands. All are registered in `routes/console.php` and run automatically when the Laravel scheduler is active.
+
+| Command | Schedule | Purpose |
+|---------|----------|---------|
+| `app:maintain-notification-events` | Daily | Tops up pending events (30 per active notification) and prunes old history (keep last 90) |
+| `app:send-pending-notifications` | Every minute | Dispatches initial push notifications for events that are due |
+| `app:send-reminder-notifications` | Every minute | Re-notifies users for still-pending events based on their configured reminder interval |
+
+To run the scheduler:
 
 ```bash
-php artisan app:maintain-notification-events
-```
-
-This command:
-- Tops up pending events to maintain 30 future occurrences per active notification
-- Prunes old event history to keep only the last 90 non-pending events per notification
-
-**Recommended:** Run this command daily via cron or task scheduler:
-
-```php
-// routes/console.php or app/Console/Kernel.php
-Schedule::command('app:maintain-notification-events')->daily();
+php artisan schedule:run
+# or via cron: * * * * * php /path/to/artisan schedule:run
 ```
 
 ---
@@ -321,6 +325,9 @@ The system now pre-generates notification events instead of creating history ent
   - `pruneHistory()` — keeps only the last 90 non-pending events per notification
 - **Scheduled maintenance** — `app:maintain-notification-events` command should run periodically (e.g., daily cron) to top up pending events and prune old history
 - Events track `scheduled_at` (planned occurrence), `postponed_until`, `postpone_history` (array of past postponements), and `completed_at`
+
+### Reminder notifications
+Users can configure a `reminder_interval` (in minutes) on their profile. The `app:send-reminder-notifications` command runs every minute and re-dispatches push notifications for any `Pending` event whose last notification (`notified_at` or `reminded_at`) is older than the user's interval. `Profile::REMINDER_INTERVALS` holds the allowed values (15, 30, 60, 120, 240, 480, 1440 minutes). The pre-filter cutoff is derived from `min(array_keys(REMINDER_INTERVALS))` so it stays in sync if the constant changes.
 
 ### Alpine.js
 Bundled via npm (`alpinejs` package), imported in `resources/js/app.js` and started with `Alpine.start()`. Available on both guest and authenticated layouts. `[x-cloak]` is defined in `app.css`.
