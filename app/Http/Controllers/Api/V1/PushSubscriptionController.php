@@ -7,6 +7,7 @@ use App\Http\Requests\Api\V1\DeleteWebPushSubscriptionRequest;
 use App\Http\Requests\Api\V1\StoreWebPushSubscriptionRequest;
 use App\Models\PushSubscription;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class PushSubscriptionController extends Controller
 {
@@ -44,6 +45,24 @@ class PushSubscriptionController extends Controller
             ->delete();
 
         return response()->json(['message' => 'Push subscription removed successfully.']);
+    }
+
+    /**
+     * Check whether a given browser-level subscription endpoint actually belongs to
+     * the authenticated user. Web Push subscriptions live at the browser/device level,
+     * not the app-session level, so a different user who previously subscribed on this
+     * same browser would otherwise be mistaken for already being subscribed themselves.
+     */
+    public function status(Request $request): JsonResponse
+    {
+        $request->validate(['endpoint' => 'required|string']);
+
+        $subscribed = PushSubscription::query()
+            ->where('endpoint', $request->string('endpoint'))
+            ->where('user_id', $request->user()->id)
+            ->exists();
+
+        return response()->json(['subscribed' => $subscribed]);
     }
 
     /**

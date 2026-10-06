@@ -60,7 +60,7 @@ class SendReminderNotifications extends Command
 
                 $title = $event->notification->name;
                 $body = $event->notification->description ?? '';
-                $url = route('events.show', $event);
+                $url = route('home', ['event' => $event->id]);
 
                 foreach ($event->user->pushSubscriptions as $subscription) {
                     dispatch(new SendPushNotificationJob($subscription, $title, $body, ['url' => $url, 'tag' => 'event-'.$event->id]))->afterCommit();

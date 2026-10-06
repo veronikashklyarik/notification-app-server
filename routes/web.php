@@ -10,22 +10,22 @@ use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ResendVerificationEmailController;
 use App\Http\Controllers\Auth\ResetPasswordController;
-use App\Http\Controllers\HistoryController;
+use App\Livewire\CatchUp;
 use App\Livewire\EventList;
-use App\Livewire\EventShow;
 use App\Livewire\Home;
 use App\Livewire\NotificationCreate;
 use App\Livewire\NotificationEdit;
 use App\Livewire\NotificationList;
 use App\Livewire\NotificationShow;
 use App\Livewire\Profile;
+use App\Livewire\Settings;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => redirect()->route('home'));
 Route::get('offline', fn () => view('pwa.offline'))->name('offline');
 Route::get('privacy-policy', fn () => view('legal.privacy'))->name('legal.privacy');
 Route::get('terms', fn () => view('legal.terms'))->name('legal.terms');
-Route::middleware(['auth', 'verified'])->get('install', fn () => view('install'))->name('install');
+Route::middleware('auth')->get('install', fn () => view('install'))->name('install');
 
 Route::middleware('guest')->group(function (): void {
     Route::get('auth/google', [GoogleAuthController::class, 'redirect'])->name('auth.google');
@@ -59,11 +59,14 @@ Route::middleware('auth')->group(function (): void {
 Route::middleware('auth')->group(function (): void {
     Route::post('push-subscriptions/subscribe', [PushSubscriptionController::class, 'store'])->name('push-subscriptions.subscribe');
     Route::delete('push-subscriptions/unsubscribe', [PushSubscriptionController::class, 'destroy'])->name('push-subscriptions.unsubscribe');
+    Route::get('push-subscriptions/status', [PushSubscriptionController::class, 'status'])->name('push-subscriptions.status');
 });
 
 Route::middleware('auth')->group(function (): void {
     Route::get('home', Home::class)->name('home');
+    Route::get('catch-up', CatchUp::class)->name('catch-up');
 
+    Route::get('settings', Settings::class)->name('settings');
     Route::get('profile', Profile::class)->name('profile.edit');
 
     Route::get('notifications', NotificationList::class)->name('notifications.index');
@@ -71,8 +74,5 @@ Route::middleware('auth')->group(function (): void {
     Route::get('notifications/{notification}', NotificationShow::class)->name('notifications.show');
     Route::get('notifications/{notification}/edit', NotificationEdit::class)->name('notifications.edit');
 
-    Route::get('history', [HistoryController::class, 'index'])->name('history.index');
-
     Route::get('events', EventList::class)->name('events.index');
-    Route::get('events/{event}', EventShow::class)->name('events.show');
 });

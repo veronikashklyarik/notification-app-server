@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Livewire\Profile;
+use App\Livewire\Settings;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -37,24 +37,24 @@ class LocaleTest extends TestCase
         $this->assertSame('ru', app()->getLocale());
     }
 
-    public function test_profile_update_saves_locale(): void
+    public function test_settings_update_saves_locale(): void
     {
         $user = User::factory()->create(['locale' => 'en']);
 
         Livewire::actingAs($user)
-            ->test(Profile::class)
+            ->test(Settings::class)
             ->set('locale', 'ru')
             ->call('updateLang');
 
         $this->assertSame('ru', $user->fresh()->locale);
     }
 
-    public function test_profile_rejects_invalid_locale(): void
+    public function test_settings_rejects_invalid_locale(): void
     {
         $user = User::factory()->create(['locale' => 'en']);
 
         Livewire::actingAs($user)
-            ->test(Profile::class)
+            ->test(Settings::class)
             ->set('locale', 'fr')
             ->call('updateLang')
             ->assertHasErrors(['locale']);

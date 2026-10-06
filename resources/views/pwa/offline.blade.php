@@ -1,31 +1,33 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Offline — Notifyr</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Instrument Sans', system-ui, sans-serif; background: #f9fafb; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem; }
-        .container { text-align: center; max-width: 320px; }
-        .icon { width: 72px; height: 72px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 24px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; }
-        .icon svg { width: 36px; height: 36px; color: white; }
-        h1 { font-size: 1.5rem; font-weight: 700; color: #111827; margin-bottom: 0.5rem; }
-        p { font-size: 0.9rem; color: #6b7280; line-height: 1.6; margin-bottom: 1.5rem; }
-        button { background: linear-gradient(135deg, #4f46e5, #6366f1); color: white; font-weight: 700; font-size: 0.875rem; border: none; border-radius: 12px; padding: 0.75rem 1.5rem; cursor: pointer; }
-        button:active { transform: scale(0.98); }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+
+    <title>{{ __("You're offline") }} — {{ config('app.name') }}</title>
+
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet" />
+
+    @vite(['resources/css/app.css'])
 </head>
-<body>
-    <div class="container">
-        <div class="icon">
-            <svg fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 5.636a9 9 0 010 12.728M5.636 5.636a9 9 0 000 12.728M12 12h.01M15.536 8.464a5 5 0 010 7.072M8.464 8.464a5 5 0 000 7.072"/>
-            </svg>
+<body class="bg-canvas antialiased" style="min-height: 100dvh; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom);">
+
+    <div class="flex flex-col items-center justify-center px-6 py-10" style="min-height: 100dvh;">
+        <div class="w-full max-w-sm">
+            <div class="w-14 h-14 rounded-full bg-fill flex items-center justify-center">
+                <svg class="w-6 h-6 text-text-secondary" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M8.5 16.5a5 5 0 0 1 7 0M5 13a9 9 0 0 1 14 0M12 20h.01" />
+                    <path d="M3 3l18 18" />
+                </svg>
+            </div>
+            <h1 class="mt-3.5 text-[26px] font-bold tracking-title text-ink">{{ __("You're offline") }}</h1>
+            <p class="mt-1.5 text-[15px] leading-normal text-text-secondary">{{ __(':appName needs a connection to show and mark your reminders. Notifications already scheduled still arrive.', ['appName' => config('app.name')]) }}</p>
+            <button type="button" onclick="location.reload()" class="mt-5 w-full h-[50px] rounded-field bg-ink text-[15px] font-semibold text-white">
+                {{ __('Try again') }}
+            </button>
         </div>
-        <h1>{{ __('You\'re offline') }}</h1>
-        <p>{{ __('Please check your connection and try again. Your data will sync automatically when you\'re back online.') }}</p>
-        <button onclick="location.reload()">{{ __('Try again') }}</button>
     </div>
+
 </body>
 </html>

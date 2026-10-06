@@ -61,7 +61,7 @@ class AppServiceProvider extends ServiceProvider
 
         Scramble::configure()
             ->withDocumentTransformers(function (OpenApi $openApi): void {
-                $openApi->info->title = 'Notifyr API';
+                $openApi->info->title = config('app.name').' API';
                 $openApi->secure(SecurityScheme::http('bearer'));
             })
             ->routes(fn (RoutingRoute $route) => str_starts_with($route->uri, 'api/v1'));

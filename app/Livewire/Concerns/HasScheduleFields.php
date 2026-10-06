@@ -2,15 +2,37 @@
 
 namespace App\Livewire\Concerns;
 
+use App\Enums\ScheduleType;
+use App\Enums\WeekDayPreset;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 
 trait HasScheduleFields
 {
-    public string $schedule_type = 'every_day';
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'name.required' => __('Give it a name so you know what it’s for.'),
+            'week_days.required' => __('Pick at least one day.'),
+            'week_days.min' => __('Pick at least one day.'),
+            'specific_dates.required' => __('Add at least one date.'),
+            'specific_dates.min' => __('Add at least one date.'),
+        ];
+    }
+
+    public string $schedule_type = ScheduleType::EveryDay->value;
 
     /** @var array<int, array{day: int, times: array<int, string>}> */
     public array $week_days = [];
+
+    public bool $week_days_per_day = false;
+
+    /** @var array<int, string> */
+    public array $week_days_shared_times = ['09:00'];
 
     /** @var array<int, array{date: string, times: array<int, string>}> */
     public array $specific_dates = [];
@@ -60,18 +82,12 @@ trait HasScheduleFields
     #[Computed]
     public function scheduleDescription(): string
     {
-        $allTimes = ! empty($this->times)
-            ? (' '.__('at :times', ['times' => implode(', ', $this->times)]))
-            : '';
-
         return match ($this->schedule_type) {
-            'every_day' => __('Every day').$allTimes,
-            'week_days' => $this->weekDaysDescription(),
-            'cyclical' => $this->cyclicalDescription($allTimes),
-            'specific_dates' => empty($this->specific_dates)
-                ? __('No dates added yet')
-                : trans_choice(':count date selected|:count dates selected', count($this->specific_dates), ['count' => count($this->specific_dates)]),
-            'as_needed' => __('Logged manually — no automatic reminders'),
+            ScheduleType::EveryDay->value => $this->everyDayDescription(),
+            ScheduleType::WeekDays->value => $this->weekDaysDescription(),
+            ScheduleType::Cyclical->value => $this->cyclicalDescription(),
+            ScheduleType::SpecificDates->value => $this->specificDatesDescription(),
+            ScheduleType::AsNeeded->value => __('No schedule — it never notifies. Mark it from its page whenever you take one, and History keeps count.'),
             default => '',
         };
     }
@@ -135,27 +151,107 @@ trait HasScheduleFields
     }
 
     /**
-     * Returns upcoming dates with their associated notification times.
-     *
-     * @return array<int, array{date: Carbon, times: array<int, string>}>
+     * Detects whether the loaded week_days entries share one common times
+     * list or carry their own, and seeds week_days_per_day / shared_times
+     * accordingly. Call after assigning $this->week_days from the model.
      */
-    #[Computed]
-    public function upcomingDates(): array
+    public function detectWeekDaysMode(): void
     {
-        $upFrom = $this->starts_at
-            ? Carbon::parse($this->starts_at)->startOfDay()
-            : now()->startOfDay();
-        $upEnd = $this->ends_at ? Carbon::parse($this->ends_at)->endOfDay() : null;
+        if (empty($this->week_days)) {
+            return;
+        }
 
-        return array_map(
-            fn (Carbon $date) => ['date' => $date, 'times' => $this->timesForDate($date)],
-            $this->computeUpcomingDates($upFrom, $upEnd)
-        );
+        $first = $this->week_days[0]['times'] ?? ['09:00'];
+        $allSame = collect($this->week_days)->every(fn ($entry) => ($entry['times'] ?? []) === $first);
+
+        $this->week_days_per_day = ! $allSame;
+        $this->week_days_shared_times = $allSame ? $first : ['09:00'];
     }
 
     // -------------------------------------------------------------------------
     // Schedule actions (shared between Create and Edit)
     // -------------------------------------------------------------------------
+
+    public function toggleIsActive(): void
+    {
+        $this->is_active = ! $this->is_active;
+    }
+
+    /**
+     * Switches the "Custom cycle" type between a plain "repeat every N
+     * <unit>" schedule and the days-only "active for N, then off for M"
+     * cycle. On/off cycling only applies to the days unit.
+     */
+    public function selectCyclicalMode(string $mode): void
+    {
+        if ($mode === 'on_off_days') {
+            $this->cyclical_unit = 'days';
+            if (! $this->cyclical_use_for) {
+                $this->cyclical_use_for = 14;
+                $this->cyclical_pause_for = 7;
+            }
+        } else {
+            $this->cyclical_use_for = null;
+            $this->cyclical_pause_for = null;
+        }
+    }
+
+    /**
+     * Runs the duplicate-time guard plus the rule-based validation and, on
+     * failure, dispatches an event telling the sheet to scroll to the first
+     * invalid field before rethrowing.
+     *
+     * @return array<string, mixed>
+     */
+    protected function validateScheduleForm(): array
+    {
+        try {
+            $this->assertNoDuplicateTimes();
+
+            return $this->validate();
+        } catch (ValidationException $e) {
+            $this->dispatch('scroll-to-error');
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Blocks saving if any time group (the shared `times` list, or any one
+     * week-day's / specific-date's own list) contains a duplicate time.
+     */
+    protected function assertNoDuplicateTimes(): void
+    {
+        $duplicate = $this->firstDuplicateTime($this->times);
+
+        foreach ($this->week_days as $entry) {
+            $duplicate ??= $this->firstDuplicateTime($entry['times'] ?? []);
+        }
+
+        foreach ($this->specific_dates as $entry) {
+            $duplicate ??= $this->firstDuplicateTime($entry['times'] ?? []);
+        }
+
+        if ($duplicate !== null) {
+            throw ValidationException::withMessages([
+                'times' => __(':time is already in the list — pick another time.', ['time' => $duplicate]),
+            ]);
+        }
+    }
+
+    /** @param array<int, string> $times */
+    private function firstDuplicateTime(array $times): ?string
+    {
+        $counts = array_count_values($times);
+
+        foreach ($times as $time) {
+            if (($counts[$time] ?? 0) > 1) {
+                return $time;
+            }
+        }
+
+        return null;
+    }
 
     public function addTime(): void
     {
@@ -163,6 +259,7 @@ trait HasScheduleFields
         if ($next !== null) {
             $this->times[] = $next;
         }
+        $this->resetErrorBag('times.*');
     }
 
     public function updatedTimes(mixed $value, ?string $key = null): void
@@ -171,14 +268,10 @@ trait HasScheduleFields
             return;
         }
         $timeIndex = (int) $m[1];
+        $this->resetErrorBag("times.$timeIndex");
         $counts = array_count_values($this->times);
         if (($counts[$value] ?? 0) > 1) {
-            $others = $this->times;
-            unset($others[$timeIndex]);
-            $next = $this->nextAvailableTime(array_values($others));
-            if ($next !== null) {
-                $this->times[$timeIndex] = $next;
-            }
+            $this->addError("times.$timeIndex", __(':time is already in the list — pick another time.', ['time' => $value]));
         }
     }
 
@@ -188,10 +281,13 @@ trait HasScheduleFields
             unset($this->times[$index]);
             $this->times = array_values($this->times);
         }
+        $this->resetErrorBag('times.*');
     }
 
     public function toggleWeekDay(int $day): void
     {
+        $this->resetErrorBag('week_days.*');
+
         foreach ($this->week_days as $index => $entry) {
             if ((int) $entry['day'] === $day) {
                 array_splice($this->week_days, $index, 1);
@@ -200,8 +296,96 @@ trait HasScheduleFields
             }
         }
 
-        $this->week_days[] = ['day' => $day, 'times' => ['09:00']];
+        $times = $this->week_days_per_day ? ['09:00'] : $this->week_days_shared_times;
+        $this->week_days[] = ['day' => $day, 'times' => $times];
         usort($this->week_days, fn ($a, $b) => $a['day'] <=> $b['day']);
+    }
+
+    /**
+     * Bulk-selects a preset set of days for the "On certain weekdays" type.
+     */
+    public function selectWeekDaysPreset(string $preset): void
+    {
+        $presetCase = WeekDayPreset::tryFrom($preset);
+
+        if (! $presetCase) {
+            return;
+        }
+
+        $days = $presetCase->days();
+        $existing = collect($this->week_days)->keyBy('day');
+        $defaultTimes = $this->week_days_per_day ? ['09:00'] : $this->week_days_shared_times;
+
+        $this->week_days = collect($days)
+            ->map(fn ($day) => $existing->get($day) ?? ['day' => $day, 'times' => $defaultTimes])
+            ->sortBy('day')
+            ->values()
+            ->all();
+
+        $this->resetErrorBag('week_days.*');
+    }
+
+    public function toggleWeekDaysPerDay(): void
+    {
+        $this->week_days_per_day = ! $this->week_days_per_day;
+
+        if (! $this->week_days_per_day) {
+            if (! empty($this->week_days)) {
+                $this->week_days_shared_times = $this->week_days[0]['times'] ?? ['09:00'];
+            }
+            foreach ($this->week_days as $index => $entry) {
+                $this->week_days[$index]['times'] = $this->week_days_shared_times;
+            }
+        }
+
+        $this->resetErrorBag('week_days.*');
+        $this->resetErrorBag('week_days_shared_times.*');
+    }
+
+    public function addWeekDaysSharedTime(): void
+    {
+        $next = $this->nextAvailableTime($this->week_days_shared_times);
+        if ($next !== null) {
+            $this->week_days_shared_times[] = $next;
+            foreach ($this->week_days as $index => $entry) {
+                $this->week_days[$index]['times'][] = $next;
+            }
+        }
+        $this->resetErrorBag('week_days_shared_times.*');
+        $this->resetErrorBag('week_days.*');
+    }
+
+    public function removeWeekDaysSharedTime(int $timeIndex): void
+    {
+        if (count($this->week_days_shared_times) <= 1) {
+            return;
+        }
+
+        array_splice($this->week_days_shared_times, $timeIndex, 1);
+        foreach ($this->week_days as $index => $entry) {
+            if (count($this->week_days[$index]['times'] ?? []) > 1) {
+                array_splice($this->week_days[$index]['times'], $timeIndex, 1);
+            }
+        }
+        $this->resetErrorBag('week_days_shared_times.*');
+        $this->resetErrorBag('week_days.*');
+    }
+
+    public function updatedWeekDaysSharedTimes(mixed $value, ?string $key = null): void
+    {
+        if (! is_string($value) || $key === null || ! preg_match('/^(\d+)$/', $key, $m)) {
+            return;
+        }
+        $timeIndex = (int) $m[1];
+        $this->resetErrorBag("week_days_shared_times.$timeIndex");
+        $counts = array_count_values($this->week_days_shared_times);
+        if (($counts[$value] ?? 0) > 1) {
+            $this->addError("week_days_shared_times.$timeIndex", __(':time is already in the list — pick another time.', ['time' => $value]));
+        }
+
+        foreach ($this->week_days as $index => $entry) {
+            $this->week_days[$index]['times'][$timeIndex] = $value;
+        }
     }
 
     public function updatedWeekDays(mixed $value, ?string $key = null): void
@@ -211,15 +395,11 @@ trait HasScheduleFields
         }
         $dayIndex = (int) $m[1];
         $timeIndex = (int) $m[2];
+        $this->resetErrorBag("week_days.$dayIndex.times.$timeIndex");
         $times = $this->week_days[$dayIndex]['times'] ?? [];
         $counts = array_count_values($times);
         if (($counts[$value] ?? 0) > 1) {
-            $others = $times;
-            unset($others[$timeIndex]);
-            $next = $this->nextAvailableTime(array_values($others));
-            if ($next !== null) {
-                $this->week_days[$dayIndex]['times'][$timeIndex] = $next;
-            }
+            $this->addError("week_days.$dayIndex.times.$timeIndex", __(':time is already in the list — pick another time.', ['time' => $value]));
         }
     }
 
@@ -230,15 +410,11 @@ trait HasScheduleFields
         }
         $index = (int) $m[1];
         $timeIndex = (int) $m[2];
+        $this->resetErrorBag("specific_dates.$index.times.$timeIndex");
         $times = $this->specific_dates[$index]['times'] ?? [];
         $counts = array_count_values($times);
         if (($counts[$value] ?? 0) > 1) {
-            $others = $times;
-            unset($others[$timeIndex]);
-            $next = $this->nextAvailableTime(array_values($others));
-            if ($next !== null) {
-                $this->specific_dates[$index]['times'][$timeIndex] = $next;
-            }
+            $this->addError("specific_dates.$index.times.$timeIndex", __(':time is already in the list — pick another time.', ['time' => $value]));
         }
     }
 
@@ -249,6 +425,7 @@ trait HasScheduleFields
         if ($next !== null) {
             $this->week_days[$dayIndex]['times'][] = $next;
         }
+        $this->resetErrorBag('week_days.*');
     }
 
     public function removeWeekDayTime(int $dayIndex, int $timeIndex): void
@@ -256,6 +433,7 @@ trait HasScheduleFields
         if (count($this->week_days[$dayIndex]['times'] ?? []) > 1) {
             array_splice($this->week_days[$dayIndex]['times'], $timeIndex, 1);
         }
+        $this->resetErrorBag('week_days.*');
     }
 
     public function addSpecificDate(string $date): void
@@ -265,11 +443,13 @@ trait HasScheduleFields
             $this->specific_dates[] = ['date' => $date, 'times' => ['09:00']];
             usort($this->specific_dates, fn ($a, $b) => strcmp($a['date'], $b['date']));
         }
+        $this->resetErrorBag('specific_dates.*');
     }
 
     public function removeSpecificDate(int $index): void
     {
         array_splice($this->specific_dates, $index, 1);
+        $this->resetErrorBag('specific_dates.*');
     }
 
     public function addTimeToDate(int $index): void
@@ -279,6 +459,7 @@ trait HasScheduleFields
         if ($next !== null) {
             $this->specific_dates[$index]['times'][] = $next;
         }
+        $this->resetErrorBag('specific_dates.*');
     }
 
     public function removeTimeFromDate(int $index, int $timeIndex): void
@@ -286,312 +467,12 @@ trait HasScheduleFields
         if (count($this->specific_dates[$index]['times'] ?? []) > 1) {
             array_splice($this->specific_dates[$index]['times'], $timeIndex, 1);
         }
+        $this->resetErrorBag('specific_dates.*');
     }
 
     // -------------------------------------------------------------------------
     // Private helpers
     // -------------------------------------------------------------------------
-
-    private function weekDaysDescription(): string
-    {
-        if (empty($this->week_days)) {
-            return __('Choose days of the week below');
-        }
-
-        $dayNames = $this->dayNameMap();
-        $sorted = $this->week_days;
-        usort($sorted, fn ($a, $b) => (int) $a['day'] <=> (int) $b['day']);
-
-        return implode(', ', array_map(function ($e) use ($dayNames) {
-            $label = $dayNames[(int) $e['day']] ?? (int) $e['day'];
-            $times = $e['times'];
-            if (! empty($times)) {
-                $label .= ' '.implode('/', $times);
-            }
-
-            return $label;
-        }, $sorted));
-    }
-
-    private function cyclicalDescription(string $allTimes): string
-    {
-        $n = $this->cyclical_value ?? 1;
-        $unit = $this->cyclical_unit;
-        $dayNames = $this->dayNameMap();
-        $monthAbbr = $this->monthAbbrMap();
-        $posLabels = $this->positionLabelMap();
-
-        if ($unit === 'days' && $this->cyclical_use_for) {
-            return __('Active for :use days, off for :pause days', [
-                'use' => $this->cyclical_use_for,
-                'pause' => $this->cyclical_pause_for ?? 0,
-            ]);
-        }
-
-        if ($unit === 'weeks') {
-            $base = trans_choice('Every :count week|Every :count weeks', $n, ['count' => $n]);
-            if (! empty($this->cyclical_week_days)) {
-                $sorted = $this->cyclical_week_days;
-                sort($sorted);
-                $base .= ' '.__('on').' '.implode(', ', array_map(fn ($d) => $dayNames[(int) $d] ?? $d, $sorted));
-            }
-
-            return $base.$allTimes;
-        }
-
-        if ($unit === 'months') {
-            $base = trans_choice('Every :count month|Every :count months', $n, ['count' => $n]);
-            if ($this->cyclical_month_type === 'each' && ! empty($this->cyclical_month_days)) {
-                $sorted = $this->cyclical_month_days;
-                sort($sorted);
-                $dayStr = $this->andJoin(array_map(fn ($d) => $this->ordinal((int) $d), $sorted));
-
-                return $base.' '.__('on the').' '.$dayStr.$allTimes;
-            }
-            if ($this->cyclical_month_type === 'on_the' && $this->cyclical_month_position && $this->cyclical_month_weekday) {
-                $pos = $posLabels[$this->cyclical_month_position] ?? $this->cyclical_month_position;
-                $day = $dayNames[(int) $this->cyclical_month_weekday] ?? $this->cyclical_month_weekday;
-
-                return $base.' '.__('on the :pos :day', ['pos' => $pos, 'day' => $day]).$allTimes;
-            }
-
-            return $base.$allTimes;
-        }
-
-        if ($unit === 'years') {
-            $base = trans_choice('Every :count year|Every :count years', $n, ['count' => $n]);
-            if (! empty($this->cyclical_year_months)) {
-                $sorted = $this->cyclical_year_months;
-                sort($sorted);
-                $base .= ' '.__('in').' '.implode(', ', array_map(fn ($m) => $monthAbbr[(int) $m] ?? $m, $sorted));
-            }
-            if ($this->cyclical_year_use_weekday && $this->cyclical_month_position && $this->cyclical_month_weekday) {
-                $pos = $posLabels[$this->cyclical_month_position] ?? $this->cyclical_month_position;
-                $day = $dayNames[(int) $this->cyclical_month_weekday] ?? $this->cyclical_month_weekday;
-                $base .= ' '.__('on the :pos :day', ['pos' => $pos, 'day' => $day]);
-            } elseif (! $this->cyclical_year_use_weekday && $this->cyclical_year_day) {
-                $base .= ' '.__('on the :day', ['day' => $this->ordinal((int) $this->cyclical_year_day)]);
-            }
-
-            return $base.$allTimes;
-        }
-
-        return trans_choice('Every :count day|Every :count days', $n, ['count' => $n]).$allTimes;
-    }
-
-    /**
-     * @return array<int, Carbon>
-     */
-    private function computeUpcomingDates(Carbon $upFrom, ?Carbon $upEnd): array
-    {
-        $dates = [];
-
-        if ($this->schedule_type === 'every_day') {
-            $c = $upFrom->copy();
-            for ($i = 0; $i < 4; $i++) {
-                if ($upEnd && $c->gt($upEnd)) {
-                    break;
-                }
-                $dates[] = $c->copy();
-                $c->addDay();
-            }
-        } elseif ($this->schedule_type === 'week_days' && ! empty($this->week_days)) {
-            $sel = array_map(fn ($e) => (int) $e['day'], $this->week_days);
-            $c = $upFrom->copy();
-            for ($a = 0; count($dates) < 4 && $a < 100; $a++, $c->addDay()) {
-                if ($upEnd && $c->gt($upEnd)) {
-                    break;
-                }
-                if (in_array((int) $c->dayOfWeekIso, $sel)) {
-                    $dates[] = $c->copy();
-                }
-            }
-        } elseif ($this->schedule_type === 'specific_dates' && ! empty($this->specific_dates)) {
-            $today = now()->startOfDay();
-            $allDates = array_filter(array_map(fn ($e) => $e['date'], $this->specific_dates));
-            sort($allDates);
-            foreach ($allDates as $d) {
-                $date = Carbon::createFromFormat('Y-m-d', $d)->startOfDay();
-                if ($date->lt($today) || ($upEnd && $date->gt($upEnd))) {
-                    continue;
-                }
-                $dates[] = $date;
-                if (count($dates) >= 4) {
-                    break;
-                }
-            }
-        } elseif ($this->schedule_type === 'cyclical') {
-            $dates = $this->computeCyclicalUpcoming($upFrom, $upEnd);
-        }
-
-        return $dates;
-    }
-
-    /**
-     * @return array<int, Carbon>
-     */
-    private function computeCyclicalUpcoming(Carbon $upFrom, ?Carbon $upEnd): array
-    {
-        $dates = [];
-        $n = max(1, (int) ($this->cyclical_value ?? 1));
-        $unit = $this->cyclical_unit;
-
-        if ($unit === 'days' && ! $this->cyclical_use_for) {
-            $c = $upFrom->copy();
-            for ($i = 0; $i < 4; $i++) {
-                if ($upEnd && $c->gt($upEnd)) {
-                    break;
-                }
-                $dates[] = $c->copy();
-                $c->addDays($n);
-            }
-        } elseif ($unit === 'days') {
-            $useFor = max(1, (int) $this->cyclical_use_for);
-            $pauseFor = max(0, (int) ($this->cyclical_pause_for ?? 0));
-            $cycleLength = $useFor + $pauseFor;
-            $c = $upFrom->copy();
-            for ($a = 0; count($dates) < 4 && $a < 10000; $a++, $c->addDay()) {
-                if ($upEnd && $c->gt($upEnd)) {
-                    break;
-                }
-                if ((int) $upFrom->diffInDays($c, true) % $cycleLength < $useFor) {
-                    $dates[] = $c->copy();
-                }
-            }
-        } elseif ($unit === 'weeks') {
-            if (! empty($this->cyclical_week_days)) {
-                $sel = array_map('intval', $this->cyclical_week_days);
-                $fromWeek = $upFrom->copy()->startOfWeek(Carbon::MONDAY);
-                $c = $upFrom->copy();
-                for ($a = 0; count($dates) < 4 && $a < 200; $a++, $c->addDay()) {
-                    if ($upEnd && $c->gt($upEnd)) {
-                        break;
-                    }
-                    $wDiff = (int) abs($fromWeek->diffInWeeks($c->copy()->startOfWeek(Carbon::MONDAY)));
-                    if ($wDiff % $n === 0 && in_array((int) $c->dayOfWeekIso, $sel)) {
-                        $dates[] = $c->copy();
-                    }
-                }
-            } else {
-                $c = $upFrom->copy();
-                for ($i = 0; $i < 4; $i++) {
-                    if ($upEnd && $c->gt($upEnd)) {
-                        break;
-                    }
-                    $dates[] = $c->copy();
-                    $c->addWeeks($n);
-                }
-            }
-        } elseif ($unit === 'months' && $this->cyclical_month_type === 'each' && ! empty($this->cyclical_month_days)) {
-            $mDays = array_map('intval', $this->cyclical_month_days);
-            $fromBase = $upFrom->year * 12 + ($upFrom->month - 1);
-            $c = $upFrom->copy();
-            for ($a = 0; count($dates) < 4 && $a < 1500; $a++, $c->addDay()) {
-                if ($upEnd && $c->gt($upEnd)) {
-                    break;
-                }
-                $mDiff = ($c->year * 12 + ($c->month - 1)) - $fromBase;
-                if ($mDiff >= 0 && $mDiff % $n === 0 && in_array((int) $c->day, $mDays)) {
-                    $dates[] = $c->copy();
-                }
-            }
-        } elseif ($unit === 'months' && $this->cyclical_month_type === 'on_the' && $this->cyclical_month_position && $this->cyclical_month_weekday) {
-            $posMap = ['first' => 1, 'second' => 2, 'third' => 3, 'fourth' => 4, 'fifth' => 5, 'last' => -1];
-            $occurrence = $posMap[$this->cyclical_month_position] ?? 1;
-            $targetDow = (int) $this->cyclical_month_weekday;
-            $fromBase = $upFrom->year * 12 + ($upFrom->month - 1);
-            $c = Carbon::create($upFrom->year, $upFrom->month, 1)->startOfDay();
-            for ($a = 0; count($dates) < 4 && $a < 200; $a++, $c->addMonth()) {
-                $mDiff = ($c->year * 12 + ($c->month - 1)) - $fromBase;
-                if ($mDiff < 0 || $mDiff % $n !== 0) {
-                    continue;
-                }
-                $date = $this->nthWeekdayOfMonth($c->year, $c->month, $targetDow, $occurrence);
-                if (! $date || $date->lt($upFrom) || ($upEnd && $date->gt($upEnd))) {
-                    continue;
-                }
-                $dates[] = $date;
-            }
-        } elseif ($unit === 'years' && ! empty($this->cyclical_year_months)) {
-            $posMap = ['first' => 1, 'second' => 2, 'third' => 3, 'fourth' => 4, 'fifth' => 5, 'last' => -1];
-            $yearMonths = array_map('intval', $this->cyclical_year_months);
-            sort($yearMonths);
-            $fromYear = $upFrom->year;
-            for ($yr = $fromYear; count($dates) < 4 && $yr <= $fromYear + $n * 8; $yr++) {
-                if (($yr - $fromYear) % $n !== 0) {
-                    continue;
-                }
-                foreach ($yearMonths as $month) {
-                    if (count($dates) >= 4) {
-                        break;
-                    }
-                    if ($this->cyclical_year_use_weekday && $this->cyclical_month_weekday) {
-                        $occurrence = array_key_exists($this->cyclical_month_position, $posMap) ? $posMap[$this->cyclical_month_position] : 1;
-                        $date = $this->nthWeekdayOfMonth($yr, $month, (int) $this->cyclical_month_weekday, $occurrence);
-                        if (! $date) {
-                            continue;
-                        }
-                    } else {
-                        $day = $this->cyclical_year_day ? (int) $this->cyclical_year_day : 1;
-                        $lastDay = Carbon::create($yr, $month)->endOfMonth()->day;
-                        $date = Carbon::create($yr, $month, min($day, $lastDay))->startOfDay();
-                    }
-                    if ($date->lt($upFrom) || ($upEnd && $date->gt($upEnd))) {
-                        continue;
-                    }
-                    $dates[] = $date;
-                }
-            }
-        }
-
-        return $dates;
-    }
-
-    private function nthWeekdayOfMonth(int $year, int $month, int $targetDow, int $occurrence): ?Carbon
-    {
-        if ($occurrence === -1) {
-            $date = Carbon::create($year, $month)->endOfMonth()->startOfDay();
-            while ((int) $date->dayOfWeekIso !== $targetDow) {
-                $date->subDay();
-            }
-
-            return $date;
-        }
-
-        $date = Carbon::create($year, $month, 1)->startOfDay();
-        $count = 0;
-        while ($date->month === $month) {
-            if ((int) $date->dayOfWeekIso === $targetDow) {
-                $count++;
-                if ($count === $occurrence) {
-                    return $date;
-                }
-            }
-            $date->addDay();
-        }
-
-        return null;
-    }
-
-    /** @return array<int, string> */
-    private function timesForDate(Carbon $date): array
-    {
-        if ($this->schedule_type === 'week_days') {
-            $iso = (int) $date->dayOfWeekIso;
-            $entry = collect($this->week_days)->first(fn ($e) => (int) $e['day'] === $iso);
-            $times = $entry['times'] ?? [];
-        } elseif ($this->schedule_type === 'specific_dates') {
-            $dateStr = $date->format('Y-m-d');
-            $entry = collect($this->specific_dates)->first(fn ($e) => $e['date'] === $dateStr);
-            $times = $entry['times'] ?? [];
-        } else {
-            $times = $this->times;
-        }
-
-        sort($times);
-
-        return $times;
-    }
 
     private function nextAvailableTime(array $existing): ?string
     {
@@ -609,53 +490,5 @@ trait HasScheduleFields
         }
 
         return null;
-    }
-
-    private function ordinal(int $n): string
-    {
-        $locale = app()->getLocale();
-        if ($locale !== 'en') {
-            return $n.__('ordinal_suffix');
-        }
-        $mod100 = $n % 100;
-        $mod10 = $n % 10;
-        if ($mod100 >= 11 && $mod100 <= 13) {
-            return $n.'th';
-        }
-
-        return $n.match ($mod10) {
-            1 => 'st',
-            2 => 'nd',
-            3 => 'rd',
-            default => 'th',
-        };
-    }
-
-    private function andJoin(array $items): string
-    {
-        if (count($items) <= 1) {
-            return implode('', $items);
-        }
-        $last = array_pop($items);
-
-        return implode(', ', $items).' '.__('and').' '.$last;
-    }
-
-    /** @return array<int, string> */
-    private function dayNameMap(): array
-    {
-        return [1 => __('Mon'), 2 => __('Tue'), 3 => __('Wed'), 4 => __('Thu'), 5 => __('Fri'), 6 => __('Sat'), 7 => __('Sun')];
-    }
-
-    /** @return array<int, string> */
-    private function monthAbbrMap(): array
-    {
-        return [1 => __('Jan'), 2 => __('Feb'), 3 => __('Mar'), 4 => __('Apr'), 5 => __('May'), 6 => __('Jun'), 7 => __('Jul'), 8 => __('Aug'), 9 => __('Sep'), 10 => __('Oct'), 11 => __('Nov'), 12 => __('Dec')];
-    }
-
-    /** @return array<string, string> */
-    private function positionLabelMap(): array
-    {
-        return ['first' => __('1st'), 'second' => __('2nd'), 'third' => __('3rd'), 'fourth' => __('4th'), 'fifth' => __('5th'), 'last' => __('last')];
     }
 }

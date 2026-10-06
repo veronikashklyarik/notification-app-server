@@ -7,129 +7,108 @@
 >
     {{-- Subscribed --}}
     <template x-if="state === 'subscribed'">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="{{ $iconClass ?? 'w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0' }}">
-                    <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                    </svg>
+        <div class="rounded-card bg-white border border-border px-4 py-[15px]">
+            <div class="flex items-center justify-between gap-3">
+                <div class="min-w-0">
+                    <p class="{{ $labelClass ?? 'text-[15px] font-semibold text-ink' }}">{{ __('Push on this device') }}</p>
+                    <p class="{{ $subLabelClass ?? 'mt-0.5 text-[13px] text-success' }}" x-text="platformOnLabel()"></p>
                 </div>
-                <div>
-                    <p class="{{ $labelClass ?? 'text-sm font-semibold text-gray-900' }}">{{ __('Push Notifications') }}</p>
-                    <p class="{{ $subLabelClass ?? 'text-xs text-emerald-600 mt-0.5' }}">{{ __('Enabled') }}</p>
-                </div>
+                <button
+                    type="button"
+                    @click="disable()"
+                    :disabled="loading"
+                    class="shrink-0 relative w-[50px] h-[30px] rounded-full bg-brand disabled:opacity-50"
+                >
+                    <span class="absolute top-0.5 left-0.5 translate-x-5 w-6 h-6 rounded-full bg-white transition-transform"></span>
+                </button>
             </div>
-            <button
-                @click="disable()"
-                :disabled="loading"
-                class="{{ $disableBtnClass ?? 'text-xs font-semibold text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50' }}"
-                x-text="loading ? txtDisabling : txtDisable"
-            ></button>
+            <template x-if="!isInstalled">
+                <a href="{{ route('install') }}" class="mt-2.5 block text-[13px] font-semibold text-brand">{{ __('Install as an app') }}</a>
+            </template>
         </div>
     </template>
 
     {{-- Not subscribed (permission default or granted but no subscription) --}}
     <template x-if="state === 'prompt'">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="{{ $iconClass ?? 'w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0' }}">
-                    <svg class="w-5 h-5 text-indigo-600" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2zM8 1.918l-.797.161A4.002 4.002 0 0 0 4 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4.002 4.002 0 0 0-3.203-3.92L8 1.917zM14.22 12c.223.447.481.801.78 1H1c.299-.199.557-.553.78-1C2.68 10.2 3 6.88 3 6c0-2.42 1.72-4.44 4.005-4.901a1 1 0 1 1 1.99 0A5.002 5.002 0 0 1 13 6c0 .88.32 4.2 1.22 6z"/>
-                    </svg>
+        <div class="rounded-card bg-white border border-border px-4 py-[15px]">
+            <div class="flex items-center justify-between gap-3">
+                <div class="min-w-0">
+                    <p class="{{ $labelClass ?? 'text-[15px] font-semibold text-ink' }}">{{ __('Push on this device') }}</p>
+                    <p class="{{ $subLabelClass ?? 'mt-0.5 text-[13px] text-warning' }}">{{ __('Off — nothing will be sent') }}</p>
                 </div>
-                <div>
-                    <p class="{{ $labelClass ?? 'text-sm font-semibold text-gray-900' }}">{{ __('Push Notifications') }}</p>
-                    <p class="{{ $subLabelClass ?? 'text-xs text-gray-400 mt-0.5' }}">{{ __('Not enabled') }}</p>
-                </div>
+                <button
+                    type="button"
+                    @click="enable()"
+                    :disabled="loading"
+                    class="shrink-0 relative w-[50px] h-[30px] rounded-full bg-border-input disabled:opacity-50"
+                >
+                    <span class="absolute top-0.5 left-0.5 translate-x-0.5 w-6 h-6 rounded-full bg-white transition-transform"></span>
+                </button>
             </div>
-            <button
-                @click="enable()"
-                :disabled="loading"
-                class="{{ $enableBtnClass ?? 'text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-colors disabled:opacity-50' }}"
-                x-text="loading ? txtEnabling : txtEnable"
-            ></button>
+            <template x-if="!isInstalled">
+                <a href="{{ route('install') }}" class="mt-2.5 block text-[13px] font-semibold text-brand">{{ __('Install as an app') }}</a>
+            </template>
         </div>
     </template>
 
-    {{-- Denied — show browser/PWA-specific instructions --}}
-    <template x-if="state === 'denied'">
-        <div>
-            <div class="flex items-start gap-3">
-                <div class="{{ $iconClass ?? 'w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center shrink-0' }}">
-                    <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                    </svg>
+    {{-- iOS Safari, not installed — push is unavailable at the OS level until installed --}}
+    <template x-if="state === 'ios-not-installed'">
+        <div class="rounded-card bg-white border border-border px-4 py-[15px]">
+            <div class="flex items-center justify-between gap-3">
+                <div class="min-w-0">
+                    <p class="{{ $labelClass ?? 'text-[15px] font-semibold text-ink' }}">{{ __('Push on this device') }}</p>
+                    <p class="{{ $subLabelClass ?? 'mt-0.5 text-[13px] text-warning' }}">{{ __('Not available in Safari tabs') }}</p>
                 </div>
-                <div class="flex-1 min-w-0">
-                    <p class="{{ $labelClass ?? 'text-sm font-semibold text-gray-900' }}">{{ __('Push Notifications') }}</p>
-                    <p class="{{ $subLabelClass ?? 'text-xs text-amber-600 mt-0.5' }}">{{ __('Blocked by browser') }}</p>
-                </div>
+                <span class="shrink-0 relative w-[50px] h-[30px] rounded-full bg-border-input opacity-50">
+                    <span class="absolute top-0.5 translate-x-0.5 w-6 h-6 rounded-full bg-white"></span>
+                </span>
             </div>
+            <p class="mt-2.5 text-[13px] leading-normal text-text-tertiary">{{ __('On iPhone, reminders can only reach you once :appName is on your Home Screen.', ['appName' => config('app.name')]) }}</p>
+            <a href="{{ route('install') }}" class="mt-3 block w-full h-11 leading-[44px] rounded-field bg-brand text-center text-[14px] font-semibold text-white">
+                {{ __('How to install') }}
+            </a>
+        </div>
+    </template>
 
-            {{-- iOS PWA (standalone) --}}
-            <template x-if="platform === 'ios-pwa'">
-                <div class="mt-3 p-3 bg-amber-50 rounded-xl text-xs text-amber-800 space-y-1 leading-relaxed">
-                    <p class="font-semibold">{{ __('To enable notifications:') }}</p>
-                    <p>{{ __('1. Open the Settings app on your iPhone') }}</p>
-                    <p>{{ __('2. Scroll down and tap :appName', ['appName' => config('app.name')]) }}</p>
-                    <p>{{ __('3. Tap Notifications and toggle Allow Notifications on') }}</p>
-                    <p>{{ __('4. Return here and reload the app') }}</p>
-                </div>
-            </template>
+    {{-- Denied — notifications are blocked at the OS/browser level; no toggle, it can't do anything --}}
+    <template x-if="state === 'denied'">
+        <div class="rounded-field bg-warning-tint border border-warning-tint-border p-3.5">
+            <p class="text-[15px] font-semibold text-warning-text">{{ __('Notifications are blocked') }}</p>
+            <p class="mt-1 text-[13px] leading-normal text-warning-text">{{ __("You turned them off for :appName, so the app can't ask again. Turn them back on in your settings:", ['appName' => config('app.name')]) }}</p>
 
-            {{-- iOS Safari (not installed as PWA) --}}
-            <template x-if="platform === 'ios-safari'">
-                <div class="mt-3 p-3 bg-amber-50 rounded-xl text-xs text-amber-800 space-y-1 leading-relaxed">
-                    <p class="font-semibold">{{ __('Web push requires the app to be installed:') }}</p>
-                    <p>{{ __('1. Tap the Share button in Safari (box with arrow)') }}</p>
-                    <p>{{ __('2. Tap Add to Home Screen') }}</p>
-                    <p>{{ __('3. Open the app from your Home Screen and enable notifications') }}</p>
-                    <p class="text-amber-600">{{ __('Requires iOS 16.4 or later.') }}</p>
-                </div>
-            </template>
+            @php
+                $deniedSteps = [
+                    'ios-pwa' => [__('Open the Settings app on your iPhone'), __('Scroll down and tap :appName', ['appName' => config('app.name')]), __('Tap Notifications and toggle Allow Notifications on'), __('Return here and reload the app')],
+                    'ios-safari' => [__('Tap the Share button in Safari (box with arrow)'), __('Tap Add to Home Screen'), __('Open the app from your Home Screen and enable notifications')],
+                    'chrome' => [__('Click the lock icon (or info icon) in the address bar'), __('Click Site settings'), __('Find Notifications and set it to Allow'), __('Reload this page')],
+                    'firefox' => [__('Click the lock icon in the address bar'), __('Click Connection Secure → More Information'), __('Go to Permissions tab'), __('Find Send Notifications and uncheck Block'), __('Reload this page')],
+                    'safari-desktop' => [__('Open Safari → Settings (or Preferences)'), __('Click the Websites tab'), __('Select Notifications on the left'), __('Find this site and change it to Allow'), __('Reload this page')],
+                    'other' => [__("Open your browser's site settings for this page, find Notifications, and set it to Allow, then reload.")],
+                ];
+            @endphp
 
-            {{-- Chrome (desktop & Android) --}}
-            <template x-if="platform === 'chrome'">
-                <div class="mt-3 p-3 bg-amber-50 rounded-xl text-xs text-amber-800 space-y-1 leading-relaxed">
-                    <p class="font-semibold">{{ __('To enable notifications in Chrome:') }}</p>
-                    <p>{{ __('1. Click the lock icon (or info icon) in the address bar') }}</p>
-                    <p>{{ __('2. Click Site settings') }}</p>
-                    <p>{{ __('3. Find Notifications and set it to Allow') }}</p>
-                    <p>{{ __('4. Reload this page') }}</p>
-                </div>
-            </template>
-
-            {{-- Firefox --}}
-            <template x-if="platform === 'firefox'">
-                <div class="mt-3 p-3 bg-amber-50 rounded-xl text-xs text-amber-800 space-y-1 leading-relaxed">
-                    <p class="font-semibold">{{ __('To enable notifications in Firefox:') }}</p>
-                    <p>{{ __('1. Click the lock icon in the address bar') }}</p>
-                    <p>{{ __('2. Click Connection Secure → More Information') }}</p>
-                    <p>{{ __('3. Go to Permissions tab') }}</p>
-                    <p>{{ __('4. Find Send Notifications and uncheck Block') }}</p>
-                    <p>{{ __('5. Reload this page') }}</p>
-                </div>
-            </template>
-
-            {{-- macOS Safari --}}
-            <template x-if="platform === 'safari-desktop'">
-                <div class="mt-3 p-3 bg-amber-50 rounded-xl text-xs text-amber-800 space-y-1 leading-relaxed">
-                    <p class="font-semibold">{{ __('To enable notifications in Safari:') }}</p>
-                    <p>{{ __('1. Open Safari → Settings (or Preferences)') }}</p>
-                    <p>{{ __('2. Click the Websites tab') }}</p>
-                    <p>{{ __('3. Select Notifications on the left') }}</p>
-                    <p>{{ __('4. Find this site and change it to Allow') }}</p>
-                    <p>{{ __('5. Reload this page') }}</p>
-                </div>
-            </template>
-
-            {{-- Fallback for other browsers --}}
-            <template x-if="platform === 'other'">
-                <div class="mt-3 p-3 bg-amber-50 rounded-xl text-xs text-amber-800 space-y-1 leading-relaxed">
-                    <p class="font-semibold">{{ __('To enable notifications:') }}</p>
-                    <p>{{ __("Open your browser's site settings for this page, find Notifications, and set it to Allow, then reload.") }}</p>
-                </div>
-            </template>
+            @foreach($deniedSteps as $platformKey => $steps)
+                <template x-if="platform === '{{ $platformKey }}'">
+                    <div class="mt-3 space-y-2.5">
+                        @if($platformKey === 'ios-safari')
+                            <p class="text-[13px] font-semibold text-warning-text">{{ __('Web push requires the app to be installed:') }}</p>
+                        @endif
+                        @foreach($steps as $index => $step)
+                            @if(count($steps) === 1)
+                                <p class="text-[14px] leading-relaxed text-warning-text">{{ $step }}</p>
+                            @else
+                                <div class="flex items-start gap-2.5">
+                                    <span class="shrink-0 mt-0.5 w-[20px] h-[20px] rounded-full bg-warning text-white text-[11px] font-bold flex items-center justify-center">{{ $index + 1 }}</span>
+                                    <p class="text-[14px] leading-relaxed text-warning-text">{{ $step }}</p>
+                                </div>
+                            @endif
+                        @endforeach
+                        @if($platformKey === 'ios-safari')
+                            <p class="text-[12px] text-warning-text/80">{{ __('Requires iOS 16.4 or later.') }}</p>
+                        @endif
+                    </div>
+                </template>
+            @endforeach
         </div>
     </template>
 </div>
@@ -138,8 +117,9 @@
 function pushNotificationSettings(txtDisabling, txtDisable, txtEnabling, txtEnable) {
     return {
         supported: false,
-        state: 'prompt',   // 'subscribed' | 'prompt' | 'denied'
+        state: 'prompt',   // 'subscribed' | 'prompt' | 'denied' | 'ios-not-installed'
         platform: 'other', // 'ios-pwa' | 'ios-safari' | 'chrome' | 'firefox' | 'safari-desktop' | 'other'
+        isInstalled: false,
         loading: false,
         reg: null,
         subscription: null,
@@ -150,11 +130,19 @@ function pushNotificationSettings(txtDisabling, txtDisable, txtEnabling, txtEnab
         txtEnable,
 
         async init() {
+            this.platform = this.detectPlatform();
+            this.isInstalled = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+            if (this.platform === 'ios-safari') {
+                this.supported = true;
+                this.state = 'ios-not-installed';
+                return;
+            }
+
             if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
                 return;
             }
             this.supported = true;
-            this.platform = this.detectPlatform();
 
             if (Notification.permission === 'denied') {
                 this.state = 'denied';
@@ -166,6 +154,23 @@ function pushNotificationSettings(txtDisabling, txtDisable, txtEnabling, txtEnab
                 this.subscription = await this.reg.pushManager.getSubscription();
             } catch {
                 return;
+            }
+
+            // A browser-level subscription can belong to a different account that
+            // previously signed in on this same device — confirm it's actually ours
+            // before showing the toggle as on.
+            if (this.subscription) {
+                try {
+                    const statusRes = await fetch('{{ route('push-subscriptions.status') }}?endpoint=' + encodeURIComponent(this.subscription.endpoint), {
+                        headers: { Accept: 'application/json' },
+                    });
+                    const { subscribed } = await statusRes.json();
+                    if (!subscribed) {
+                        this.subscription = null;
+                    }
+                } catch {
+                    // If the check itself fails, fall back to trusting the browser.
+                }
             }
 
             this.state = this.subscription ? 'subscribed' : 'prompt';
@@ -182,6 +187,18 @@ function pushNotificationSettings(txtDisabling, txtDisable, txtEnabling, txtEnab
             if (/Edg\//.test(ua) || /Chrome\//.test(ua)) return 'chrome';
             if (/Safari\//.test(ua)) return 'safari-desktop';
             return 'other';
+        },
+
+        platformOnLabel() {
+            const labels = {
+                'ios-pwa': @json(__('On · iPhone, Safari')),
+                'ios-safari': @json(__('On · iPhone, Safari')),
+                'chrome': @json(__('On · Chrome')),
+                'firefox': @json(__('On · Firefox')),
+                'safari-desktop': @json(__('On · Mac, Safari')),
+                'other': @json(__('On · this device')),
+            };
+            return labels[this.platform] ?? labels.other;
         },
 
         urlBase64ToUint8Array(base64String) {

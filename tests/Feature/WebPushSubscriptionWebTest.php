@@ -12,22 +12,22 @@ class WebPushSubscriptionWebTest extends TestCase
     use RefreshDatabase;
 
     // ---------------------------------------------------------------------------
-    // Profile page integration
+    // Settings page integration
     // ---------------------------------------------------------------------------
 
-    public function test_profile_page_shows_push_notification_settings_for_authenticated_users(): void
+    public function test_settings_page_shows_push_notification_settings_for_authenticated_users(): void
     {
         $user = User::factory()->create();
 
         $this->actingAs($user)
-            ->get(route('profile.edit'))
+            ->get(route('settings'))
             ->assertOk()
-            ->assertSee('Push Notifications');
+            ->assertSee('Push on this device');
     }
 
-    public function test_profile_page_does_not_show_push_notification_settings_for_guests(): void
+    public function test_settings_page_does_not_show_push_notification_settings_for_guests(): void
     {
-        $this->get(route('profile.edit'))
+        $this->get(route('settings'))
             ->assertRedirect(route('login'));
     }
 
@@ -103,5 +103,56 @@ class WebPushSubscriptionWebTest extends TestCase
         $this->deleteJson(route('push-subscriptions.unsubscribe'), [
             'endpoint' => 'https://fcm.googleapis.com/fcm/send/test',
         ])->assertUnauthorized();
+    }
+
+    // ---------------------------------------------------------------------------
+    // GET /push-subscriptions/status (web session auth)
+    // ---------------------------------------------------------------------------
+
+    public function test_status_reports_true_when_the_endpoint_belongs_to_the_current_user(): void
+    {
+        $user = User::factory()->create();
+
+        PushSubscription::factory()->create([
+            'user_id' => $user->id,
+            'endpoint' => 'https://fcm.googleapis.com/fcm/send/shared-device',
+        ]);
+
+        $this->actingAs($user)
+            ->getJson(route('push-subscriptions.status', ['endpoint' => 'https://fcm.googleapis.com/fcm/send/shared-device']))
+            ->assertOk()
+            ->assertJson(['subscribed' => true]);
+    }
+
+    public function test_status_reports_false_when_the_endpoint_belongs_to_a_different_user_on_the_same_device(): void
+    {
+        $otherUser = User::factory()->create();
+        $currentUser = User::factory()->create();
+
+        PushSubscription::factory()->create([
+            'user_id' => $otherUser->id,
+            'endpoint' => 'https://fcm.googleapis.com/fcm/send/shared-device',
+        ]);
+
+        $this->actingAs($currentUser)
+            ->getJson(route('push-subscriptions.status', ['endpoint' => 'https://fcm.googleapis.com/fcm/send/shared-device']))
+            ->assertOk()
+            ->assertJson(['subscribed' => false]);
+    }
+
+    public function test_status_reports_false_when_the_endpoint_is_unknown(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->getJson(route('push-subscriptions.status', ['endpoint' => 'https://fcm.googleapis.com/fcm/send/never-seen']))
+            ->assertOk()
+            ->assertJson(['subscribed' => false]);
+    }
+
+    public function test_status_requires_authentication(): void
+    {
+        $this->getJson(route('push-subscriptions.status', ['endpoint' => 'https://fcm.googleapis.com/fcm/send/test']))
+            ->assertUnauthorized();
     }
 }

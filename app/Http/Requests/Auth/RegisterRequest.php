@@ -25,7 +25,7 @@ class RegisterRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email:filter', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'confirmed', Password::defaults()],
+            'password' => ['required', 'string', Password::defaults()],
             'timezone' => ['nullable', 'string', 'timezone:all'],
         ];
     }
@@ -39,7 +39,6 @@ class RegisterRequest extends FormRequest
     {
         return [
             'email.unique' => 'An account with this email already exists.',
-            'password.confirmed' => 'The passwords do not match.',
         ];
     }
 }

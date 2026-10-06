@@ -3,21 +3,20 @@
 namespace App\Livewire;
 
 use App\Enums\ScheduleType;
+use App\Livewire\Concerns\HasScheduleDescription;
 use App\Livewire\Concerns\HasScheduleFields;
 use App\Models\Notification;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Livewire\Attributes\Layout;
-use Livewire\Attributes\Protect;
 use Livewire\Component;
 
 #[Layout('components.layouts.app')]
-#[Protect]
 class NotificationEdit extends Component
 {
     use AuthorizesRequests;
-    use HasScheduleFields;
+    use HasScheduleDescription, HasScheduleFields;
 
     public Notification $notification;
 
@@ -29,6 +28,10 @@ class NotificationEdit extends Component
 
     public ?int $reminderInterval = null;
 
+    public bool $expandMore = false;
+
+    public bool $embedded = false;
+
     public function mount(Notification $notification): void
     {
         $this->authorize('update', $notification);
@@ -36,10 +39,12 @@ class NotificationEdit extends Component
         $this->notification = $notification;
         $back = request()->query('back', '');
         $this->backUrl = ($back && str_starts_with($back, url('/'))) ? $back : route('notifications.show', $notification);
+        $this->expandMore = request()->query('expand') === 'more';
         $this->name = $notification->name;
         $this->description = $notification->description ?? '';
         $this->schedule_type = $notification->schedule_type->value;
         $this->week_days = $notification->week_days ?? [];
+        $this->detectWeekDaysMode();
         $this->specific_dates = $notification->specific_dates ?? [];
         $this->every_n_days = $notification->every_n_days ?? 2;
         $this->cyclical_value = $notification->cyclical_value ?? 1;
@@ -102,18 +107,18 @@ class NotificationEdit extends Component
             'reminderInterval' => ['nullable', 'integer', Rule::in(array_keys(Notification::REMINDER_INTERVALS))],
         ];
 
-        if ($this->schedule_type === 'week_days') {
+        if ($this->schedule_type === ScheduleType::WeekDays->value) {
             $rules['week_days'] = ['required', 'array', 'min:1'];
             $rules['week_days.*.day'] = ['required', 'integer', 'between:1,7'];
             $rules['week_days.*.times'] = ['required', 'array', 'min:1'];
             $rules['week_days.*.times.*'] = ['required', 'date_format:H:i'];
         }
 
-        if ($this->schedule_type === 'every_n_days') {
+        if ($this->schedule_type === ScheduleType::EveryNDays->value) {
             $rules['every_n_days'] = ['required', 'integer', 'min:1', 'max:365'];
         }
 
-        if ($this->schedule_type === 'cyclical') {
+        if ($this->schedule_type === ScheduleType::Cyclical->value) {
             $rules['cyclical_value'] = ['required', 'integer', 'min:1'];
             $rules['cyclical_unit'] = ['required', 'string', Rule::in(['days', 'weeks', 'months', 'years'])];
 
@@ -145,13 +150,18 @@ class NotificationEdit extends Component
             }
         }
 
-        if ($this->schedule_type === 'specific_dates') {
+        if ($this->schedule_type === ScheduleType::SpecificDates->value) {
             $rules['specific_dates'] = ['required', 'array', 'min:1'];
             $rules['specific_dates.*.date'] = ['required', 'date_format:Y-m-d'];
             $rules['specific_dates.*.times'] = ['required', 'array', 'min:1'];
         }
 
         return $rules;
+    }
+
+    public function closeEmbedded(): void
+    {
+        $this->dispatch('sheet-closed');
     }
 
     public function save(): void
@@ -161,15 +171,21 @@ class NotificationEdit extends Component
         $this->starts_at = $this->starts_at ?: null;
         $this->ends_at = $this->ends_at ?: null;
 
-        $validated = $this->validate();
+        $validated = $this->validateScheduleForm();
 
-        if (in_array($this->schedule_type, ['week_days', 'specific_dates'])) {
+        if (in_array($this->schedule_type, [ScheduleType::WeekDays->value, ScheduleType::SpecificDates->value])) {
             $validated['times'] = null;
         }
 
         $validated['reminder_interval'] = $this->reminderInterval;
 
         $this->notification->update($validated);
+
+        if ($this->embedded) {
+            $this->dispatch('reminder-updated', id: $this->notification->id, name: $this->notification->name);
+
+            return;
+        }
 
         session()->flash('success', __('Reminder updated.'));
 

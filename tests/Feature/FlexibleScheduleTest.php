@@ -27,7 +27,7 @@ class FlexibleScheduleTest extends TestCase
         Livewire::actingAs($user)
             ->test(NotificationCreate::class)
             ->set('name', 'Duty shift')
-            ->set('schedule_type', 'specific_dates')
+            ->set('schedule_type', ScheduleType::SpecificDates->value)
             ->call('addSpecificDate', '2039-08-10')
             ->call('addSpecificDate', '2039-09-05')
             ->call('save')
@@ -46,7 +46,7 @@ class FlexibleScheduleTest extends TestCase
         Livewire::actingAs($user)
             ->test(NotificationCreate::class)
             ->set('name', 'No dates')
-            ->set('schedule_type', 'specific_dates')
+            ->set('schedule_type', ScheduleType::SpecificDates->value)
             ->call('save')
             ->assertHasErrors('specific_dates');
     }
@@ -57,7 +57,7 @@ class FlexibleScheduleTest extends TestCase
 
         $component = Livewire::actingAs($user)
             ->test(NotificationCreate::class)
-            ->set('schedule_type', 'specific_dates')
+            ->set('schedule_type', ScheduleType::SpecificDates->value)
             ->call('addSpecificDate', '2039-07-15')
             ->call('addSpecificDate', '2039-08-20');
 
@@ -74,7 +74,7 @@ class FlexibleScheduleTest extends TestCase
 
         $component = Livewire::actingAs($user)
             ->test(NotificationCreate::class)
-            ->set('schedule_type', 'specific_dates')
+            ->set('schedule_type', ScheduleType::SpecificDates->value)
             ->call('addSpecificDate', '2039-07-15')
             ->call('addSpecificDate', '2039-07-15');
 
@@ -131,7 +131,7 @@ class FlexibleScheduleTest extends TestCase
         Livewire::actingAs($user)
             ->test(NotificationCreate::class)
             ->set('name', 'Biweekly Mon+Wed')
-            ->set('schedule_type', 'cyclical')
+            ->set('schedule_type', ScheduleType::Cyclical->value)
             ->set('cyclical_value', 2)
             ->set('cyclical_unit', 'weeks')
             ->set('cyclical_week_days', [1, 3])
@@ -186,7 +186,7 @@ class FlexibleScheduleTest extends TestCase
         Livewire::actingAs($user)
             ->test(NotificationCreate::class)
             ->set('name', 'Monthly bill')
-            ->set('schedule_type', 'cyclical')
+            ->set('schedule_type', ScheduleType::Cyclical->value)
             ->set('cyclical_value', 1)
             ->set('cyclical_unit', 'months')
             ->set('cyclical_month_type', 'each')
@@ -292,7 +292,7 @@ class FlexibleScheduleTest extends TestCase
         Livewire::actingAs($user)
             ->test(NotificationCreate::class)
             ->set('name', '3rd Tuesday')
-            ->set('schedule_type', 'cyclical')
+            ->set('schedule_type', ScheduleType::Cyclical->value)
             ->set('cyclical_value', 1)
             ->set('cyclical_unit', 'months')
             ->set('cyclical_month_type', 'on_the')
@@ -392,7 +392,7 @@ class FlexibleScheduleTest extends TestCase
 
         $component = Livewire::actingAs($user)
             ->test(NotificationCreate::class)
-            ->set('schedule_type', 'week_days')
+            ->set('schedule_type', ScheduleType::WeekDays->value)
             ->call('toggleWeekDay', 1);
 
         // First add: 09:00 (from toggleWeekDay seed) — add one more → 10:00
@@ -415,7 +415,7 @@ class FlexibleScheduleTest extends TestCase
 
         $component = Livewire::actingAs($user)
             ->test(NotificationCreate::class)
-            ->set('schedule_type', 'specific_dates')
+            ->set('schedule_type', ScheduleType::SpecificDates->value)
             ->call('addSpecificDate', '2039-08-10');
 
         // Default first time is 09:00; add one more → 10:00
@@ -438,7 +438,7 @@ class FlexibleScheduleTest extends TestCase
 
         $component = Livewire::actingAs($user)
             ->test(NotificationCreate::class)
-            ->set('schedule_type', 'every_day');
+            ->set('schedule_type', ScheduleType::EveryDay->value);
 
         // Default is ['08:00']; add one more — should not be 08:00
         $component->call('addTime');
@@ -453,56 +453,69 @@ class FlexibleScheduleTest extends TestCase
         $this->assertEquals(count($times), count(array_unique($times)));
     }
 
-    public function test_direct_edit_duplicate_global_time_is_corrected(): void
+    public function test_direct_edit_duplicate_global_time_is_rejected_with_an_inline_error(): void
     {
         $user = User::factory()->create();
 
         $component = Livewire::actingAs($user)
             ->test(NotificationCreate::class)
-            ->set('schedule_type', 'every_day')
+            ->set('schedule_type', ScheduleType::EveryDay->value)
             ->call('addTime'); // now ['08:00', '09:00']
 
-        // User edits second field to match first
+        // User edits second field to match first — rejected in place, not silently corrected
         $component->set('times.1', '08:00');
         $times = $component->get('times');
-        $this->assertCount(2, $times);
-        $this->assertEquals(count($times), count(array_unique($times)));
+        $this->assertSame(['08:00', '08:00'], $times);
+        $component->assertHasErrors(['times.1']);
     }
 
-    public function test_direct_edit_duplicate_week_day_time_is_corrected(): void
+    public function test_direct_edit_duplicate_week_day_time_is_rejected_with_an_inline_error(): void
     {
         $user = User::factory()->create();
 
         $component = Livewire::actingAs($user)
             ->test(NotificationCreate::class)
-            ->set('schedule_type', 'week_days')
+            ->set('schedule_type', ScheduleType::WeekDays->value)
             ->call('toggleWeekDay', 1)
             ->call('addWeekDayTime', 0); // now has ['09:00', '10:00']
 
-        // User manually edits second field to match first — should auto-correct to 11:00
+        // User manually edits second field to match first — rejected in place
         $component->set('week_days.0.times.1', '09:00');
         $times = $component->get('week_days')[0]['times'];
-        $this->assertCount(2, $times);
-        $this->assertContains('09:00', $times);
-        $this->assertNotContains('09:00', array_slice($times, 1)); // no duplicate
-        $this->assertEquals(count($times), count(array_unique($times)));
+        $this->assertSame(['09:00', '09:00'], $times);
+        $component->assertHasErrors(['week_days.0.times.1']);
     }
 
-    public function test_direct_edit_duplicate_specific_date_time_is_corrected(): void
+    public function test_direct_edit_duplicate_specific_date_time_is_rejected_with_an_inline_error(): void
     {
         $user = User::factory()->create();
 
         $component = Livewire::actingAs($user)
             ->test(NotificationCreate::class)
-            ->set('schedule_type', 'specific_dates')
+            ->set('schedule_type', ScheduleType::SpecificDates->value)
             ->call('addSpecificDate', '2039-08-10')
             ->call('addTimeToDate', 0); // now has ['09:00', '10:00']
 
-        // User manually edits second field to match first — should auto-correct
+        // User manually edits second field to match first — rejected in place
         $component->set('specific_dates.0.times.1', '09:00');
         $times = $component->get('specific_dates')[0]['times'];
-        $this->assertCount(2, $times);
-        $this->assertEquals(count($times), count(array_unique($times)));
+        $this->assertSame(['09:00', '09:00'], $times);
+        $component->assertHasErrors(['specific_dates.0.times.1']);
+    }
+
+    public function test_saving_with_a_duplicate_time_is_blocked_server_side(): void
+    {
+        $user = User::factory()->create();
+
+        Livewire::actingAs($user)
+            ->test(NotificationCreate::class)
+            ->set('name', 'Vitamin D')
+            ->set('schedule_type', ScheduleType::EveryDay->value)
+            ->set('times', ['08:00', '08:00'])
+            ->call('save')
+            ->assertHasErrors(['times']);
+
+        $this->assertDatabaseMissing('notifications', ['name' => 'Vitamin D']);
     }
 
     public function test_specific_dates_respects_ends_at(): void
