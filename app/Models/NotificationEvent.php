@@ -9,7 +9,21 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property string $id
+ * @property int|null $notification_id
+ * @property int $user_id
+ * @property Carbon $scheduled_at
+ * @property EventStatus $status
+ * @property Carbon|null $postponed_until
+ * @property array<int, array{from: string, to: string, at: string}>|null $postpone_history
+ * @property string|null $comment
+ * @property Carbon|null $completed_at
+ * @property Carbon|null $notified_at
+ * @property Carbon|null $reminded_at
+ */
 #[Fillable([
     'notification_id',
     'user_id',

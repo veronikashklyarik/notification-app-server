@@ -1,24 +1,10 @@
 <x-layouts.guest title="{{ __('Create account') }}">
 
-    <div class="mb-10 text-center">
-        <div class="inline-flex items-center justify-center w-20 h-20 mb-5 rounded-3xl gradient-header shadow-lg shadow-indigo-500/25">
-            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-            </svg>
-        </div>
-        <h1 class="text-[28px] font-bold text-gray-900 tracking-tight">{{ __('Get started') }}</h1>
-        <p class="mt-2 text-sm text-gray-400">{{ __('Create your Notifyr account') }}</p>
-    </div>
+    <h1 class="text-[26px] font-bold tracking-title text-ink">{{ __('Get started') }}</h1>
+    <p class="mt-1.5 text-[15px] text-text-secondary">{{ __('Create your :appName account', ['appName' => config('app.name')]) }}</p>
 
-    @if($errors->any())
-        <div class="p-4 mb-6 text-sm text-red-600 bg-red-50/80 rounded-2xl border border-red-100">
-            @foreach($errors->all() as $error)
-                <p>{{ $error }}</p>
-            @endforeach
-        </div>
-    @endif
-
-    <a x-data :href="'{{ route('auth.google') }}?timezone=' + encodeURIComponent(Intl.DateTimeFormat().resolvedOptions().timeZone)" class="flex items-center justify-center gap-3 w-full py-3.5 px-4 mb-6 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-2xl hover:bg-gray-50 transition-colors shadow-sm">
+    <a x-data :href="'{{ route('auth.google') }}?timezone=' + encodeURIComponent(Intl.DateTimeFormat().resolvedOptions().timeZone)"
+       class="mt-5 flex items-center justify-center gap-2.5 h-[50px] px-4 rounded-field bg-white border border-border text-[15px] font-semibold text-ink">
         <svg class="w-5 h-5" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -28,22 +14,31 @@
         {{ __('Continue with Google') }}
     </a>
 
-    <div class="relative mb-6">
-        <div class="absolute inset-0 flex items-center">
-            <div class="w-full border-t border-gray-200"></div>
-        </div>
-        <div class="relative flex justify-center text-xs uppercase tracking-wider">
-            <span class="px-3 bg-white text-gray-400 font-semibold">{{ __('or') }}</span>
-        </div>
+    <div class="mt-5 flex items-center gap-3">
+        <div class="flex-1 h-px bg-border"></div>
+        <div class="text-[11px] font-semibold uppercase tracking-caption text-text-quaternary">{{ __('or') }}</div>
+        <div class="flex-1 h-px bg-border"></div>
     </div>
 
-    <form method="POST" action="{{ route('register') }}" class="space-y-5"
-          x-data x-init="$el.querySelector('[name=timezone]').value = Intl.DateTimeFormat().resolvedOptions().timeZone">
+    <form method="POST" action="{{ route('register') }}" class="mt-5 flex flex-col gap-3"
+          x-data="{
+              pw: '',
+              get score() {
+                  let s = 0;
+                  if (this.pw.length >= 8) s++;
+                  if (/[a-zA-Z]/.test(this.pw)) s++;
+                  if (/[0-9]/.test(this.pw)) s++;
+                  if (/[^a-zA-Z0-9]/.test(this.pw)) s++;
+                  return s;
+              },
+              get valid() { return this.score >= 3; }
+          }"
+          x-init="$el.querySelector('[name=timezone]').value = Intl.DateTimeFormat().resolvedOptions().timeZone">
         @csrf
         <input type="hidden" name="timezone" value="UTC">
 
         <div>
-            <label for="name" class="block mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('Name') }}</label>
+            <label for="name" class="block mb-1.5 text-[12px] font-semibold uppercase tracking-label text-text-tertiary">{{ __('Name') }}</label>
             <input type="text"
                    id="name"
                    name="name"
@@ -52,11 +47,14 @@
                    autofocus
                    autocomplete="name"
                    placeholder="{{ __('Your name') }}"
-                   class="input-styled w-full {{ $errors->has('name') ? 'border-red-300' : '' }}">
+                   class="w-full h-12 px-4 rounded-field border bg-white text-[15px] text-ink placeholder:text-text-quaternary {{ $errors->has('name') ? 'border-danger' : 'border-border' }}">
+            @error('name')
+                <p class="mt-1.5 px-1 text-[13px] text-danger">{{ $message }}</p>
+            @enderror
         </div>
 
         <div>
-            <label for="email" class="block mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('Email') }}</label>
+            <label for="email" class="block mb-1.5 text-[12px] font-semibold uppercase tracking-label text-text-tertiary">{{ __('Email') }}</label>
             <input type="email"
                    id="email"
                    name="email"
@@ -64,33 +62,35 @@
                    required
                    autocomplete="email"
                    placeholder="you@example.com"
-                   class="input-styled w-full {{ $errors->has('email') ? 'border-red-300' : '' }}">
+                   class="w-full h-12 px-4 rounded-field border bg-white text-[15px] text-ink placeholder:text-text-quaternary {{ $errors->has('email') ? 'border-danger' : 'border-border' }}">
+            @error('email')
+                <p class="mt-1.5 px-1 text-[13px] text-danger">{{ $message }}</p>
+            @enderror
         </div>
 
         <div>
-            <label for="password" class="block mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('Password') }}</label>
-            <x-password-input name="password" autocomplete="new-password" placeholder="{{ __('Min. 8 characters') }}" required :hasError="$errors->has('password')" />
+            <label for="password" class="block mb-1.5 text-[12px] font-semibold uppercase tracking-label text-text-tertiary">{{ __('Password') }}</label>
+            <x-password-input id="password" name="password" autocomplete="new-password" placeholder="{{ __('Min. 8 characters') }}" required :hasError="$errors->has('password')" x-on:input="pw = $event.target.value" />
+            @error('password')
+                <p class="mt-1.5 px-1 text-[13px] text-danger">{{ $message }}</p>
+            @enderror
+            <x-password-strength />
         </div>
 
-        <div>
-            <label for="password_confirmation" class="block mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('Confirm Password') }}</label>
-            <x-password-input name="password_confirmation" id="password_confirmation" autocomplete="new-password" placeholder="{{ __('Repeat password') }}" required />
-        </div>
-
-        <button type="submit" class="btn-primary w-full py-3.5 text-sm mt-2">
+        <button type="submit" :disabled="!valid" class="mt-1.5 h-[50px] rounded-field bg-brand text-[15px] font-semibold text-white disabled:opacity-50">
             {{ __('Create Account') }}
         </button>
     </form>
 
-    <p class="mt-8 text-sm text-center text-gray-400">
+    <p class="mt-5 text-[14px] text-center text-text-secondary">
         {{ __('Already have an account?') }}
-        <a href="{{ route('login') }}" class="font-semibold text-indigo-600 hover:text-indigo-500">{{ __('Sign in') }}</a>
+        <a href="{{ route('login') }}" class="font-semibold text-brand">{{ __('Sign in') }}</a>
     </p>
 
-    <p class="mt-6 text-xs text-center text-gray-300">
-        <a href="{{ route('legal.privacy') }}" class="hover:text-gray-400 transition-colors">{{ __('Privacy Policy') }}</a>
+    <p class="mt-5 text-[12px] text-center text-text-quaternary">
+        <a href="{{ route('legal.privacy') }}">{{ __('Privacy Policy') }}</a>
         <span class="mx-1.5">&middot;</span>
-        <a href="{{ route('legal.terms') }}" class="hover:text-gray-400 transition-colors">{{ __('Terms of Service') }}</a>
+        <a href="{{ route('legal.terms') }}">{{ __('Terms of Service') }}</a>
     </p>
 
 </x-layouts.guest>

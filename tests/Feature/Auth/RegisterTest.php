@@ -10,14 +10,13 @@ class RegisterTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_new_user_is_redirected_to_home_after_registration(): void
+    public function test_new_user_is_redirected_to_verification_notice_after_registration(): void
     {
         $this->post(route('register'), [
             'name' => 'Jane Doe',
             'email' => 'jane@example.com',
             'password' => 'password123',
-            'password_confirmation' => 'password123',
-        ])->assertRedirect(route('home'));
+        ])->assertRedirect(route('verification.notice'));
 
         $this->assertDatabaseHas('users', ['email' => 'jane@example.com']);
     }
@@ -53,7 +52,6 @@ class RegisterTest extends TestCase
             'name' => 'Other',
             'email' => 'taken@example.com',
             'password' => 'password123',
-            'password_confirmation' => 'password123',
         ])->assertInvalid(['email']);
     }
 }

@@ -1,50 +1,45 @@
 <x-layouts.guest title="{{ __('Reset password') }}">
 
-    <div class="mb-10 text-center">
-        <div class="inline-flex items-center justify-center w-20 h-20 mb-5 rounded-3xl gradient-header shadow-lg shadow-indigo-500/25">
-            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-            </svg>
-        </div>
-        <h1 class="text-[28px] font-bold text-gray-900 tracking-tight">{{ __('New password') }}</h1>
-        <p class="mt-2 text-sm text-gray-400">{{ __('Set a new password for your account') }}</p>
-    </div>
+    <a href="{{ route('login') }}" class="text-[15px] font-semibold text-text-secondary">‹ {{ __('Sign in') }}</a>
+    <h1 class="mt-3 text-[26px] font-bold tracking-title text-ink">{{ __('Set a new password') }}</h1>
+    <p class="mt-1.5 text-[15px] text-text-secondary">{{ __('For :email', ['email' => old('email', $email)]) }}</p>
 
     @if($errors->any())
-        <div class="p-4 mb-6 text-sm text-red-600 bg-red-50/80 rounded-2xl border border-red-100">
+        <div class="mt-5 flex flex-col gap-1.5 p-3.5 rounded-field bg-danger-tint border border-danger-tint-border">
             @foreach($errors->all() as $error)
-                <p>{{ $error }}</p>
+                <div class="flex items-start gap-2.5">
+                    <span class="mt-[7px] w-2 h-2 rounded-full bg-danger shrink-0"></span>
+                    <p class="text-[14px] leading-normal text-danger">{{ $error }}</p>
+                </div>
             @endforeach
         </div>
     @endif
 
-    <form method="POST" action="{{ route('password.store') }}" class="space-y-5">
+    <form method="POST" action="{{ route('password.store') }}" class="mt-5 flex flex-col gap-3.5"
+          x-data="{
+              pw: '',
+              get score() {
+                  let s = 0;
+                  if (this.pw.length >= 8) s++;
+                  if (/[a-zA-Z]/.test(this.pw)) s++;
+                  if (/[0-9]/.test(this.pw)) s++;
+                  if (/[^a-zA-Z0-9]/.test(this.pw)) s++;
+                  return s;
+              },
+              get valid() { return this.score >= 3; }
+          }">
         @csrf
         <input type="hidden" name="token" value="{{ $token }}">
+        <input type="hidden" name="email" value="{{ old('email', $email) }}">
 
         <div>
-            <label for="email" class="block mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('Email') }}</label>
-            <input type="email"
-                   id="email"
-                   name="email"
-                   value="{{ old('email', $email) }}"
-                   required
-                   autocomplete="email"
-                   class="input-styled w-full {{ $errors->has('email') ? 'border-red-300' : '' }}">
+            <label for="password" class="block mb-1.5 text-[12px] font-semibold uppercase tracking-label text-text-tertiary">{{ __('New Password') }}</label>
+            <x-password-input id="password" name="password" autocomplete="new-password" placeholder="{{ __('Min. 8 characters') }}" required :hasError="$errors->has('password')" x-on:input="pw = $event.target.value" />
+            <x-password-strength />
         </div>
 
-        <div>
-            <label for="password" class="block mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('New Password') }}</label>
-            <x-password-input name="password" autocomplete="new-password" placeholder="{{ __('Min. 8 characters') }}" required :hasError="$errors->has('password')" />
-        </div>
-
-        <div>
-            <label for="password_confirmation" class="block mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ __('Confirm Password') }}</label>
-            <x-password-input name="password_confirmation" id="password_confirmation" autocomplete="new-password" placeholder="{{ __('Repeat password') }}" required />
-        </div>
-
-        <button type="submit" class="btn-primary w-full py-3.5 text-sm mt-2">
-            {{ __('Reset Password') }}
+        <button type="submit" :disabled="!valid" class="mt-1.5 h-[50px] rounded-field bg-brand text-[15px] font-semibold text-white disabled:opacity-50">
+            {{ __('Save Password') }}
         </button>
     </form>
 

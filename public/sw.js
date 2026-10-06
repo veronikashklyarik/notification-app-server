@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const STATIC_CACHE = `notifyr-static-${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline';
 
@@ -96,8 +96,8 @@ self.addEventListener('push', (event) => {
     event.waitUntil(
         self.registration.showNotification(data.title, {
             body: data.body,
-            icon: data.icon ?? '/icon-192.png',
-            badge: data.badge ?? '/badge-72.png',
+            icon: data.icon ?? '/icons/icon-192.png',
+            badge: data.badge ?? '/icons/icon-192.png',
             tag: data.tag ?? 'notifyr',
             requireInteraction: data.requireInteraction ?? false,
             vibrate: [100, 50, 100],

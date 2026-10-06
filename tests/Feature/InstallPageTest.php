@@ -15,13 +15,14 @@ class InstallPageTest extends TestCase
         $this->get(route('install'))->assertRedirect(route('login'));
     }
 
-    public function test_unverified_users_are_redirected_to_verification_notice(): void
+    public function test_unverified_users_can_view_install_page(): void
     {
         $user = User::factory()->unverified()->create();
 
         $this->actingAs($user)
             ->get(route('install'))
-            ->assertRedirect(route('verification.notice'));
+            ->assertOk()
+            ->assertViewIs('install');
     }
 
     public function test_verified_users_can_view_install_page(): void

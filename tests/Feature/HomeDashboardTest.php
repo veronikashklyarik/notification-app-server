@@ -29,18 +29,7 @@ class HomeDashboardTest extends TestCase
             ->assertOk();
     }
 
-    public function test_home_shows_active_notification_count(): void
-    {
-        $user = User::factory()->create();
-        Notification::factory()->count(2)->for($user)->create(['is_active' => true]);
-        Notification::factory()->for($user)->create(['is_active' => false]);
-
-        Livewire::actingAs($user)
-            ->test(Home::class)
-            ->assertSet('stats.active_notifications', 2);
-    }
-
-    public function test_home_shows_todays_pending_events(): void
+    public function test_home_computes_todays_totals_and_done_count(): void
     {
         $user = User::factory()->create(['timezone' => 'UTC']);
         $notification = Notification::factory()->for($user)->inactive()->create();
@@ -49,10 +38,16 @@ class HomeDashboardTest extends TestCase
             'scheduled_at' => now()->midDay(),
             'status' => EventStatus::Pending,
         ]);
+        NotificationEvent::factory()->for($user)->for($notification)->create([
+            'scheduled_at' => now()->startOfDay()->addHours(2),
+            'status' => EventStatus::Done,
+            'completed_at' => now(),
+        ]);
 
         Livewire::actingAs($user)
             ->test(Home::class)
-            ->assertSet('todayTotal', 1);
+            ->assertSet('todayTotalCount', 2)
+            ->assertSet('todayDoneCount', 1);
     }
 
     public function test_home_shows_missed_events_from_previous_days(): void
@@ -127,63 +122,193 @@ class HomeDashboardTest extends TestCase
         ]);
     }
 
-    public function test_complete_all_missed_marks_past_pending_events_as_done(): void
+    public function test_mark_postponed_snoozes_the_event_for_15_minutes(): void
     {
         $user = User::factory()->create(['timezone' => 'UTC']);
         $notification = Notification::factory()->for($user)->inactive()->create();
 
-        NotificationEvent::factory()->count(3)->for($user)->for($notification)->create([
-            'scheduled_at' => now()->subDays(3),
+        $event = NotificationEvent::factory()->for($user)->for($notification)->create([
+            'scheduled_at' => now()->midDay(),
             'status' => EventStatus::Pending,
         ]);
 
         Livewire::actingAs($user)
             ->test(Home::class)
-            ->call('completeAllMissed');
+            ->call('markPostponed', $event->id);
 
-        $this->assertDatabaseCount('notification_events', 3);
-        $this->assertDatabaseMissing('notification_events', ['status' => EventStatus::Pending]);
-        $this->assertDatabaseHas('notification_events', ['status' => EventStatus::Done]);
+        $event->refresh();
+        $this->assertSame(EventStatus::Postponed, $event->status);
+        $this->assertNotNull($event->postponed_until);
+        $this->assertTrue($event->postponed_until->between(now()->addMinutes(14), now()->addMinutes(16)));
+        $this->assertNotNull($event->postpone_history);
+        $this->assertCount(1, $event->postpone_history);
     }
 
-    public function test_skip_all_missed_marks_past_pending_events_as_cancelled(): void
+    public function test_postponed_events_stay_visible_on_today_while_snoozed(): void
     {
         $user = User::factory()->create(['timezone' => 'UTC']);
         $notification = Notification::factory()->for($user)->inactive()->create();
 
-        NotificationEvent::factory()->count(2)->for($user)->for($notification)->create([
-            'scheduled_at' => now()->subDays(1),
-            'status' => EventStatus::Pending,
+        $event = NotificationEvent::factory()->for($user)->for($notification)->create([
+            'scheduled_at' => now()->midDay(),
+            'status' => EventStatus::Postponed,
+            'postponed_until' => now()->addMinutes(15),
+        ]);
+
+        $component = Livewire::actingAs($user)->test(Home::class);
+
+        $this->assertTrue($component->get('todayEvents')->contains('id', $event->id));
+    }
+
+    public function test_restore_status_clears_postponed_until(): void
+    {
+        $user = User::factory()->create(['timezone' => 'UTC']);
+        $notification = Notification::factory()->for($user)->inactive()->create();
+
+        $event = NotificationEvent::factory()->for($user)->for($notification)->create([
+            'scheduled_at' => now()->midDay(),
+            'status' => EventStatus::Postponed,
+            'postponed_until' => now()->addMinutes(15),
         ]);
 
         Livewire::actingAs($user)
             ->test(Home::class)
-            ->call('skipAllMissed');
+            ->call('restoreStatus', $event->id, EventStatus::Pending->value);
 
-        $this->assertDatabaseMissing('notification_events', ['status' => EventStatus::Pending]);
-        $this->assertDatabaseHas('notification_events', ['status' => EventStatus::Cancelled]);
+        $this->assertDatabaseHas('notification_events', [
+            'id' => $event->id,
+            'status' => EventStatus::Pending,
+            'postponed_until' => null,
+        ]);
     }
 
-    public function test_load_more_increases_today_per_page(): void
+    public function test_clear_status_reverts_event_to_pending(): void
+    {
+        $user = User::factory()->create(['timezone' => 'UTC']);
+        $notification = Notification::factory()->for($user)->inactive()->create();
+
+        $event = NotificationEvent::factory()->for($user)->for($notification)->create([
+            'scheduled_at' => now()->midDay(),
+            'status' => EventStatus::Done,
+            'completed_at' => now(),
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(Home::class)
+            ->call('clearStatus', $event->id);
+
+        $this->assertDatabaseHas('notification_events', [
+            'id' => $event->id,
+            'status' => EventStatus::Pending,
+            'completed_at' => null,
+        ]);
+    }
+
+    public function test_clear_status_is_forbidden_for_other_users_events(): void
+    {
+        $user = User::factory()->create(['timezone' => 'UTC']);
+        $other = User::factory()->create();
+        $notification = Notification::factory()->for($other)->inactive()->create();
+
+        $event = NotificationEvent::factory()->for($other)->for($notification)->create([
+            'scheduled_at' => now()->midDay(),
+            'status' => EventStatus::Done,
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(Home::class)
+            ->call('clearStatus', $event->id)
+            ->assertForbidden();
+    }
+
+    public function test_restore_status_undoes_a_mark_back_to_pending(): void
+    {
+        $user = User::factory()->create(['timezone' => 'UTC']);
+        $notification = Notification::factory()->for($user)->inactive()->create();
+
+        $event = NotificationEvent::factory()->for($user)->for($notification)->create([
+            'scheduled_at' => now()->midDay(),
+            'status' => EventStatus::Done,
+            'completed_at' => now(),
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(Home::class)
+            ->call('restoreStatus', $event->id, EventStatus::Pending->value);
+
+        $this->assertDatabaseHas('notification_events', [
+            'id' => $event->id,
+            'status' => EventStatus::Pending,
+            'completed_at' => null,
+        ]);
+    }
+
+    public function test_restore_status_ignores_an_invalid_status(): void
+    {
+        $user = User::factory()->create(['timezone' => 'UTC']);
+        $notification = Notification::factory()->for($user)->inactive()->create();
+
+        $event = NotificationEvent::factory()->for($user)->for($notification)->create([
+            'scheduled_at' => now()->midDay(),
+            'status' => EventStatus::Done,
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(Home::class)
+            ->call('restoreStatus', $event->id, 'not-a-real-status');
+
+        $this->assertDatabaseHas('notification_events', [
+            'id' => $event->id,
+            'status' => EventStatus::Done,
+        ]);
+    }
+
+    public function test_week_chart_is_hidden_for_a_brand_new_account_with_no_marks(): void
     {
         $user = User::factory()->create(['timezone' => 'UTC']);
 
         Livewire::actingAs($user)
             ->test(Home::class)
-            ->assertSet('todayPerPage', 10)
-            ->call('loadMore')
-            ->assertSet('todayPerPage', 20);
+            ->assertSet('weekMarksCount', 0)
+            ->assertDontSee(__('Last 7 days'));
     }
 
-    public function test_refresh_resets_pagination(): void
+    public function test_week_chart_is_shown_once_the_account_has_marks(): void
     {
         $user = User::factory()->create(['timezone' => 'UTC']);
+        $notification = Notification::factory()->for($user)->inactive()->create();
+
+        NotificationEvent::factory()->for($user)->for($notification)->create([
+            'scheduled_at' => now()->midDay(),
+            'status' => EventStatus::Done,
+            'completed_at' => now(),
+        ]);
 
         Livewire::actingAs($user)
             ->test(Home::class)
-            ->call('loadMore')
-            ->assertSet('todayPerPage', 20)
-            ->call('refresh')
-            ->assertSet('todayPerPage', 10);
+            ->assertSet('weekMarksCount', 1)
+            ->assertSee(__('Last 7 days'));
+    }
+
+    public function test_refresh_recomputes_todays_totals(): void
+    {
+        $user = User::factory()->create(['timezone' => 'UTC']);
+        $notification = Notification::factory()->for($user)->inactive()->create();
+
+        NotificationEvent::factory()->for($user)->for($notification)->create([
+            'scheduled_at' => now()->midDay(),
+            'status' => EventStatus::Pending,
+        ]);
+
+        $component = Livewire::actingAs($user)
+            ->test(Home::class)
+            ->assertSet('todayTotalCount', 1);
+
+        NotificationEvent::factory()->for($user)->for($notification)->create([
+            'scheduled_at' => now()->midDay(),
+            'status' => EventStatus::Pending,
+        ]);
+
+        $component->call('refresh')->assertSet('todayTotalCount', 2);
     }
 }

@@ -37,6 +37,6 @@ class RegisterController extends Controller
 
         Auth::login($user);
 
-        return redirect()->route('home');
+        return redirect()->route('verification.notice');
     }
 }

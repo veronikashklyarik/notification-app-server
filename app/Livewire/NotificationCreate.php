@@ -3,20 +3,19 @@
 namespace App\Livewire;
 
 use App\Enums\ScheduleType;
+use App\Livewire\Concerns\HasScheduleDescription;
 use App\Livewire\Concerns\HasScheduleFields;
 use App\Models\Notification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Livewire\Attributes\Layout;
-use Livewire\Attributes\Protect;
 use Livewire\Component;
 
 #[Layout('components.layouts.app')]
-#[Protect]
 class NotificationCreate extends Component
 {
-    use HasScheduleFields;
+    use HasScheduleDescription, HasScheduleFields;
 
     public string $name = '';
 
@@ -26,10 +25,47 @@ class NotificationCreate extends Component
 
     public ?int $reminderInterval = null;
 
-    public function mount(): void
+    public bool $embedded = false;
+
+    /** @var array<string, array<string, mixed>> */
+    private const TEMPLATES = [
+        'vitamins' => [
+            'name' => 'Vitamins',
+            'schedule_type' => ScheduleType::EveryDay,
+            'times' => ['08:00'],
+        ],
+        'water' => [
+            'name' => 'Water the plants',
+            'schedule_type' => ScheduleType::Cyclical,
+            'cyclical_unit' => 'days',
+            'cyclical_value' => 3,
+            'times' => ['19:00'],
+        ],
+        'rent' => [
+            'name' => 'Pay rent',
+            'schedule_type' => ScheduleType::Cyclical,
+            'cyclical_unit' => 'months',
+            'cyclical_month_type' => 'each',
+            'cyclical_month_days' => [1],
+            'times' => ['10:00'],
+        ],
+    ];
+
+    public function mount(?string $template = null): void
     {
         $back = request()->query('back', '');
         $this->backUrl = ($back && str_starts_with($back, url('/'))) ? $back : route('notifications.index');
+
+        $template = self::TEMPLATES[$template ?? request()->query('template', '')] ?? null;
+        if ($template) {
+            $this->name = __($template['name']);
+            $this->schedule_type = $template['schedule_type']->value;
+            $this->times = $template['times'];
+            $this->cyclical_unit = $template['cyclical_unit'] ?? $this->cyclical_unit;
+            $this->cyclical_value = $template['cyclical_value'] ?? $this->cyclical_value;
+            $this->cyclical_month_type = $template['cyclical_month_type'] ?? $this->cyclical_month_type;
+            $this->cyclical_month_days = $template['cyclical_month_days'] ?? $this->cyclical_month_days;
+        }
     }
 
     /**
@@ -73,18 +109,18 @@ class NotificationCreate extends Component
             'reminderInterval' => ['nullable', 'integer', Rule::in(array_keys(Notification::REMINDER_INTERVALS))],
         ];
 
-        if ($this->schedule_type === 'week_days') {
+        if ($this->schedule_type === ScheduleType::WeekDays->value) {
             $rules['week_days'] = ['required', 'array', 'min:1'];
             $rules['week_days.*.day'] = ['required', 'integer', 'between:1,7'];
             $rules['week_days.*.times'] = ['required', 'array', 'min:1'];
             $rules['week_days.*.times.*'] = ['required', 'date_format:H:i'];
         }
 
-        if ($this->schedule_type === 'every_n_days') {
+        if ($this->schedule_type === ScheduleType::EveryNDays->value) {
             $rules['every_n_days'] = ['required', 'integer', 'min:1', 'max:365'];
         }
 
-        if ($this->schedule_type === 'cyclical') {
+        if ($this->schedule_type === ScheduleType::Cyclical->value) {
             $rules['cyclical_value'] = ['required', 'integer', 'min:1'];
             $rules['cyclical_unit'] = ['required', 'string', Rule::in(['days', 'weeks', 'months', 'years'])];
 
@@ -116,7 +152,7 @@ class NotificationCreate extends Component
             }
         }
 
-        if ($this->schedule_type === 'specific_dates') {
+        if ($this->schedule_type === ScheduleType::SpecificDates->value) {
             $rules['specific_dates'] = ['required', 'array', 'min:1'];
             $rules['specific_dates.*.date'] = ['required', 'date_format:Y-m-d'];
             $rules['specific_dates.*.times'] = ['required', 'array', 'min:1'];
@@ -125,14 +161,19 @@ class NotificationCreate extends Component
         return $rules;
     }
 
+    public function closeEmbedded(): void
+    {
+        $this->dispatch('sheet-closed');
+    }
+
     public function save(): void
     {
         $this->starts_at = $this->starts_at ?: null;
         $this->ends_at = $this->ends_at ?: null;
 
-        $validated = $this->validate();
+        $validated = $this->validateScheduleForm();
 
-        if (in_array($this->schedule_type, ['week_days', 'specific_dates'])) {
+        if (in_array($this->schedule_type, [ScheduleType::WeekDays->value, ScheduleType::SpecificDates->value])) {
             $validated['times'] = null;
         }
 
@@ -140,9 +181,16 @@ class NotificationCreate extends Component
 
         $notification = Auth::user()->reminders()->create($validated);
 
-        session()->flash('success', __('Reminder created.'));
+        if ($this->embedded) {
+            $this->dispatch('reminder-created', id: $notification->id, name: $notification->name);
 
-        $this->redirect(route('notifications.show', $notification));
+            return;
+        }
+
+        session()->flash('success', __('Reminder created.'));
+        session()->flash('createdReminder', ['id' => $notification->id, 'name' => $notification->name]);
+
+        $this->redirect(route('notifications.index'));
     }
 
     public function render(): View

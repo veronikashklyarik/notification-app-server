@@ -9,34 +9,23 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 use Intervention\Image\Drivers\Gd\Driver as GdDriver;
 use Intervention\Image\Encoders\JpegEncoder;
 use Intervention\Image\Encoders\WebpEncoder;
 use Intervention\Image\ImageManager;
 use Livewire\Attributes\Layout;
-use Livewire\Attributes\Protect;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
 #[Layout('components.layouts.app')]
-#[Protect]
 class Profile extends Component
 {
     use WithFileUploads;
 
-    /** @var array<string, string> */
-    public const array SUPPORTED_LOCALES = [
-        'en' => 'English',
-        'ru' => 'Русский',
-        'pl' => 'Polski',
-    ];
-
     public string $profileName = '';
-
-    public string $timezone = '';
-
-    public string $locale = 'en';
 
     public string $current_password = '';
 
@@ -46,16 +35,23 @@ class Profile extends Component
 
     public string $deletePassword = '';
 
+    public bool $confirmingDeleteAccount = false;
+
+    public bool $editingEmail = false;
+
+    public string $newEmail = '';
+
+    public string $emailChangePassword = '';
+
     public $avatar = null;
 
-    public bool $verificationEmailSent = false;
+    public ?int $verificationSentAt = null;
+
+    public bool $nameJustSaved = false;
 
     public function mount(): void
     {
-        $user = Auth::user();
-        $this->profileName = $user->name;
-        $this->timezone = $user->timezone ?? 'UTC';
-        $this->locale = $user->locale ?? 'en';
+        $this->profileName = Auth::user()->name;
     }
 
     public function updatedAvatar(): void
@@ -146,32 +142,13 @@ class Profile extends Component
     {
         $validated = $this->validate([
             'profileName' => 'required|string|max:255',
-            'timezone' => 'required|string|timezone',
         ]);
 
-        $user = Auth::user();
-
-        $user->update([
+        Auth::user()->update([
             'name' => $validated['profileName'],
-            'timezone' => $validated['timezone'],
         ]);
 
-        $this->redirect(route('profile.edit'));
-    }
-
-    public function updateLang(): void
-    {
-        $this->validateOnly('locale', [
-            'locale' => 'required|string|in:'.implode(',', array_keys(self::SUPPORTED_LOCALES)),
-        ]);
-
-        $user = Auth::user();
-
-        $user->update([
-            'locale' => $this->locale,
-        ]);
-
-        $this->redirect(route('profile.edit'));
+        $this->nameJustSaved = true;
     }
 
     public function changePassword(): void
@@ -181,7 +158,7 @@ class Profile extends Component
         if ($user->password) {
             $this->validate([
                 'current_password' => 'required',
-                'password' => 'required|string|min:8|confirmed',
+                'password' => ['required', 'string', 'confirmed', Password::defaults()],
             ]);
 
             if (! Hash::check($this->current_password, $user->password)) {
@@ -191,7 +168,7 @@ class Profile extends Component
             }
         } else {
             $this->validate([
-                'password' => 'required|string|min:8|confirmed',
+                'password' => ['required', 'string', 'confirmed', Password::defaults()],
             ]);
         }
 
@@ -202,39 +179,90 @@ class Profile extends Component
         $this->redirect(route('profile.edit'));
     }
 
+    public function startEditingEmail(): void
+    {
+        $this->editingEmail = true;
+        $this->newEmail = '';
+        $this->emailChangePassword = '';
+        $this->resetErrorBag(['newEmail', 'emailChangePassword']);
+    }
+
+    public function cancelEditingEmail(): void
+    {
+        $this->editingEmail = false;
+        $this->newEmail = '';
+        $this->emailChangePassword = '';
+        $this->resetErrorBag(['newEmail', 'emailChangePassword']);
+    }
+
+    public function changeEmail(): void
+    {
+        $user = Auth::user();
+
+        $this->validate([
+            'newEmail' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
+        ]);
+
+        if ($user->password) {
+            $this->validate(['emailChangePassword' => ['required']]);
+
+            if (! Hash::check($this->emailChangePassword, $user->password)) {
+                $this->addError('emailChangePassword', __('The password is incorrect.'));
+
+                return;
+            }
+        }
+
+        $user->forceFill([
+            'email' => $this->newEmail,
+            'email_verified_at' => null,
+        ])->save();
+
+        $user->notify(new WebEmailVerificationNotification);
+
+        $this->editingEmail = false;
+        $this->newEmail = '';
+        $this->emailChangePassword = '';
+        $this->verificationSentAt = null;
+
+        session()->flash('success', __('Email updated. Check your inbox to verify it.'));
+    }
+
     public function sendVerificationEmail(): void
     {
         $user = Auth::user();
 
         if ($user instanceof MustVerifyEmail && ! $user->hasVerifiedEmail()) {
             $user->notify(new WebEmailVerificationNotification);
-            $this->verificationEmailSent = true;
+            $this->verificationSentAt = now()->timestamp;
         }
     }
 
+    /**
+     * Silently polled while the email is unverified — only acts once the user has
+     * actually clicked the link, so it never shows an error while waiting.
+     */
     public function checkVerificationStatus(): void
     {
         $user = Auth::user();
         $user->refresh();
 
         if ($user->hasVerifiedEmail()) {
-            $this->verificationEmailSent = false;
             session()->flash('success', __('Email verified successfully!'));
             $this->redirect(route('profile.edit'));
-        } else {
-            $this->addError('verification', __('Email not yet verified. Please check your inbox.'));
         }
     }
 
     public function confirmDeleteAccount(): void
     {
-        $user = Auth::user();
+        $this->confirmingDeleteAccount = true;
+    }
 
-        if ($user->password) {
-            $this->validate(['deletePassword' => 'required']);
-        }
-
-        $this->dispatch('show-delete-account-confirmation');
+    public function cancelDeleteAccount(): void
+    {
+        $this->confirmingDeleteAccount = false;
+        $this->deletePassword = '';
+        $this->resetErrorBag('deletePassword');
     }
 
     public function deleteAccount(): void
@@ -258,20 +286,21 @@ class Profile extends Component
         $this->redirect(route('login'));
     }
 
-    public function logout(): void
-    {
-        Auth::logout();
-        session()->invalidate();
-        session()->regenerateToken();
-
-        $this->redirect(route('login'));
-    }
-
     public function render(): View
     {
+        $user = Auth::user();
+        $remindersCount = $user->reminders()->count();
+        $marksCount = $user->notificationEvents()->count();
+
+        $remindersPhrase = trans_choice(':count reminder|:count reminders', $remindersCount, ['count' => $remindersCount]);
+        $marksPhrase = trans_choice(':count mark|:count marks', $marksCount, ['count' => $marksCount]);
+
         return view('livewire.profile', [
-            'user' => Auth::user(),
-            'timezones' => collect(timezone_identifiers_list()),
+            'user' => $user,
+            'deleteAccountBody' => __(':reminders and :marks stop right away. Sign in within 30 days to restore them — after that they\'re deleted for good.', [
+                'reminders' => $remindersPhrase,
+                'marks' => $marksPhrase,
+            ]),
         ]);
     }
 }

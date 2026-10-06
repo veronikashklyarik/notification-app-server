@@ -1,267 +1,268 @@
-<div class="stagger-children">
+@php
+    use App\Enums\EventStatus;
+
+    $tz = auth()->user()->timezone ?? 'UTC';
+    $ended = $notification->isEnded();
+    $bucket = $ended ? 'ended' : ($notification->is_active ? 'active' : 'paused');
+    $activeLabel = match ($bucket) {
+        'active' => __('Notifications on'),
+        'paused' => __('Paused'),
+        'ended' => __('Ended'),
+    };
+
+    $upcomingGroups = $upcomingEvents
+        ->groupBy(fn ($event) => $event->scheduled_at->copy()->setTimezone($tz)->format('Y-m-d'))
+        ->take(4)
+        ->map(function ($events, $dateKey) use ($tz) {
+            $date = \Illuminate\Support\Carbon::createFromFormat('Y-m-d', $dateKey, $tz)->startOfDay();
+            $dayDiff = now($tz)->startOfDay()->diffInDays($date);
+            $dayLabel = match (true) {
+                $dayDiff == 0 => __('Today'),
+                $dayDiff == 1 => __('Tomorrow'),
+                default => $date->translatedFormat('D j M'),
+            };
+
+            return [
+                'label' => $dayLabel,
+                'times' => $events->map(fn ($e) => $e->scheduled_at->copy()->setTimezone($tz)->format('H:i'))->sort()->implode(', '),
+            ];
+        });
+
+    $rangeStart = $notification->starts_at ?? $notification->created_at;
+    $rangeLine = $notification->ends_at
+        ? __('Since :start to :end', [
+            'start' => $rangeStart->translatedFormat('j M Y'),
+            'end' => $notification->ends_at->translatedFormat('j M Y'),
+        ])
+        : __('Since :start · no end date', ['start' => $rangeStart->translatedFormat('j M Y')]);
+
+    $completionPercent = $totalCount > 0 ? (int) round($doneCount / $totalCount * 100) : 0;
+
+    if ($ended && $notification->ends_at) {
+        $durationDays = $rangeStart->diffInDays($notification->ends_at) + 1;
+        $endedRangeLine = $notification->frequency_label.' · '.__(':start – :end (:count days)', [
+            'start' => $rangeStart->translatedFormat('j M'),
+            'end' => $notification->ends_at->translatedFormat('j M Y'),
+            'count' => $durationDays,
+        ]);
+    }
+
+    if ($ended) {
+        $repeatEndDate = $this->repeatCourseEndDate();
+        $repeatPreview = $repeatEndDate
+            ? __(':start – :end, same times', [
+                'start' => now()->startOfDay()->translatedFormat('j M'),
+                'end' => $repeatEndDate->translatedFormat('j M'),
+            ])
+            : __('Starts today, same times');
+    }
+@endphp
+<div style="padding-top: max(env(safe-area-inset-top), 20px)" class="pb-8">
+
     {{-- Header --}}
-    <div class="px-5 pt-6 pb-4">
-        <div class="flex items-center gap-3">
-            <a href="{{ $backUrl }}" class="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors">
-                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                </svg>
-            </a>
-            <div class="min-w-0 flex-1">
-                <h1 class="text-xl font-bold text-gray-900 truncate">{{ $notification->name }}</h1>
-            </div>
-            @if($notification->isEnded())
-                <span class="px-3 py-1 text-[11px] font-semibold text-slate-500 bg-slate-100 rounded-full border border-slate-200">{{ __('Ended') }}</span>
-            @elseif($notification->is_active)
-                <span class="badge-shimmer px-3 py-1 text-[11px] font-bold rounded-full shadow-sm shadow-green-500/20">{{ __('Active') }}</span>
-            @else
-                <span class="px-3 py-1 text-[11px] font-semibold text-gray-500 bg-gray-100 rounded-full border border-gray-200">{{ __('Paused') }}</span>
-            @endif
-        </div>
+    <div class="px-5 flex items-center justify-between">
+        <a href="{{ $backUrl }}" class="text-[15px] font-semibold text-text-secondary">‹ {{ __('Reminders') }}</a>
+        <a href="{{ route('notifications.edit', $notification) }}?back={{ urlencode(route('notifications.show', $notification).'?back='.urlencode($backUrl)) }}"
+           class="text-[15px] font-semibold text-brand">{{ __('Edit') }}</a>
     </div>
 
-    {{-- Info Card --}}
-    <div class="px-4">
-        <div class="card p-5 space-y-5">
-            @if($notification->description)
-                <p class="text-sm text-gray-500 leading-relaxed">{{ $notification->description }}</p>
-            @endif
+    <div class="px-5 mt-3">
+        @if($ended)
+            <span class="inline-block mb-1.5 px-2 py-0.5 text-[12px] font-semibold text-text-secondary bg-fill rounded-tag">{{ __('Ended :date', ['date' => $notification->ends_at?->translatedFormat('j M') ?? '']) }}</span>
+        @endif
+        <h1 class="text-[26px] font-bold tracking-title text-ink">{{ $notification->name }}</h1>
+        @if($notification->description)
+            <p class="mt-1 text-[15px] text-text-secondary">{{ $notification->description }}</p>
+        @endif
+    </div>
 
-            <div class="grid grid-cols-2 gap-4">
-                <div class="p-3 rounded-2xl bg-gray-50">
-                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{ __('Schedule') }}</p>
-                    <p class="mt-1 text-sm font-semibold text-gray-900">{{ $notification->frequency_label ?? str_replace('_', ' ', $notification->schedule_type->value) }}</p>
-                </div>
-                @if($notification->times && !in_array($notification->schedule_type, [\App\Enums\ScheduleType::WeekDays, \App\Enums\ScheduleType::SpecificDates]))
-                    <div class="p-3 rounded-2xl bg-gray-50">
-                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{ __('Times') }}</p>
-                        <p class="mt-1 text-sm font-semibold text-gray-900">{{ implode(', ', $notification->times) }}</p>
+    <div class="px-5 mt-3.5 space-y-3.5">
+        {{-- Ended: completion summary + Repeat Course / Extend Dates --}}
+        @if($ended)
+            <div class="rounded-card bg-white border border-border p-4">
+                <p class="text-[15px] font-semibold text-ink">
+                    @if($totalCount > 0)
+                        {{ __(':count of :total marks done · :percent%', ['count' => $doneCount, 'total' => $totalCount, 'percent' => $completionPercent]) }}
+                    @else
+                        {{ __('No marks were recorded.') }}
+                    @endif
+                </p>
+                @if($totalCount > 0)
+                    <div class="mt-2.5 h-1.5 rounded-full bg-fill overflow-hidden">
+                        <div class="h-full rounded-full bg-success" style="width: {{ $completionPercent }}%"></div>
                     </div>
                 @endif
+                <p class="mt-2.5 text-[14px] text-text-secondary">{{ $endedRangeLine }}</p>
             </div>
 
-            @if($notification->schedule_type === \App\Enums\ScheduleType::WeekDays && $notification->week_days)
-                @php $dayNames = [1 => __('Mon'), 2 => __('Tue'), 3 => __('Wed'), 4 => __('Thu'), 5 => __('Fri'), 6 => __('Sat'), 7 => __('Sun')]; @endphp
-                <div>
-                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">{{ __('Days of Week') }}</p>
-                    <div class="flex flex-col gap-2">
-                        @foreach($notification->week_days as $entry)
-                            @php
-                                $dayNum = is_array($entry) ? (int)($entry['day'] ?? 0) : (int)$entry;
-                                $dayTimes = is_array($entry) ? ($entry['times'] ?? []) : [];
-                                sort($dayTimes);
-                            @endphp
-                            <div class="flex items-center gap-2">
-                                <span class="px-3 py-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 rounded-lg shrink-0">{{ $dayNames[$dayNum] ?? $dayNum }}</span>
-                                @if(!empty($dayTimes))
-                                    <span class="text-xs text-gray-500">{{ implode(', ', $dayTimes) }}</span>
-                                @endif
+            <div class="rounded-card bg-white border border-border p-4">
+                <p class="mb-2.5 text-[12px] font-semibold uppercase tracking-label text-text-tertiary">{{ __('Start again') }}</p>
+                <div class="space-y-2">
+                    <button type="button" wire:click="repeatCourse" wire:loading.attr="disabled" wire:target="repeatCourse"
+                            class="w-full p-3.5 rounded-field bg-brand text-left disabled:opacity-50">
+                        <span class="block text-[15px] font-semibold text-white">{{ __('Repeat Course') }}</span>
+                        <span class="block mt-0.5 text-[13px] text-white/75">{{ __('New copy · :preview', ['preview' => $repeatPreview]) }}</span>
+                    </button>
+                    <a href="{{ route('notifications.edit', $notification) }}?expand=more&back={{ urlencode(route('notifications.show', $notification).'?back='.urlencode($backUrl)) }}"
+                       class="block w-full p-3.5 rounded-field bg-white border border-border">
+                        <span class="block text-[15px] font-semibold text-ink">{{ __('Extend Dates') }}</span>
+                        <span class="block mt-0.5 text-[13px] text-text-tertiary">{{ __('Pick a new end date for this one') }}</span>
+                    </a>
+                </div>
+                <p class="mt-2.5 text-[12px] leading-normal text-text-quaternary">{{ __('Nothing is sent for an ended reminder. Its history stays.') }}</p>
+            </div>
+        @endif
+
+        {{-- Active row --}}
+        @unless($ended)
+            <div class="rounded-row bg-white border border-border px-4 py-[15px] flex items-center justify-between gap-3">
+                <div class="min-w-0">
+                    <p class="text-[15px] font-semibold text-ink">{{ $activeLabel }}</p>
+                    <p class="mt-0.5 text-[13px] text-text-tertiary">
+                        @if($notification->reminder_interval)
+                            {{ __('Repeats :interval until you mark it', ['interval' => \Illuminate\Support\Str::lower(__(\App\Models\Notification::REMINDER_INTERVALS[$notification->reminder_interval] ?? ''))]) }}
+                        @else
+                            {{ __('No repeat if not marked') }}
+                        @endif
+                    </p>
+                </div>
+                <button type="button" wire:click="toggleActive" wire:loading.attr="disabled" wire:target="toggleActive"
+                        class="shrink-0 relative w-[50px] h-[30px] rounded-full transition-colors disabled:opacity-50 {{ $notification->is_active ? 'bg-brand' : 'bg-border-input' }}">
+                    <span class="absolute top-0.5 left-0.5 w-6 h-6 rounded-full bg-white transition-transform {{ $notification->is_active ? 'translate-x-5' : 'translate-x-0.5' }}"></span>
+                </button>
+            </div>
+        @endunless
+
+        {{-- Schedule card --}}
+        @unless($ended)
+        <div class="rounded-card bg-white border border-border p-4">
+            <p class="text-[12px] font-semibold uppercase tracking-label text-text-tertiary">{{ __('Schedule') }}</p>
+            <p class="mt-1.5 text-[16px] font-semibold text-ink">{{ $notification->frequency_label }}</p>
+            <p class="mt-1 text-[14px] text-text-secondary">{{ $rangeLine }}</p>
+
+            <div class="mt-3.5 pt-3.5 border-t border-border-light">
+                <p class="text-[12px] font-semibold uppercase tracking-label text-text-tertiary">{{ __('Next up') }}</p>
+                @if($upcomingGroups->isNotEmpty())
+                    <div class="mt-2 space-y-1.5">
+                        @foreach($upcomingGroups as $group)
+                            <div class="flex items-center justify-between">
+                                <span class="text-[14px] font-semibold text-ink">{{ $group['label'] }}</span>
+                                <span class="text-[14px] tabular-nums text-text-secondary">{{ $group['times'] }}</span>
                             </div>
                         @endforeach
                     </div>
-                </div>
-            @endif
+                @elseif($notification->schedule_type === \App\Enums\ScheduleType::AsNeeded)
+                    <button type="button" wire:click="markNow" wire:loading.attr="disabled" wire:target="markNow"
+                            class="mt-2 w-full h-11 rounded-field bg-brand text-[14px] font-semibold text-white disabled:opacity-50">
+                        {{ __('Mark now') }}
+                    </button>
+                @else
+                    <p class="mt-2 text-[14px] text-text-tertiary">{{ __('Nothing scheduled — this one is marked by hand.') }}</p>
+                @endif
+            </div>
+        </div>
+        @endunless
 
-            @if($notification->schedule_type === \App\Enums\ScheduleType::SpecificDates && !empty($notification->specific_dates))
-                <div>
-                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">{{ __('Dates') }}</p>
-                    <div class="space-y-2">
+        {{-- Stat tiles --}}
+        <div class="grid grid-cols-3 gap-2">
+            <div class="rounded-row bg-white border border-border p-3.5">
+                <p class="text-[24px] font-bold tracking-title tabular-nums text-ink">{{ $doneCount }}</p>
+                <p class="mt-0.5 text-[11px] font-semibold uppercase text-text-tertiary">{{ __('Done') }}</p>
+            </div>
+            <div class="rounded-row bg-white border border-border p-3.5">
+                <p class="text-[24px] font-bold tracking-title tabular-nums text-ink">{{ $skippedCount }}</p>
+                <p class="mt-0.5 text-[11px] font-semibold uppercase text-text-tertiary">{{ __('Skipped') }}</p>
+            </div>
+            <div class="rounded-row bg-white border border-border p-3.5">
+                <p class="text-[24px] font-bold tracking-title tabular-nums text-ink">{{ $missedCount }}</p>
+                <p class="mt-0.5 text-[11px] font-semibold uppercase text-text-tertiary">{{ __('Missed') }}</p>
+            </div>
+        </div>
+        @unless($ended)
+            @if($totalCount > 0)
+                <p class="-mt-2 text-[13px] text-text-tertiary">
+                    {{ __(':percent% done since :date', ['percent' => $completionPercent, 'date' => $rangeStart->translatedFormat('j M')]) }}
+                    @if($avgMarkMinutes !== null)
+                        · {{ __('usually marked within :duration', ['duration' => $this->formatMinutes($avgMarkMinutes)]) }}
+                    @endif
+                </p>
+            @endif
+        @endunless
+
+        {{-- Ended: collapsed link to full history, expands into the Recent marks card below --}}
+        @if($ended && $recentEventsLimit <= 5 && $recentEvents->count() < $totalCount)
+            <button type="button" wire:click="loadMoreRecent" wire:loading.attr="disabled" wire:target="loadMoreRecent"
+                    class="w-full h-12 px-4 rounded-field bg-white border border-border flex items-center justify-between disabled:opacity-50">
+                <span class="text-[15px] font-semibold text-ink">{{ __('All :count marks', ['count' => $totalCount]) }}</span>
+                <span class="text-text-tertiary">›</span>
+            </button>
+        @endif
+
+        {{-- Recent marks --}}
+        @if($recentEvents->isNotEmpty() && (! $ended || $recentEventsLimit > 5 || $recentEvents->count() >= $totalCount))
+            <div class="rounded-card bg-white border border-border p-4" x-data="{ openEventId: null }">
+                <div class="flex items-baseline justify-between">
+                    <p class="text-[12px] font-semibold uppercase tracking-label text-text-tertiary">{{ __('Recent marks') }}</p>
+                    @if($recentEvents->count() < ($doneCount + $skippedCount + $missedCount))
+                        <button type="button" wire:click="loadMoreRecent" wire:loading.attr="disabled" wire:target="loadMoreRecent" class="text-[12px] font-semibold text-brand disabled:opacity-50">
+                            {{ __('All :count ›', ['count' => $doneCount + $skippedCount + $missedCount]) }}
+                        </button>
+                    @else
+                        <p class="text-[12px] text-text-quaternary">{{ __('tap to change') }}</p>
+                    @endif
+                </div>
+                <div class="mt-2 space-y-2.5">
+                    @foreach($recentEvents as $event)
                         @php
-                            $sortedDates = collect($notification->specific_dates)
-                                ->filter(fn($e) => is_array($e) ? ($e['date'] ?? '') : $e)
-                                ->sortBy(fn($e) => is_array($e) ? ($e['date'] ?? '') : $e)
-                                ->values();
+                            $isDone = $event->status === EventStatus::Done;
+                            $isSkipped = $event->status === EventStatus::Cancelled;
+                            $isMissed = $event->status === EventStatus::Pending;
+                            $dotColor = $isDone ? 'bg-success' : ($isSkipped ? 'bg-neutral-dot' : 'bg-danger');
                         @endphp
-                        @foreach($sortedDates as $entry)
-                            @php
-                                $dateStr = is_array($entry) ? ($entry['date'] ?? '') : $entry;
-                                $entryTimes = is_array($entry) ? ($entry['times'] ?? []) : [];
-                                sort($entryTimes);
-                            @endphp
-                            @if($dateStr)
-                                <div class="flex items-center justify-between p-2.5 rounded-xl bg-gray-50">
-                                    <span class="text-sm font-semibold text-gray-900">{{ \Illuminate\Support\Carbon::parse($dateStr)->translatedFormat('M j, Y') }}</span>
-                                    @if(!empty($entryTimes))
-                                        <span class="text-xs text-gray-500">{{ implode(', ', $entryTimes) }}</span>
-                                    @endif
-                                </div>
-                            @endif
-                        @endforeach
-                    </div>
-                </div>
-            @endif
-
-            @if($notification->starts_at || $notification->ends_at)
-                <div class="flex gap-4">
-                    @if($notification->starts_at)
-                        <div class="p-3 rounded-2xl bg-gray-50 flex-1">
-                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{ __('Starts') }}</p>
-                            <p class="mt-1 text-sm font-semibold text-gray-900">{{ $notification->starts_at->translatedFormat('M j, Y') }}</p>
-                        </div>
-                    @endif
-                    @if($notification->ends_at)
-                        <div class="p-3 rounded-2xl bg-gray-50 flex-1">
-                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{ __('Ends') }}</p>
-                            <p class="mt-1 text-sm font-semibold text-gray-900">{{ $notification->ends_at->translatedFormat('M j, Y') }}</p>
-                            @php
-                                $startsAt = $notification->starts_at ?? $notification->created_at->startOfDay();
-                                $totalDays = (int)$startsAt->diffInDays($notification->ends_at) + 1;
-                            @endphp
-                            <p class="text-xs text-gray-400 mt-0.5">{{ $totalDays }} {{ $totalDays === 1 ? __('day') : __('days') }} {{ __('total') }}</p>
-                        </div>
-                    @endif
-                </div>
-            @endif
-        </div>
-    </div>
-
-    {{-- Upcoming Events --}}
-    @if($eventsTotal > 0)
-        <div class="px-4 mt-5">
-            <div class="flex items-center justify-between mb-3 px-1">
-                <h2 class="text-sm font-bold text-gray-400 uppercase tracking-widest">{{ __('Upcoming Events') }}</h2>
-                <span class="text-xs text-gray-400">{{ $events->count() }} / {{ $eventsTotal }}</span>
-            </div>
-            <div class="space-y-2">
-                @foreach($events as $event)
-                    <a href="{{ route('events.show', $event) }}?back={{ urlencode(route('notifications.show', $notification).'?back='.urlencode($backUrl)) }}" class="card block p-4">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
-                                <p class="text-sm font-medium text-gray-700">@userTime($event->scheduled_at, 'M j, Y \a\t H:i')</p>
+                        <div class="rounded-control -mx-1 px-1">
+                            <button type="button" @click="openEventId = openEventId === '{{ $event->id }}' ? null : '{{ $event->id }}'"
+                                    class="w-full flex items-center gap-2.5">
+                                <span class="w-[7px] h-[7px] rounded-full shrink-0 {{ $dotColor }}"></span>
+                                <span class="flex-1 min-w-0 text-left text-[14px] text-ink truncate">@userTime($event->scheduled_at, 'D, j M')</span>
+                                <span class="shrink-0 text-[13px] tabular-nums {{ $isMissed ? 'font-semibold text-danger' : 'text-text-secondary' }}">
+                                    {{ $isDone ? __('done') . ' ' . ($event->completed_at?->copy()->setTimezone($tz)->format('H:i') ?? '') : ($isSkipped ? __('skipped') : __('missed')) }}
+                                </span>
+                            </button>
+                            <div x-show="openEventId === '{{ $event->id }}'" x-cloak x-transition class="flex gap-2 pb-2">
+                                <button type="button" wire:click="markDone('{{ $event->id }}')" wire:loading.attr="disabled" wire:target="markDone('{{ $event->id }}')"
+                                        class="flex-1 h-10 rounded-chip bg-success-tint text-[13px] font-semibold text-success disabled:opacity-50">{{ __('Done') }}</button>
+                                <button type="button" wire:click="markCancelled('{{ $event->id }}')" wire:loading.attr="disabled" wire:target="markCancelled('{{ $event->id }}')"
+                                        class="flex-1 h-10 rounded-chip bg-fill text-[13px] font-semibold text-text-secondary disabled:opacity-50">{{ __('Skip') }}</button>
+                                @unless($isMissed)
+                                    <button type="button" wire:click="clearStatus('{{ $event->id }}')" wire:loading.attr="disabled" wire:target="clearStatus('{{ $event->id }}')"
+                                            class="flex-1 h-10 rounded-chip bg-white border border-border text-[13px] font-semibold text-text-secondary disabled:opacity-50">{{ __('Clear') }}</button>
+                                @endunless
                             </div>
-                            <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md text-blue-600 bg-blue-50">
-                                {{ __('Pending') }}
-                            </span>
                         </div>
-                    </a>
-                @endforeach
+                    @endforeach
+                </div>
             </div>
+        @endif
 
-            @if($events->count() < $eventsTotal)
-                <button
-                    wire:click="loadMoreEvents"
-                    wire:loading.attr="disabled"
-                    wire:target="loadMoreEvents"
-                    class="mt-4 w-full py-3 text-sm font-semibold text-blue-600 bg-blue-50 rounded-2xl border border-blue-100 active:scale-[0.98] transition-all disabled:opacity-50"
-                >
-                    <span wire:loading.remove wire:target="loadMoreEvents">{{ __('Show more') }}</span>
-                    <span wire:loading wire:target="loadMoreEvents">{{ __('Loading...') }}</span>
-                </button>
-            @endif
-        </div>
-    @endif
-
-    {{-- Recent Events --}}
-    @if($recentTotal > 0)
-        <div class="px-4 mt-5">
-            <div class="flex items-center justify-between mb-3 px-1">
-                <h2 class="text-sm font-bold text-gray-400 uppercase tracking-widest">{{ __('Recent Events') }}</h2>
-                <span class="text-xs text-gray-400">{{ $recentEvents->count() }} / {{ $recentTotal }}</span>
-            </div>
-            <div class="space-y-2">
-                @foreach($recentEvents as $event)
-                    <a href="{{ route('events.show', $event) }}?back={{ urlencode(route('notifications.show', $notification).'?back='.urlencode($backUrl)) }}" class="card block p-4">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
-                                <p class="text-sm font-medium text-gray-700">@userTime($event->scheduled_at, 'M j, Y \a\t H:i')</p>
-                            </div>
-                            <span class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-lg shrink-0 ml-3
-                                @if($event->status === \App\Enums\EventStatus::Done) text-green-600 bg-green-50
-                                @elseif($event->status === \App\Enums\EventStatus::Postponed) text-amber-600 bg-amber-50
-                                @else text-gray-500 bg-gray-100
-                                @endif">
-                                {{ $event->status->label() }}
-                            </span>
-                        </div>
-                    </a>
-                @endforeach
-            </div>
-
-            @if($recentEvents->count() < $recentTotal)
-                <button
-                    wire:click="loadMoreRecent"
-                    wire:loading.attr="disabled"
-                    wire:target="loadMoreRecent"
-                    class="mt-4 w-full py-3 text-sm font-semibold text-gray-600 bg-gray-50 rounded-2xl border border-gray-200 active:scale-[0.98] transition-all disabled:opacity-50"
-                >
-                    <span wire:loading.remove wire:target="loadMoreRecent">{{ __('Show more') }}</span>
-                    <span wire:loading wire:target="loadMoreRecent">{{ __('Loading...') }}</span>
-                </button>
-            @endif
-        </div>
-    @endif
-
-    {{-- Actions --}}
-    <div class="px-4 mt-6 mb-6 space-y-3">
-        <div class="flex gap-3">
-            <a href="{{ route('notifications.edit', $notification) }}?back={{ urlencode(route('notifications.show', $notification).'?back='.urlencode($backUrl)) }}" class="flex-1 py-3 text-sm font-bold text-center text-indigo-600 bg-white rounded-xl border border-indigo-200 hover:bg-indigo-50 active:scale-[0.98] transition-all shadow-sm">
-                {{ __('Edit') }}
-            </a>
-            @if(!$notification->isEnded())
-                <button wire:click="toggleActive" wire:loading.attr="disabled" wire:target="toggleActive" type="button" class="flex-1 py-3 text-sm font-bold text-center rounded-xl border active:scale-[0.98] transition-all shadow-sm disabled:opacity-50
-                    {{ $notification->is_active
-                        ? 'text-amber-600 bg-white border-amber-200 hover:bg-amber-50'
-                        : 'text-green-600 bg-white border-green-200 hover:bg-green-50' }}">
-                    <span wire:loading.remove wire:target="toggleActive">{{ $notification->is_active ? __('Pause') : __('Activate') }}</span>
-                    <span wire:loading wire:target="toggleActive">{{ __('Updating...') }}</span>
-                </button>
-            @endif
-        </div>
-
-        <button wire:click="confirmDelete" wire:loading.attr="disabled" wire:target="confirmDelete,delete" type="button" class="w-full py-3 text-sm font-bold text-red-500 bg-white rounded-xl border border-gray-200 hover:bg-red-50 hover:border-red-200 active:scale-[0.98] transition-all shadow-sm disabled:opacity-50">
+        {{-- Delete --}}
+        <button type="button" wire:click="confirmDelete" wire:loading.attr="disabled" wire:target="confirmDelete,delete"
+                class="w-full h-[50px] rounded-field bg-white border border-border text-[15px] font-semibold text-danger disabled:opacity-50">
             <span wire:loading.remove wire:target="confirmDelete,delete">{{ __('Delete Reminder') }}</span>
             <span wire:loading wire:target="confirmDelete,delete">{{ __('Deleting...') }}</span>
         </button>
     </div>
 
     @teleport('body')
-    <div x-data="{ confirmingDelete: false }"
-         x-on:show-delete-confirmation.window="confirmingDelete = true"
-         x-show="confirmingDelete" x-cloak
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-150"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         @keydown.escape.window="confirmingDelete = false"
-         class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6"
-         @click.self="confirmingDelete = false">
-        <div x-show="confirmingDelete"
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0 scale-95"
-             x-transition:enter-end="opacity-100 scale-100"
-             x-transition:leave="transition ease-in duration-150"
-             x-transition:leave-start="opacity-100 scale-100"
-             x-transition:leave-end="opacity-0 scale-95"
-             class="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl">
-            <div class="flex items-center gap-3 mb-2">
-                <div class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center shrink-0">
-                    <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3" />
-                    </svg>
-                </div>
-                <h3 class="text-base font-bold text-gray-900">{{ __('Delete Reminder') }}</h3>
-            </div>
-            <p class="text-sm text-gray-500 mb-5">{{ __('Are you sure you want to delete this reminder? This will permanently delete the reminder and all its notification history. This action cannot be undone.') }}</p>
-            <div class="flex gap-3">
-                <button type="button" @click="confirmingDelete = false"
-                        class="flex-1 py-3 text-sm font-bold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 active:scale-[0.98] transition-all">
-                    {{ __('Cancel') }}
-                </button>
-                <button type="button"
-                        @click="confirmingDelete = false; $wire.delete()"
-                        class="flex-1 py-3 text-sm font-bold text-red-500 bg-gray-100 rounded-xl hover:bg-red-50 active:scale-[0.98] transition-all">
-                    {{ __('Delete') }}
-                </button>
-            </div>
+        <div x-data="{ show: $wire.entangle('confirmingDelete') }">
+            <x-confirm-dialog
+                show="show"
+                :title="__('Delete “:name”?', ['name' => $notification->name])"
+                :confirm-label="__('Delete')"
+                on-confirm="$wire.delete()"
+                on-cancel="$wire.cancelDelete()"
+            >
+                {{ trans_choice('Its :count mark goes with it, and nothing more will be sent. This action cannot be undone.|Its :count marks go with it, and nothing more will be sent. This action cannot be undone.', $totalCount, ['count' => $totalCount]) }}
+            </x-confirm-dialog>
         </div>
-    </div>
     @endteleport
 </div>

@@ -60,7 +60,7 @@ class SendPendingNotificationsTest extends TestCase
         $this->artisan('app:send-pending-notifications')->assertSuccessful();
 
         Queue::assertPushed(SendPushNotificationJob::class, function ($job) use ($event) {
-            return $job->options['url'] === route('events.show', $event);
+            return $job->options['url'] === route('home', ['event' => $event->id]);
         });
     }
 

@@ -9,3 +9,8 @@ parameters:
         - routes/
 
     level: 5
+
+    # Laravel 11+ method-based casts() isn't AST-parsed for property types unless
+    # this is on — without it every cast property (Carbon, enums, ...) resolves to
+    # its raw DB type (string) instead of the cast target.
+    parseModelCastsMethod: true

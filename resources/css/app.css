@@ -6,8 +6,70 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Instrument Sans', system-ui, -apple-system, sans-serif;
+}
+
+/* ── Notifyr 2.0 design tokens ── */
+@theme {
+    /* Colors — see design_handoff_notifyr_2/README.md "Design Tokens > Colors" */
+    --color-brand: #4f46e5;
+    --color-brand-dark: #3730a3;
+    --color-ink: #15171c;
+    --color-ink-muted: #2a2e37;
+    --color-text-secondary: #5b6069;
+    --color-text-tertiary: #8a8f98;
+    --color-text-quaternary: #9aa0a8;
+    --color-indigo-tint: #eef0ff;
+    --color-indigo-tint-border: #d8dcff;
+    --color-indigo-tint-text: #2b2f6b;
+    --color-indigo-light-bar: #c7cbf5;
+    --color-canvas: #f6f7f9;
+    --color-canvas-sunken: #fafbfc;
+    --color-surface-muted: #f0f1f4;
+    --color-fill: #eef0f3;
+    --color-border: #e6e8ec;
+    --color-border-light: #eef0f3;
+    --color-border-strong: #dcdfe5;
+    --color-border-input: #d3d7de;
+    --color-border-dashed: #cfd3da;
+    --color-avatar-bg: #e6e8ee;
+    --color-success: #15803d;
+    --color-success-tint: #e8f5ec;
+    --color-warning: #b45309;
+    --color-warning-text: #7c4a09;
+    --color-warning-tint: #fdf3e7;
+    --color-warning-tint-border: #f2ddbf;
+    --color-danger: #b42318;
+    --color-danger-tint: #fdecea;
+    --color-danger-tint-border: #f0d4d0;
+    --color-neutral-dot: #b0b5bd;
+    --color-neutral-dot-dark: #7d8590;
+
+    /* Radii */
+    --radius-tab-bar: 28px;
+    --radius-sheet: 26px;
+    --radius-hero: 22px;
+    --radius-card: 20px;
+    --radius-row: 18px;
+    --radius-field: 16px;
+    --radius-control: 14px;
+    --radius-chip: 12px;
+    --radius-pill: 10px;
+    --radius-tag: 8px;
+
+    /* Shadows */
+    --shadow-tab-bar: 0 12px 30px -14px rgba(16, 20, 40, 0.3);
+    --shadow-sheet: 0 -12px 40px -14px rgba(16, 20, 40, 0.4);
+    --shadow-undo: 0 14px 30px -14px rgba(16, 20, 40, 0.5);
+    --shadow-fab: 0 10px 24px -8px rgba(79, 70, 229, 0.55);
+
+    /* Letter-spacing (tracking) roles */
+    --tracking-title: -0.02em;
+    --tracking-label: 0.08em;
+    --tracking-caption: 0.1em;
+
+    /* Motion */
+    --ease-sheet: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 /* Hide scrollbars globally */
@@ -204,7 +266,7 @@ body::-webkit-scrollbar {
     /* Mobile gradient background */
     @media (max-width: 768px) {
         .mobile-gradient-bg {
-            background: #fafbfc;
+            background: var(--color-canvas);
         }
 
         .active\:scale-98:active {
