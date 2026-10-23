@@ -30,6 +30,21 @@ jobs:
       - name: Install Composer dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
+      # Assets are built here rather than on the server: a failed build stops the deploy before
+      # the server is touched, and the 1 GB droplet doesn't have to run Vite. Deployer uploads
+      # public/build into the new release (see build:upload in deploy.php).
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Build frontend assets
+        run: npm ci && npm run build
+
+      - name: Verify build manifest
+        run: test -f public/build/manifest.json
+
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.9.0
         with:
