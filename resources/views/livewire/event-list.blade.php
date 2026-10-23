@@ -60,11 +60,14 @@
                             $isSelected = $selectedDay === $bar['date'];
                             $dimmed = $selectedDay && ! $isSelected;
                             if ($bar['marks'] === 0) {
-                                $barHeight = 18;
+                                $barHeight = 4;
                                 $barColor = 'bg-avatar-bg';
                             } elseif ($bar['ratio'] >= 1.0) {
                                 $barHeight = 84;
                                 $barColor = 'bg-brand';
+                            } elseif ($bar['ratio'] == 0.0) {
+                                $barHeight = 22;
+                                $barColor = 'bg-warning-bar';
                             } else {
                                 $barHeight = (int) round(22 + $bar['ratio'] * (84 - 22));
                                 $barColor = 'bg-indigo-light-bar';
@@ -108,12 +111,14 @@
                                     $cellColor = 'bg-avatar-bg text-text-tertiary font-medium';
                                 } elseif ($cell['ratio'] >= 1.0) {
                                     $cellColor = 'bg-brand text-white font-semibold';
+                                } elseif ($cell['ratio'] == 0.0) {
+                                    $cellColor = 'bg-warning-bar text-warning-text font-semibold';
                                 } else {
                                     $cellColor = 'bg-indigo-light-bar text-ink font-semibold';
                                 }
                             @endphp
                             <button type="button" wire:click="selectDay('{{ $cell['date'] }}')" wire:key="month-day-{{ $cell['date'] }}"
-                                    class="aspect-square rounded-chip flex items-center justify-center text-[13px] tabular-nums {{ $cellColor }} {{ $dimmed ? 'opacity-40' : '' }} {{ ($isSelected || ($cell['isToday'] && ! $selectedDay)) ? 'ring-2 ring-ink ring-offset-1' : '' }}">
+                                    class="aspect-square md:aspect-auto md:h-11 rounded-chip flex items-center justify-center text-[13px] tabular-nums {{ $cellColor }} {{ $dimmed ? 'opacity-40' : '' }} {{ ($isSelected || ($cell['isToday'] && ! $selectedDay)) ? 'ring-2 ring-ink ring-offset-1' : '' }}">
                                 {{ $cell['day'] }}
                             </button>
                         @endif
@@ -126,7 +131,7 @@
                 <div class="mt-3 pt-3 border-t border-border-light flex items-center gap-4">
                     <span class="flex items-center gap-1.5 text-[12px] text-text-tertiary"><span class="w-2.5 h-2.5 rounded-[3px] bg-brand"></span>{{ __('All done') }}</span>
                     <span class="flex items-center gap-1.5 text-[12px] text-text-tertiary"><span class="w-2.5 h-2.5 rounded-[3px] bg-indigo-light-bar"></span>{{ __('Partly done') }}</span>
-                    <span class="flex items-center gap-1.5 text-[12px] text-text-tertiary"><span class="w-2.5 h-2.5 rounded-[3px] bg-avatar-bg"></span>{{ __('No reminders') }}</span>
+                    <span class="flex items-center gap-1.5 text-[12px] text-text-tertiary"><span class="w-2.5 h-2.5 rounded-[3px] bg-warning-bar"></span>{{ __('Missed') }}</span>
                 </div>
             @endunless
         </div>

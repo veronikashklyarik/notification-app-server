@@ -27,6 +27,21 @@ class NotificationListTest extends TestCase
             ->assertOk();
     }
 
+    public function test_reminder_card_swipe_is_limited_to_the_mobile_layout(): void
+    {
+        $user = User::factory()->create();
+        Notification::factory()->for($user)->create();
+
+        Livewire::actingAs($user)
+            ->test(NotificationList::class)
+            ->assertSeeHtml("return ! window.matchMedia('(min-width: 768px)').matches;")
+            ->assertSeeHtml('@touchstart="onStart(')
+            ->assertSeeHtml('@mousedown="onStart(')
+            ->assertSeeHtml('@resize.window="if (! isSwipeEnabled()) close()"')
+            ->assertSeeHtml('w-[228px] flex md:hidden')
+            ->assertSeeHtml('hidden md:flex items-center gap-4');
+    }
+
     public function test_computes_filter_chip_counts(): void
     {
         $user = User::factory()->create();

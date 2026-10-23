@@ -70,6 +70,54 @@ class NotificationShowTest extends TestCase
         $this->assertDatabaseHas('notifications', ['id' => $notification->id, 'is_active' => false]);
     }
 
+    public function test_pausing_keeps_missed_events_in_the_history(): void
+    {
+        $user = User::factory()->create();
+        $notification = Notification::factory()->for($user)->daily()->create(['is_active' => true]);
+        $missed = NotificationEvent::factory()->for($user)->for($notification)->create(['scheduled_at' => now()->subDay(), 'status' => EventStatus::Pending]);
+        NotificationEvent::factory()->for($user)->for($notification)->done()->create();
+
+        Livewire::actingAs($user)
+            ->test(NotificationShow::class, ['notification' => $notification])
+            ->call('toggleActive')
+            ->assertSet('missedCount', 1)
+            ->assertSet('doneCount', 1)
+            ->assertSet('totalCount', 2)
+            ->assertSet('recentEvents', fn ($events): bool => $events->count() === 2)
+            ->assertSee('Recent marks');
+
+        $this->assertModelExists($missed);
+    }
+
+    public function test_pausing_removes_future_events_and_shows_the_paused_message(): void
+    {
+        $user = User::factory()->create();
+        $notification = Notification::factory()->for($user)->daily()->create(['is_active' => true]);
+        $this->assertTrue($notification->events()->where('scheduled_at', '>', now())->exists());
+
+        Livewire::actingAs($user)
+            ->test(NotificationShow::class, ['notification' => $notification])
+            ->call('toggleActive')
+            ->assertSet('upcomingEvents', fn ($events): bool => $events->isEmpty())
+            ->assertSee('Paused — turn notifications on to schedule the next ones.')
+            ->assertDontSee('Nothing scheduled — this one is marked by hand.');
+
+        $this->assertFalse($notification->events()->where('scheduled_at', '>', now())->exists());
+    }
+
+    public function test_resuming_shows_next_up_without_a_page_reload(): void
+    {
+        $user = User::factory()->create();
+        $notification = Notification::factory()->for($user)->daily()->create(['is_active' => false]);
+
+        Livewire::actingAs($user)
+            ->test(NotificationShow::class, ['notification' => $notification])
+            ->assertSet('upcomingEvents', fn ($events): bool => $events->isEmpty())
+            ->call('toggleActive')
+            ->assertSet('upcomingEvents', fn ($events): bool => $events->isNotEmpty())
+            ->assertDontSee('Paused — turn notifications on to schedule the next ones.');
+    }
+
     public function test_mark_done_updates_the_event(): void
     {
         $user = User::factory()->create();

@@ -32,8 +32,8 @@ class SendPendingNotifications extends Command
                 // until the user explicitly marks it Done / Cancelled / Postponed.
                 $event->update(['notified_at' => now()]);
 
-                if ($event->notification === null || $event->notification->trashed()) {
-                    // Orphaned event (parent notification deleted) — skip delivery
+                if ($event->notification === null || $event->notification->trashed() || ! $event->notification->is_active) {
+                    // Orphaned or paused — skip delivery; marking it notified above keeps a resume from firing stale pushes
                     return;
                 }
 

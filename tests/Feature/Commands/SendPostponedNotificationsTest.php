@@ -42,6 +42,30 @@ class SendPostponedNotificationsTest extends TestCase
         });
     }
 
+    public function test_due_snoozed_events_of_a_paused_reminder_go_back_to_pending_without_a_push(): void
+    {
+        Queue::fake();
+
+        $user = User::factory()->create();
+        PushSubscription::factory()->create(['user_id' => $user->id]);
+
+        $event = NotificationEvent::factory()->create([
+            'user_id' => $user->id,
+            'scheduled_at' => now()->subMinutes(20),
+            'status' => EventStatus::Postponed,
+            'postponed_until' => now()->subMinute(),
+            'notified_at' => now()->subMinutes(20),
+        ]);
+        $event->notification->update(['is_active' => false]);
+
+        $this->artisan('app:send-postponed-notifications')->assertSuccessful();
+
+        $event->refresh();
+        $this->assertSame(EventStatus::Pending, $event->status);
+        $this->assertNull($event->postponed_until);
+        Queue::assertNothingPushed();
+    }
+
     public function test_not_yet_due_snoozed_events_are_left_alone(): void
     {
         Queue::fake();

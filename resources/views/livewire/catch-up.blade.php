@@ -19,7 +19,7 @@
     </p>
 
     @if($missedEvents->isNotEmpty())
-        <div wire:key="catchup-missed-wrapper">
+        <div wire:key="catchup-missed-wrapper" x-data="{ highlightEventId: @js($highlightEventId) }" x-init="if (highlightEventId) { $nextTick(() => $refs['highlight-' + highlightEventId]?.scrollIntoView({ behavior: 'smooth', block: 'center' })) }">
         <div class="mt-3.5 space-y-4">
             @foreach($groupedMissed as $dateKey => $dayEvents)
                 @php
@@ -36,7 +36,7 @@
                     </div>
                     <div class="space-y-2">
                         @foreach($dayEvents as $event)
-                            <div wire:key="catchup-{{ $event->id }}" class="rounded-row border border-border bg-white px-4 py-3.5 flex items-center gap-3">
+                            <div wire:key="catchup-{{ $event->id }}" x-ref="highlight-{{ $event->id }}" class="rounded-row border bg-white px-4 py-3.5 flex items-center gap-3 {{ $highlightEventId === $event->id ? 'border-brand ring-2 ring-brand/20' : 'border-border' }}">
                                 <span class="w-[46px] shrink-0 text-[15px] font-semibold tabular-nums text-ink">@userTime($event->scheduled_at, 'H:i')</span>
                                 <p class="min-w-0 flex-1 text-[15px] font-semibold text-ink truncate">{{ $event->notification->name }}</p>
                                 <button wire:click="markDone('{{ $event->id }}')" wire:loading.attr="disabled" wire:target="markDone('{{ $event->id }}')"

@@ -5,6 +5,8 @@
 <div
     x-data="{
         y: 760,
+        // Phones get a bottom sheet that slides up; the desktop layout gets a centered modal that fades in.
+        isDesktop: window.matchMedia('(min-width: 768px)').matches,
         dragging: false,
         startY: 0,
         baseY: 0,
@@ -50,6 +52,10 @@
         },
     }"
     x-init="requestAnimationFrame(() => requestAnimationFrame(() => { y = 0 }))"
+    {{-- Runs first (window, capture phase) and swallows the key once handled, so the discard dialog
+         it may have just opened doesn't receive the same Escape and close straight away --}}
+    @keydown.escape.window.capture="if (! confirmingDiscard) { $event.stopImmediatePropagation(); attemptClose(); }"
+    @resize.window="isDesktop = window.matchMedia('(min-width: 768px)').matches"
     @input.capture="dirty = true"
     @change.capture="dirty = true"
     class="fixed inset-0 z-[55]"
@@ -65,7 +71,9 @@
     <div
         class="absolute left-0 right-0 bottom-0 top-[max(28px,env(safe-area-inset-top))] bg-canvas rounded-t-sheet overflow-hidden flex flex-col shadow-sheet
                md:inset-0 md:top-0 md:m-auto md:w-full md:max-w-[520px] md:h-fit md:max-h-[85vh] md:rounded-sheet"
-        :style="`transform: translateY(${y}px); transition: ${dragging ? 'none' : 'transform .36s cubic-bezier(.32,.72,0,1)'}`"
+        :style="isDesktop
+            ? `transform: scale(${y > 0 ? 0.96 : 1}); opacity: ${y > 0 ? 0 : 1}; transition: transform .22s ease, opacity .22s ease`
+            : `transform: translateY(${y}px); transition: ${dragging ? 'none' : 'transform .36s cubic-bezier(.32,.72,0,1)'}`"
         @touchmove.passive="onGrabMove($event)"
         @touchend="onGrabEnd()"
         @mousemove.window="onGrabMove($event)"
@@ -93,7 +101,8 @@
         </div>
 
         {{-- Body --}}
-        <div class="flex-1 overflow-y-auto px-5 py-4">
+        {{-- md:flex-initial — inside the desktop modal's h-fit box, flex-1 would size the body to zero --}}
+        <div class="flex-1 md:flex-initial min-h-0 overflow-y-auto px-5 py-4">
             {{ $slot }}
         </div>
     </div>

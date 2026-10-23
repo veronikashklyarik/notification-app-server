@@ -83,6 +83,18 @@ class NotificationCreateTest extends TestCase
             ->assertDispatched('sheet-closed');
     }
 
+    public function test_sheet_renders_as_a_bottom_sheet_on_mobile_and_a_modal_on_desktop(): void
+    {
+        $user = User::factory()->create();
+
+        Livewire::actingAs($user)
+            ->test(NotificationCreate::class, ['embedded' => true])
+            ->assertSeeHtml("isDesktop: window.matchMedia('(min-width: 768px)').matches")
+            ->assertSeeHtml('md:max-w-[520px] md:h-fit md:max-h-[85vh]')
+            ->assertSeeHtml('flex-1 md:flex-initial min-h-0 overflow-y-auto')
+            ->assertSeeHtml('@keydown.escape.window.capture="if (! confirmingDiscard) { $event.stopImmediatePropagation(); attemptClose(); }"');
+    }
+
     public function test_invalid_save_dispatches_scroll_to_error(): void
     {
         $user = User::factory()->create();

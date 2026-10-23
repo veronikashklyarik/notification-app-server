@@ -128,7 +128,7 @@
                 </div>
                 <button type="button" wire:click="toggleActive" wire:loading.attr="disabled" wire:target="toggleActive"
                         class="shrink-0 relative w-[50px] h-[30px] rounded-full transition-colors disabled:opacity-50 {{ $notification->is_active ? 'bg-brand' : 'bg-border-input' }}">
-                    <span class="absolute top-0.5 left-0.5 w-6 h-6 rounded-full bg-white transition-transform {{ $notification->is_active ? 'translate-x-5' : 'translate-x-0.5' }}"></span>
+                    <span class="absolute top-[3px] left-[3px] w-6 h-6 rounded-full bg-white transition-transform {{ $notification->is_active ? 'translate-x-5' : 'translate-x-0' }}"></span>
                 </button>
             </div>
         @endunless
@@ -142,7 +142,9 @@
 
             <div class="mt-3.5 pt-3.5 border-t border-border-light">
                 <p class="text-[12px] font-semibold uppercase tracking-label text-text-tertiary">{{ __('Next up') }}</p>
-                @if($upcomingGroups->isNotEmpty())
+                @if(! $notification->is_active)
+                    <p class="mt-2 text-[14px] text-text-tertiary">{{ __('Paused — turn notifications on to schedule the next ones.') }}</p>
+                @elseif($upcomingGroups->isNotEmpty())
                     <div class="mt-2 space-y-1.5">
                         @foreach($upcomingGroups as $group)
                             <div class="flex items-center justify-between">
