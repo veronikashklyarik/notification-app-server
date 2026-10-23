@@ -8,6 +8,7 @@ use App\Models\Notification;
 use App\Models\NotificationEvent;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -224,6 +225,45 @@ class EventListTest extends TestCase
             ->assertSet('period', 'month')
             ->assertSet('monthDoneCount', 1)
             ->assertSet('monthMarksCount', 2);
+    }
+
+    public function test_week_chart_marks_a_day_with_nothing_done_as_missed(): void
+    {
+        $user = User::factory()->create(['timezone' => 'UTC']);
+        $notification = Notification::factory()->for($user)->inactive()->create();
+        NotificationEvent::factory()->for($user)->for($notification)->create(['scheduled_at' => now()->subDays(2), 'status' => EventStatus::Pending]);
+
+        Livewire::actingAs($user)
+            ->test(EventList::class)
+            ->assertSeeHtml('rounded-tag bg-warning-bar " style="height: 22px"')
+            ->assertSeeHtml('rounded-tag bg-avatar-bg " style="height: 4px"')
+            ->assertSee(__('Missed'))
+            ->assertDontSee(__('No reminders'));
+    }
+
+    public function test_month_calendar_marks_a_day_with_nothing_done_as_missed(): void
+    {
+        Carbon::setTestNow('2026-10-23 12:00:00');
+        $user = User::factory()->create(['timezone' => 'UTC']);
+        $notification = Notification::factory()->for($user)->inactive()->create();
+        NotificationEvent::factory()->for($user)->for($notification)->cancelled()->create(['scheduled_at' => now()->subDays(5)]);
+
+        Livewire::actingAs($user)
+            ->test(EventList::class)
+            ->call('setPeriod', 'month')
+            ->assertSeeHtml('bg-warning-bar text-warning-text font-semibold');
+    }
+
+    public function test_month_calendar_days_are_square_on_mobile_and_compact_on_desktop(): void
+    {
+        $user = User::factory()->create(['timezone' => 'UTC']);
+        $notification = Notification::factory()->for($user)->inactive()->create();
+        NotificationEvent::factory()->for($user)->for($notification)->done()->create(['scheduled_at' => now()]);
+
+        Livewire::actingAs($user)
+            ->test(EventList::class)
+            ->call('setPeriod', 'month')
+            ->assertSeeHtml('aspect-square md:aspect-auto md:h-11 rounded-chip');
     }
 
     public function test_prev_period_moves_the_week_back_seven_days(): void

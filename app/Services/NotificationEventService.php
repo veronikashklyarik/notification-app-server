@@ -16,8 +16,10 @@ class NotificationEventService
 
     public function regenerateEvents(Notification $notification): void
     {
+        // Past pending events are missed occurrences — they belong to the history, so only future ones are rebuilt.
         $notification->events()
             ->where('status', EventStatus::Pending)
+            ->where('scheduled_at', '>', now())
             ->delete();
 
         if (! $notification->is_active || $notification->schedule_type === ScheduleType::AsNeeded) {

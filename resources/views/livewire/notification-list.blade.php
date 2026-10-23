@@ -65,27 +65,40 @@
             <div
                 x-show="filter === 'all' || filter === buckets[{{ $notification->id }}]"
                 wire:key="notification-{{ $notification->id }}"
-                class="relative overflow-hidden rounded-card select-none"
+                class="relative overflow-hidden rounded-card select-none md:select-auto"
                 x-data="{
                     tx: 0,
                     open: false,
                     dragging: false,
+                    dragged: false,
                     startX: 0,
                     startY: 0,
                     snapWidth: 228,
-                    onStart(e) {
-                        this.startX = e.touches[0].clientX;
-                        this.startY = e.touches[0].clientY;
+                    // The swipe belongs to the mobile layout (phone browser, PWA, a narrow desktop window);
+                    // the desktop layout shows text actions under the card instead.
+                    isSwipeEnabled() {
+                        return ! window.matchMedia('(min-width: 768px)').matches;
+                    },
+                    onStart(x, y) {
+                        if (! this.isSwipeEnabled()) return;
+                        this.startX = x;
+                        this.startY = y;
                         this.dragging = true;
+                        this.dragged = false;
                         $dispatch('swipe-reset', { except: {{ $notification->id }} });
                     },
-                    onMouseStart(e) {
-                        this.startX = e.clientX;
-                        this.startY = e.clientY;
-                        this.dragging = true;
-                        $dispatch('swipe-reset', { except: {{ $notification->id }} });
+                    onMove(x, y, e) {
+                        if (! this.dragging) return;
+                        let dx = x - this.startX;
+                        let dy = y - this.startY;
+                        if (Math.abs(dy) > Math.abs(dx) + 5) { this.dragging = false; return; }
+                        if (e.cancelable) e.preventDefault();
+                        if (Math.abs(dx) > 5) this.dragged = true;
+                        let base = this.open ? -this.snapWidth : 0;
+                        this.tx = Math.min(0, Math.max(-this.snapWidth, base + dx));
                     },
                     onEnd() {
+                        if (! this.dragging) return;
                         this.dragging = false;
                         if (this.tx < -60) {
                             this.tx = -this.snapWidth;
@@ -100,35 +113,17 @@
                         this.open = false;
                     }
                 }"
-                x-init="
-                    $el.addEventListener('touchmove', (e) => {
-                        if (!$data.dragging) return;
-                        let dx = e.touches[0].clientX - $data.startX;
-                        let dy = e.touches[0].clientY - $data.startY;
-                        if (Math.abs(dy) > Math.abs(dx) + 5) { $data.dragging = false; return; }
-                        e.preventDefault();
-                        let base = $data.open ? -$data.snapWidth : 0;
-                        $data.tx = Math.min(0, Math.max(-$data.snapWidth, base + dx));
-                    }, { passive: false });
-                    document.addEventListener('mousemove', (e) => {
-                        if (!$data.dragging) return;
-                        let dx = e.clientX - $data.startX;
-                        let dy = e.clientY - $data.startY;
-                        if (Math.abs(dy) > Math.abs(dx) + 5) { $data.dragging = false; return; }
-                        let base = $data.open ? -$data.snapWidth : 0;
-                        $data.tx = Math.min(0, Math.max(-$data.snapWidth, base + dx));
-                    });
-                    document.addEventListener('mouseup', () => {
-                        if ($data.dragging) $data.onEnd();
-                    });
-                "
-                @touchstart="onStart($event)"
+                x-init="$el.addEventListener('touchmove', (e) => onMove(e.touches[0].clientX, e.touches[0].clientY, e), { passive: false })"
+                @touchstart="onStart($event.touches[0].clientX, $event.touches[0].clientY)"
                 @touchend="onEnd()"
-                @mousedown="onMouseStart($event)"
+                @mousedown="onStart($event.clientX, $event.clientY)"
+                @mousemove.window="onMove($event.clientX, $event.clientY, $event)"
+                @mouseup.window="onEnd()"
+                @resize.window="if (! isSwipeEnabled()) close()"
                 @swipe-reset.window="if ($event.detail.except !== {{ $notification->id }}) close()"
             >
-                {{-- Swipe actions --}}
-                <div class="absolute right-0 top-0 bottom-0 w-[228px] flex">
+                {{-- Swipe actions — mobile layout only; the desktop layout uses the text actions below --}}
+                <div class="absolute right-0 top-0 bottom-0 w-[228px] flex md:hidden">
                     <button
                         type="button"
                         class="w-[76px] flex items-center justify-center bg-fill text-text-secondary"
@@ -160,8 +155,10 @@
                 {{-- Card --}}
                 <a href="{{ route('notifications.show', $notification) }}"
                    class="block p-4 bg-white border border-border relative z-10"
-                   :style="`transform: translateX(${tx}px); transition: ${dragging ? 'none' : 'transform 0.22s ease'}; cursor: ${dragging ? 'grabbing' : 'grab'}`"
-                   @click="if (open) { $event.preventDefault(); $event.stopPropagation(); close(); }"
+                   :style="`transform: translateX(${tx}px); transition: ${dragging ? 'none' : 'transform 0.22s ease'}`"
+                   :class="dragging ? 'cursor-grabbing' : 'cursor-grab md:cursor-pointer'"
+                   draggable="false"
+                   @click="if (dragged) { $event.preventDefault(); dragged = false; return; } if (open) { $event.preventDefault(); $event.stopPropagation(); close(); }"
                 >
                     <div class="{{ $bucket === 'active' ? '' : 'opacity-[0.72]' }}">
                         <div class="flex items-center gap-2">

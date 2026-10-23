@@ -57,6 +57,8 @@ class NotificationShow extends Component
         $this->notification->update([
             'is_active' => ! $this->notification->is_active,
         ]);
+
+        $this->loadEvents();
     }
 
     public function markDone(string $eventId): void

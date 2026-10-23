@@ -19,7 +19,7 @@
                     :disabled="loading"
                     class="shrink-0 relative w-[50px] h-[30px] rounded-full bg-brand disabled:opacity-50"
                 >
-                    <span class="absolute top-0.5 left-0.5 translate-x-5 w-6 h-6 rounded-full bg-white transition-transform"></span>
+                    <span class="absolute top-[3px] left-[3px] translate-x-5 w-6 h-6 rounded-full bg-white transition-transform"></span>
                 </button>
             </div>
             <template x-if="!isInstalled">
@@ -42,7 +42,7 @@
                     :disabled="loading"
                     class="shrink-0 relative w-[50px] h-[30px] rounded-full bg-border-input disabled:opacity-50"
                 >
-                    <span class="absolute top-0.5 left-0.5 translate-x-0.5 w-6 h-6 rounded-full bg-white transition-transform"></span>
+                    <span class="absolute top-[3px] left-[3px] translate-x-0 w-6 h-6 rounded-full bg-white transition-transform"></span>
                 </button>
             </div>
             <template x-if="!isInstalled">
@@ -60,7 +60,7 @@
                     <p class="{{ $subLabelClass ?? 'mt-0.5 text-[13px] text-warning' }}">{{ __('Not available in Safari tabs') }}</p>
                 </div>
                 <span class="shrink-0 relative w-[50px] h-[30px] rounded-full bg-border-input opacity-50">
-                    <span class="absolute top-0.5 translate-x-0.5 w-6 h-6 rounded-full bg-white"></span>
+                    <span class="absolute top-[3px] left-[3px] w-6 h-6 rounded-full bg-white"></span>
                 </span>
             </div>
             <p class="mt-2.5 text-[13px] leading-normal text-text-tertiary">{{ __('On iPhone, reminders can only reach you once :appName is on your Home Screen.', ['appName' => config('app.name')]) }}</p>

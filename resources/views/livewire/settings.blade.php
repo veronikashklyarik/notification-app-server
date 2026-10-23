@@ -30,34 +30,40 @@
         <div>
             <p class="mb-2 px-1 text-[12px] font-semibold uppercase tracking-label text-text-tertiary">{{ __('App') }}</p>
             <div class="rounded-card bg-white border border-border divide-y divide-border-light overflow-hidden">
-                <label class="flex items-center justify-between px-4 py-3.5">
-                    <span class="text-[15px] text-ink">{{ __('Language') }}</span>
-                    <span class="relative flex items-center gap-1">
-                        <select wire:model.live="locale" wire:change="updateLang"
-                                class="appearance-none bg-transparent border-none text-[15px] font-semibold text-brand text-right pr-4 focus:ring-0 focus:outline-none">
-                            @foreach(\App\Enums\Locale::cases() as $localeCase)
-                                <option value="{{ $localeCase->value }}">{{ $localeCase->label() }}</option>
-                            @endforeach
-                        </select>
-                        <span class="pointer-events-none absolute right-0 text-[18px] text-neutral-dot">›</span>
+                <label class="relative flex items-center justify-between gap-3 px-4 py-3.5">
+                    <span class="text-[15px] text-ink shrink-0">{{ __('Language') }}</span>
+                    <span class="flex items-center gap-1.5 min-w-0">
+                        <span class="truncate text-[15px] font-semibold text-brand">{{ $selectedLocaleLabel }}</span>
+                        <svg class="w-4 h-4 text-neutral-dot shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 5l7 7-7 7" />
+                        </svg>
                     </span>
+                    <select wire:model.live="locale" wire:change="updateLang" aria-label="{{ __('Language') }}"
+                            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                        @foreach(\App\Enums\Locale::cases() as $localeCase)
+                            <option value="{{ $localeCase->value }}">{{ $localeCase->label() }}</option>
+                        @endforeach
+                    </select>
                 </label>
 
-                <label class="flex items-center justify-between px-4 py-3.5">
+                <label class="relative flex items-center justify-between gap-3 px-4 py-3.5">
                     <span class="text-[15px] text-ink shrink-0">{{ __('Time zone') }}</span>
-                    <span class="relative flex items-center gap-1 min-w-0">
-                        <select wire:model.live="timezone" wire:change="updateTimezone"
-                                class="appearance-none bg-transparent border-none text-[15px] font-semibold text-brand text-right pr-4 focus:ring-0 focus:outline-none max-w-[180px]">
-                            @foreach($timezoneGroups as $region => $zones)
-                                <optgroup label="{{ __($region) }}">
-                                    @foreach($zones as $zone)
-                                        <option value="{{ $zone['value'] }}">{{ $zone['label'] }}</option>
-                                    @endforeach
-                                </optgroup>
-                            @endforeach
-                        </select>
-                        <span class="pointer-events-none absolute right-0 text-[18px] text-neutral-dot">›</span>
+                    <span class="flex items-center gap-1.5 min-w-0">
+                        <span class="truncate text-[15px] font-semibold text-brand">{{ $selectedTimezoneLabel }}</span>
+                        <svg class="w-4 h-4 text-neutral-dot shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 5l7 7-7 7" />
+                        </svg>
                     </span>
+                    <select wire:model.live="timezone" wire:change="updateTimezone" aria-label="{{ __('Time zone') }}"
+                            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                        @foreach($timezoneGroups as $region => $zones)
+                            <optgroup label="{{ __($region) }}">
+                                @foreach($zones as $zone)
+                                    <option value="{{ $zone['value'] }}">{{ $zone['label'] }}</option>
+                                @endforeach
+                            </optgroup>
+                        @endforeach
+                    </select>
                 </label>
 
                 <a href="{{ route('legal.privacy') }}" class="flex items-center justify-between px-4 py-3.5">

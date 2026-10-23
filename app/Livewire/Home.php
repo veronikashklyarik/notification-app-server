@@ -41,7 +41,13 @@ class Home extends Component
 
     public int $weekMarksCount = 0;
 
+    public int $weekSkippedCount = 0;
+
+    public int $weekMissedCount = 0;
+
     public int $weekCleanDays = 0;
+
+    public bool $hasReminders = false;
 
     /** @var array<int, array{date: string, marks: int, ratio: float|null, isToday: bool, initial: string}> */
     public array $weekBars = [];
@@ -53,7 +59,61 @@ class Home extends Component
 
     public function mount(): void
     {
+        if ($this->highlightedEventIsMissed()) {
+            $this->redirect(route('catch-up', ['event' => $this->highlightEventId]));
+
+            return;
+        }
+
         $this->loadEvents();
+    }
+
+    /**
+     * A push for an event from a previous day lands here, but that event is only listed in Catch up.
+     */
+    private function highlightedEventIsMissed(): bool
+    {
+        if ($this->highlightEventId === null) {
+            return false;
+        }
+
+        $user = Auth::user();
+        $todayStart = Carbon::now($user->timezone ?? 'UTC')->startOfDay();
+
+        return $user->notificationEvents()
+            ->whereKey($this->highlightEventId)
+            ->whereHas('notification')
+            ->where('status', EventStatus::Pending)
+            ->where('scheduled_at', '<', $todayStart->copy()->utc())
+            ->exists();
+    }
+
+    /**
+     * Countdown caption for the next-up card. Minutes round up before the event, so the last
+     * minute reads "in 1 min" rather than "in 0 min", and the first minute after it reads "now".
+     * The card's script re-computes the same caption client-side on every minute boundary.
+     *
+     * @return array{label: string, isOverdue: bool}
+     */
+    public function countdownLabel(Carbon $scheduledAt): array
+    {
+        $secondsUntil = now()->diffInSeconds($scheduledAt, false);
+
+        if ($secondsUntil > 0) {
+            return [
+                'label' => __('Next up · in :duration', ['duration' => $this->formatMinutes((int) ceil($secondsUntil / 60))]),
+                'isOverdue' => false,
+            ];
+        }
+
+        if ($secondsUntil > -60) {
+            return ['label' => __('Next up · now'), 'isOverdue' => false];
+        }
+
+        return [
+            'label' => __('Overdue · :duration ago', ['duration' => $this->formatMinutes((int) floor(-$secondsUntil / 60))]),
+            'isOverdue' => true,
+        ];
     }
 
     public function refresh(): void
@@ -177,9 +237,15 @@ class Home extends Component
         $todayStart = Carbon::now($tz)->startOfDay();
         $todayEnd = Carbon::now($tz)->endOfDay();
 
+        // A paused reminder shouldn't ask for attention: its unmarked events stay out of Today
+        // (they still count as missed in History and show up in Catch up), marked ones stay listed.
         $this->todayEvents = $user->notificationEvents()
             ->with('notification')
             ->whereHas('notification')
+            ->where(fn ($query) => $query
+                ->whereNotIn('status', [EventStatus::Pending, EventStatus::Postponed])
+                ->orWhereHas('notification', fn ($notification) => $notification->where('is_active', true))
+            )
             ->whereBetween('scheduled_at', [$todayStart->copy()->utc(), $todayEnd->copy()->utc()])
             ->orderBy('scheduled_at')
             ->get();
@@ -210,15 +276,15 @@ class Home extends Component
         $this->weekBars = [];
         $this->weekDoneCount = 0;
         $this->weekMarksCount = 0;
+        $this->weekSkippedCount = 0;
+        $this->weekMissedCount = 0;
         $this->weekCleanDays = 0;
 
-        // Deliberately not shared with EventList::aggregateRange(): this is a glanceable
-        // dashboard mini-chart, not the detailed History record. "Missed" here means
-        // "anything that isn't Done or still-Pending" (so Cancelled and Postponed both
-        // count as a miss), and it ignores overdue-but-still-Pending events entirely —
-        // History's definition is the precise one (Cancelled tracked separately, overdue
-        // Pending = missed). The two charts can show different numbers for the same week
-        // by design. Postponed events aren't surfaced by either chart's feed today.
+        // Counts the same way as EventList::aggregateRange(), so this mini-chart and History agree
+        // for the same week: Done vs Skipped + overdue Pending. Snoozed and not-yet-due events are left out.
+        $this->hasReminders = $user->reminders()->exists();
+
+        $now = now();
         $weekStart = $todayStart->copy()->subDays(6);
         $weekStatusesByDay = $user->notificationEvents()
             ->whereHas('notification')
@@ -228,13 +294,18 @@ class Home extends Component
 
         for ($i = 6; $i >= 0; $i--) {
             $dayStart = $todayStart->copy()->subDays($i);
-            $dayStatuses = ($weekStatusesByDay->get($dayStart->format('Y-m-d')) ?? collect())->pluck('status');
 
-            $done = $dayStatuses->filter(fn ($status) => $status === EventStatus::Done)->count();
-            $missed = $dayStatuses->filter(fn ($status) => $status !== EventStatus::Done && $status !== EventStatus::Pending)->count();
+            $dayEvents = $weekStatusesByDay->get($dayStart->format('Y-m-d')) ?? collect();
+
+            $done = $dayEvents->filter(fn ($event) => $event->status === EventStatus::Done)->count();
+            $skipped = $dayEvents->filter(fn ($event) => $event->status === EventStatus::Cancelled)->count();
+            $unmarked = $dayEvents->filter(fn ($event) => $event->status === EventStatus::Pending && $event->scheduled_at->lte($now))->count();
+            $missed = $skipped + $unmarked;
             $marks = $done + $missed;
 
             $this->weekDoneCount += $done;
+            $this->weekSkippedCount += $skipped;
+            $this->weekMissedCount += $unmarked;
             $this->weekMarksCount += $marks;
             if ($marks > 0 && $missed === 0) {
                 $this->weekCleanDays++;

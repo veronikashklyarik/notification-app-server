@@ -76,4 +76,14 @@ class SettingsTest extends TestCase
             ->assertSee('Africa')
             ->assertSee('Warsaw', false);
     }
+
+    public function test_page_shows_labels_of_the_selected_language_and_timezone(): void
+    {
+        $user = User::factory()->create(['locale' => 'pl', 'timezone' => 'Europe/Warsaw']);
+
+        Livewire::actingAs($user)
+            ->test(Settings::class)
+            ->assertViewHas('selectedLocaleLabel', 'Polski')
+            ->assertViewHas('selectedTimezoneLabel', fn (string $label): bool => str_starts_with($label, 'Warsaw · UTC+'));
+    }
 }

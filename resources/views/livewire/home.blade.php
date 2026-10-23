@@ -88,17 +88,20 @@
         @if($nextUp)
             {{-- Next-up card --}}
             @php
-                $isOverdue = $nextUp->scheduled_at->isPast();
-                $minutes = (int) abs(now()->diffInMinutes($nextUp->scheduled_at, false));
+                $countdown = $this->countdownLabel($nextUp->scheduled_at);
             @endphp
-            <div wire:key="home-next-up-card" class="mt-3.5 rounded-hero bg-ink p-[18px]">
-                <p class="text-[11px] font-semibold uppercase tracking-caption {{ $isOverdue ? 'text-warning' : 'text-[#8f96a3]' }}">
-                    @if($isOverdue)
-                        {{ __('Overdue · :duration ago', ['duration' => $this->formatMinutes($minutes)]) }}
-                    @else
-                        {{ __('Next up · in :duration', ['duration' => $this->formatMinutes($minutes)]) }}
-                    @endif
-                </p>
+            <div wire:key="home-next-up-card-{{ $nextUp->id }}" class="mt-3.5 rounded-hero bg-ink p-[18px]">
+                <p x-data="nextUpCountdown(@js($nextUp->scheduled_at->getTimestampMs()), @js([
+                        'in' => __('Next up · in :duration'),
+                        'now' => __('Next up · now'),
+                        'overdue' => __('Overdue · :duration ago'),
+                        'minutes' => __(':count min'),
+                        'hours' => __(':count h'),
+                        'hoursMinutes' => __(':hours h :minutes min'),
+                    ]))"
+                   x-text="label"
+                   :class="isOverdue ? 'text-warning' : 'text-[#8f96a3]'"
+                   class="text-[11px] font-semibold uppercase tracking-caption {{ $countdown['isOverdue'] ? 'text-warning' : 'text-[#8f96a3]' }}">{{ $countdown['label'] }}</p>
                 <div class="mt-2.5 flex items-baseline gap-2.5">
                     <span class="text-[34px] font-bold tracking-title tabular-nums text-white">@userTime($nextUp->scheduled_at, 'H:i')</span>
                     <span class="text-[17px] font-semibold text-white truncate">{{ $nextUp->notification->name }}</span>
@@ -235,21 +238,28 @@
         @endif
 
         {{-- Mobile weekly summary --}}
-        @if($weekMarksCount > 0)
+        @if($hasReminders)
             <div class="mt-5 md:hidden rounded-card bg-white border border-border p-4">
                 <div class="flex items-center justify-between gap-3">
                     <p class="text-[12px] font-semibold uppercase tracking-label text-text-tertiary">{{ __('Last 7 days') }}</p>
-                    <p class="text-[13px] text-text-secondary"><span class="font-semibold text-ink">{{ $weekPercent }}%</span> · {{ __(':count of :total', ['count' => $weekDoneCount, 'total' => $weekMarksCount]) }}</p>
+                    @if($weekMarksCount > 0)
+                        <p class="text-[13px] text-text-secondary"><span class="font-semibold text-ink">{{ $weekPercent }}%</span> · {{ __(':done of :total done', ['done' => $weekDoneCount, 'total' => $weekMarksCount]) }}</p>
+                    @else
+                        <p class="text-[13px] text-text-tertiary">{{ __('Nothing was due') }}</p>
+                    @endif
                 </div>
                 <div class="mt-4 flex items-end gap-2" style="height: 36px">
                     @foreach($weekBars as $bar)
                         @php
                             if ($bar['marks'] === 0) {
-                                $mobileBarHeight = 15;
+                                $mobileBarHeight = 4;
                                 $mobileBarColor = 'bg-avatar-bg';
                             } elseif ($bar['ratio'] >= 1.0) {
                                 $mobileBarHeight = 36;
                                 $mobileBarColor = 'bg-brand';
+                            } elseif ($bar['ratio'] == 0.0) {
+                                $mobileBarHeight = 10;
+                                $mobileBarColor = 'bg-warning-bar';
                             } else {
                                 $mobileBarHeight = (int) round(10 + $bar['ratio'] * (36 - 15));
                                 $mobileBarColor = 'bg-indigo-light-bar';
@@ -269,7 +279,7 @@
                 <div class="mt-3 pt-3 border-t border-border-light flex items-center gap-4">
                     <span class="flex items-center gap-1.5 text-[12px] text-text-tertiary"><span class="w-2.5 h-2.5 rounded-[3px] bg-brand"></span>{{ __('All done') }}</span>
                     <span class="flex items-center gap-1.5 text-[12px] text-text-tertiary"><span class="w-2.5 h-2.5 rounded-[3px] bg-indigo-light-bar"></span>{{ __('Partly done') }}</span>
-                    <span class="flex items-center gap-1.5 text-[12px] text-text-tertiary"><span class="w-2.5 h-2.5 rounded-[3px] bg-avatar-bg"></span>{{ __('No reminders') }}</span>
+                    <span class="flex items-center gap-1.5 text-[12px] text-text-tertiary"><span class="w-2.5 h-2.5 rounded-[3px] bg-warning-bar"></span>{{ __('Missed') }}</span>
                 </div>
             </div>
         @endif
@@ -278,16 +288,26 @@
 
     {{-- Desktop right column --}}
     <div class="hidden md:flex md:flex-col md:gap-3.5">
-        @if($weekMarksCount > 0)
+        @if($hasReminders)
             <div class="rounded-card bg-white border border-border p-[18px]">
                 <div class="flex items-start justify-between gap-3">
                     <div>
                         <p class="text-[12px] font-semibold uppercase tracking-label text-text-tertiary">{{ __('Last 7 days') }}</p>
-                        <p class="mt-1 text-[32px] font-bold tracking-title tabular-nums text-ink">{{ $weekPercent }}%</p>
+                        <p class="mt-1 text-[32px] font-bold tracking-title tabular-nums {{ $weekMarksCount > 0 ? 'text-ink' : 'text-text-quaternary' }}">{{ $weekMarksCount > 0 ? $weekPercent.'%' : '—' }}</p>
                     </div>
                     <div class="text-right">
-                        <p class="text-[13px] text-text-secondary">{{ __(':count of :total marks', ['count' => $weekDoneCount, 'total' => $weekMarksCount]) }}</p>
-                        <p class="mt-0.5 text-[13px] text-text-secondary">{{ trans_choice(':count day without a miss|:count days without a miss', $weekCleanDays, ['count' => $weekCleanDays]) }}</p>
+                        @if($weekMarksCount > 0)
+                            <p class="text-[13px] text-text-secondary">{{ __(':done of :total done', ['done' => $weekDoneCount, 'total' => $weekMarksCount]) }}</p>
+                            @if($weekSkippedCount > 0 || $weekMissedCount > 0)
+                                <p class="mt-0.5 text-[13px] text-text-tertiary">{{ collect([
+                                    $weekSkippedCount > 0 ? __(':count skipped', ['count' => $weekSkippedCount]) : null,
+                                    $weekMissedCount > 0 ? __(':count not marked', ['count' => $weekMissedCount]) : null,
+                                ])->filter()->implode(' · ') }}</p>
+                            @endif
+                            <p class="mt-0.5 text-[13px] text-text-secondary">{{ trans_choice(':count day without a miss|:count days without a miss', $weekCleanDays, ['count' => $weekCleanDays]) }}</p>
+                        @else
+                            <p class="text-[13px] text-text-tertiary">{{ __('Nothing was due') }}</p>
+                        @endif
                     </div>
                 </div>
 
@@ -295,11 +315,14 @@
                     @foreach($weekBars as $bar)
                         @php
                             if ($bar['marks'] === 0) {
-                                $barHeight = 20;
+                                $barHeight = 4;
                                 $barColor = 'bg-avatar-bg';
                             } elseif ($bar['ratio'] >= 1.0) {
                                 $barHeight = 64;
                                 $barColor = 'bg-brand';
+                            } elseif ($bar['ratio'] == 0.0) {
+                                $barHeight = 16;
+                                $barColor = 'bg-warning-bar';
                             } else {
                                 $barHeight = (int) round(16 + $bar['ratio'] * (64 - 16));
                                 $barColor = 'bg-indigo-light-bar';
@@ -315,6 +338,11 @@
                     @foreach($weekBars as $bar)
                         <p class="flex-1 text-center text-[11px] {{ $bar['isToday'] ? 'font-semibold text-ink' : 'text-text-tertiary' }}">{{ $bar['initial'] }}</p>
                     @endforeach
+                </div>
+                <div class="mt-3 pt-3 border-t border-border-light flex flex-wrap items-center gap-x-4 gap-y-1">
+                    <span class="flex items-center gap-1.5 text-[12px] text-text-tertiary"><span class="w-2.5 h-2.5 rounded-[3px] bg-brand"></span>{{ __('All done') }}</span>
+                    <span class="flex items-center gap-1.5 text-[12px] text-text-tertiary"><span class="w-2.5 h-2.5 rounded-[3px] bg-indigo-light-bar"></span>{{ __('Partly done') }}</span>
+                    <span class="flex items-center gap-1.5 text-[12px] text-text-tertiary"><span class="w-2.5 h-2.5 rounded-[3px] bg-warning-bar"></span>{{ __('Missed') }}</span>
                 </div>
             </div>
         @endif

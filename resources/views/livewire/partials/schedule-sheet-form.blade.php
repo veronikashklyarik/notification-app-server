@@ -154,18 +154,21 @@
                     </div>
                 @endif
 
-                <div class="flex items-center gap-3">
+                <label class="relative flex items-center gap-3">
                     <div class="min-w-0 flex-1">
                         <p class="text-[15px] font-semibold text-ink">{{ __('Repeat if not marked') }}</p>
                         <p class="mt-0.5 text-[13px] text-text-tertiary">{{ __('Until you mark it') }}</p>
                     </div>
-                    <select wire:model.live="reminderInterval" class="shrink-0 appearance-none bg-transparent border-none text-[15px] font-semibold text-brand text-right focus:ring-0 focus:outline-none">
+                    <span class="shrink-0 text-[15px] font-semibold text-brand">
+                        {{ $reminderInterval ? __(\App\Models\Notification::REMINDER_INTERVALS[$reminderInterval] ?? '') : __('Off') }}
+                    </span>
+                    <select wire:model.live="reminderInterval" aria-label="{{ __('Repeat if not marked') }}" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
                         <option value="">{{ __('Off') }}</option>
                         @foreach(\App\Models\Notification::REMINDER_INTERVALS as $minutes => $label)
                             <option value="{{ $minutes }}">{{ __($label) }}</option>
                         @endforeach
                     </select>
-                </div>
+                </label>
 
                 <div class="flex items-center gap-3">
                     <div class="min-w-0 flex-1">
@@ -174,7 +177,7 @@
                     </div>
                     <button type="button" wire:click="toggleIsActive"
                             class="shrink-0 relative w-[50px] h-[30px] rounded-full transition-colors {{ $is_active ? 'bg-brand' : 'bg-border-input' }}">
-                        <span class="absolute top-0.5 left-0.5 w-6 h-6 rounded-full bg-white transition-transform {{ $is_active ? 'translate-x-5' : 'translate-x-0.5' }}"></span>
+                        <span class="absolute top-[3px] left-[3px] w-6 h-6 rounded-full bg-white transition-transform {{ $is_active ? 'translate-x-5' : 'translate-x-0' }}"></span>
                     </button>
                 </div>
             </div>

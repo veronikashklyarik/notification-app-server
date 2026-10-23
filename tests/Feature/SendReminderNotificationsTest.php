@@ -86,6 +86,21 @@ class SendReminderNotificationsTest extends TestCase
         Queue::assertNothingPushed();
     }
 
+    public function test_does_not_send_reminder_for_a_paused_notification(): void
+    {
+        Queue::fake();
+
+        $user = User::factory()->create();
+        PushSubscription::factory()->create(['user_id' => $user->id]);
+        $event = $this->pendingNotifiedEvent($user, intervalMinutes: 60, notifiedMinutesAgo: 65);
+        $event->notification->update(['is_active' => false]);
+
+        $this->artisan('app:send-reminder-notifications')->assertSuccessful();
+
+        $this->assertNull($event->fresh()->reminded_at);
+        Queue::assertNotPushed(SendPushNotificationJob::class);
+    }
+
     public function test_does_not_send_reminder_for_non_pending_events(): void
     {
         Queue::fake();

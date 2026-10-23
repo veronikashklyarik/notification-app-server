@@ -54,9 +54,13 @@ class Settings extends Component
 
     public function render(): View
     {
+        $timezoneGroups = $this->groupedTimezones();
+
         return view('livewire.settings', [
             'user' => Auth::user(),
-            'timezoneGroups' => $this->groupedTimezones(),
+            'timezoneGroups' => $timezoneGroups,
+            'selectedLocaleLabel' => Locale::tryFrom($this->locale)?->label() ?? $this->locale,
+            'selectedTimezoneLabel' => collect($timezoneGroups)->flatten(1)->firstWhere('value', $this->timezone)['label'] ?? $this->timezone,
             'appVersion' => trim((string) file_get_contents(base_path('VERSION'))),
         ]);
     }

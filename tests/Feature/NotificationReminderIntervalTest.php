@@ -135,4 +135,27 @@ class NotificationReminderIntervalTest extends TestCase
             ->call('save')
             ->assertHasErrors(['reminderInterval']);
     }
+
+    public function test_form_shows_the_selected_reminder_interval_label(): void
+    {
+        $user = User::factory()->create();
+
+        $html = Livewire::actingAs($user)
+            ->test(NotificationCreate::class)
+            ->set('reminderInterval', 60)
+            ->html();
+
+        $this->assertMatchesRegularExpression('/text-brand">\s*Every hour\s*<\/span>/', $html);
+    }
+
+    public function test_form_shows_off_when_no_reminder_interval_is_selected(): void
+    {
+        $user = User::factory()->create();
+
+        $html = Livewire::actingAs($user)
+            ->test(NotificationCreate::class)
+            ->html();
+
+        $this->assertMatchesRegularExpression('/text-brand">\s*Off\s*<\/span>/', $html);
+    }
 }

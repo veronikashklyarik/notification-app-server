@@ -244,4 +244,44 @@ class CatchUpTest extends TestCase
             ->call('loadMoreMissed')
             ->assertSet('missedPerPage', 20);
     }
+
+    public function test_it_highlights_the_event_opened_from_a_push(): void
+    {
+        $user = User::factory()->create(['timezone' => 'UTC']);
+        $notification = Notification::factory()->for($user)->inactive()->create();
+        $event = NotificationEvent::factory()->for($user)->for($notification)->create([
+            'scheduled_at' => now()->subDays(2),
+            'status' => EventStatus::Pending,
+        ]);
+
+        Livewire::withQueryParams(['event' => $event->id])
+            ->actingAs($user)
+            ->test(CatchUp::class)
+            ->assertSet('highlightEventId', $event->id)
+            ->assertSeeHtml('x-ref="highlight-'.$event->id.'" class="rounded-row border bg-white px-4 py-3.5 flex items-center gap-3 border-brand');
+    }
+
+    public function test_it_loads_enough_missed_events_to_include_the_one_opened_from_a_push(): void
+    {
+        $user = User::factory()->create(['timezone' => 'UTC']);
+        $notification = Notification::factory()->for($user)->inactive()->create();
+
+        foreach (range(1, 12) as $hoursAgo) {
+            NotificationEvent::factory()->for($user)->for($notification)->create([
+                'scheduled_at' => now()->subDays(2)->subHours($hoursAgo),
+                'status' => EventStatus::Pending,
+            ]);
+        }
+
+        $oldest = NotificationEvent::factory()->for($user)->for($notification)->create([
+            'scheduled_at' => now()->subDays(5),
+            'status' => EventStatus::Pending,
+        ]);
+
+        Livewire::withQueryParams(['event' => $oldest->id])
+            ->actingAs($user)
+            ->test(CatchUp::class)
+            ->assertSet('missedPerPage', 20)
+            ->assertSet('missedEvents', fn ($events): bool => $events->contains('id', $oldest->id));
+    }
 }

@@ -39,6 +39,7 @@
     --color-warning-text: #7c4a09;
     --color-warning-tint: #fdf3e7;
     --color-warning-tint-border: #f2ddbf;
+    --color-warning-bar: #f2c27e;
     --color-danger: #b42318;
     --color-danger-tint: #fdecea;
     --color-danger-tint-border: #f0d4d0;
@@ -100,6 +101,17 @@ body::-webkit-scrollbar {
     textarea,
     select {
         color-scheme: light;
+    }
+
+    /* iOS Safari gives native date inputs an intrinsic min-width, so they overflow narrow grid columns */
+    input[type='date'] {
+        -webkit-appearance: none;
+        appearance: none;
+        min-width: 0;
+    }
+
+    input[type='date']::-webkit-date-and-time-value {
+        text-align: left;
     }
 }
 

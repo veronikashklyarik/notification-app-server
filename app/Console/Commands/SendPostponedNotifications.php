@@ -38,7 +38,8 @@ class SendPostponedNotifications extends Command
                     'postponed_until' => null,
                 ]);
 
-                if ($event->notification === null || $event->notification->trashed()) {
+                // A paused reminder still gets its snooze resolved (the event counts as missed), just without a push
+                if ($event->notification === null || $event->notification->trashed() || ! $event->notification->is_active) {
                     return;
                 }
 

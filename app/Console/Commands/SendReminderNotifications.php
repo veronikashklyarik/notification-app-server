@@ -29,7 +29,7 @@ class SendReminderNotifications extends Command
             ->with('notification', 'user.pushSubscriptions')
             ->where('status', EventStatus::Pending)
             ->whereNotNull('notified_at')
-            ->whereHas('notification', fn ($q) => $q->whereNotNull('reminder_interval'))
+            ->whereHas('notification', fn ($q) => $q->whereNotNull('reminder_interval')->where('is_active', true))
             ->where(fn ($q) => $q
                 ->where(fn ($q) => $q->whereNull('reminded_at')->where('notified_at', '<=', $cutoff))
                 ->orWhere('reminded_at', '<=', $cutoff)

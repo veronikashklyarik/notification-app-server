@@ -126,6 +126,26 @@ class SendPendingNotificationsTest extends TestCase
         Queue::assertNothingPushed();
     }
 
+    public function test_paused_reminder_event_sets_notified_at_without_dispatching(): void
+    {
+        Queue::fake();
+
+        $user = User::factory()->create();
+        PushSubscription::factory()->create(['user_id' => $user->id]);
+
+        $event = NotificationEvent::factory()->create([
+            'user_id' => $user->id,
+            'scheduled_at' => now()->subMinute(),
+            'status' => EventStatus::Pending,
+        ]);
+        $event->notification->update(['is_active' => false]);
+
+        $this->artisan('app:send-pending-notifications')->assertSuccessful();
+
+        $this->assertNotNull($event->fresh()->notified_at);
+        Queue::assertNothingPushed();
+    }
+
     public function test_already_done_events_are_not_redispatched(): void
     {
         Queue::fake();

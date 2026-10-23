@@ -9,11 +9,15 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 #[Layout('components.layouts.app')]
 class CatchUp extends Component
 {
+    #[Url(as: 'event')]
+    public ?string $highlightEventId = null;
+
     public Collection $missedEvents;
 
     public int $missedPerPage = 10;
@@ -27,7 +31,40 @@ class CatchUp extends Component
 
     public function mount(): void
     {
+        $this->expandToHighlightedEvent();
         $this->loadEvents();
+    }
+
+    /**
+     * Grows the page size so the event opened from a push is in the rendered list.
+     */
+    private function expandToHighlightedEvent(): void
+    {
+        if ($this->highlightEventId === null) {
+            return;
+        }
+
+        $user = Auth::user();
+        $todayStart = Carbon::now($user->timezone ?? 'UTC')->startOfDay();
+
+        $event = $user->notificationEvents()
+            ->whereKey($this->highlightEventId)
+            ->where('status', EventStatus::Pending)
+            ->where('scheduled_at', '<', $todayStart->copy()->utc())
+            ->first();
+
+        if ($event === null) {
+            return;
+        }
+
+        $newerCount = $user->notificationEvents()
+            ->whereHas('notification')
+            ->where('status', EventStatus::Pending)
+            ->where('scheduled_at', '<', $todayStart->copy()->utc())
+            ->where('scheduled_at', '>', $event->scheduled_at)
+            ->count();
+
+        $this->missedPerPage = max($this->missedPerPage, (int) ceil(($newerCount + 1) / 10) * 10);
     }
 
     public function loadMoreMissed(): void
