@@ -33,9 +33,17 @@ host('64.227.122.5')
 
 // Tasks
 
-desc('Install & build npm packages');
-task('npm:build', function () {
-    run('cd {{release_path}} && npm install && npm run build');
+desc('Upload frontend assets built in CI');
+task('build:upload', function () {
+    // public/build is produced by the "Build frontend assets" step in deploy.yml
+    if (! file_exists(__DIR__.'/public/build/manifest.json')) {
+        throw error('public/build/manifest.json is missing — run "npm ci && npm run build" before deploying.');
+    }
+
+    upload(__DIR__.'/public/build/', '{{release_path}}/public/build/');
+
+    // Fail before deploy:publish switches `current`, so a broken upload never goes live
+    run('test -f {{release_path}}/public/build/manifest.json');
 });
 
 desc('Restart PHP-FPM to clear OPcache');
@@ -50,7 +58,7 @@ task('queue:restart', function () {
 
 // Hooks
 
-after('artisan:migrate', 'npm:build');
+after('deploy:vendors', 'build:upload');
 after('deploy:failed', 'deploy:unlock');
 after('deploy:success', 'crontab:sync');
 after('deploy:success', 'php:fpm:restart');
