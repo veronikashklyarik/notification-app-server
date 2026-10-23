@@ -14,6 +14,8 @@ Schedule::command('model:prune', [
 ])->monthly();
 
 Schedule::command('app:maintain-notification-events')->daily();
-Schedule::command('app:send-pending-notifications')->everyMinute()->withoutOverlapping();
-Schedule::command('app:send-reminder-notifications')->everyMinute()->withoutOverlapping();
-Schedule::command('app:send-postponed-notifications')->everyMinute()->withoutOverlapping();
+// The overlap lock expires after 10 minutes instead of the default 24 hours: a run killed mid-way
+// (OOM, reboot) never releases it, and a day-long stale lock silently stops that kind of push.
+Schedule::command('app:send-pending-notifications')->everyMinute()->withoutOverlapping(10);
+Schedule::command('app:send-reminder-notifications')->everyMinute()->withoutOverlapping(10);
+Schedule::command('app:send-postponed-notifications')->everyMinute()->withoutOverlapping(10);
