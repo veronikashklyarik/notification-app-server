@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\EventStatus;
+use App\Livewire\EventList;
 use App\Livewire\Home;
 use App\Models\Notification;
 use App\Models\NotificationEvent;
@@ -410,10 +411,24 @@ class HomeDashboardTest extends TestCase
 
         Livewire::actingAs($user)
             ->test(Home::class)
-            ->assertSeeHtml('rounded-tag bg-warning-bar " style="height: 10px"')
             ->assertSeeHtml('rounded-tag bg-warning-bar " style="height: 16px"')
             ->assertSee(__('Missed'))
             ->assertDontSee(__('No reminders'));
+    }
+
+    public function test_week_chart_draws_a_day_at_the_same_height_on_today_and_in_history(): void
+    {
+        $user = User::factory()->create(['timezone' => 'UTC']);
+        $notification = Notification::factory()->for($user)->inactive()->create();
+        NotificationEvent::factory()->for($user)->for($notification)->done()->create(['scheduled_at' => now()->subDays(2)]);
+        NotificationEvent::factory()->for($user)->for($notification)->cancelled()->create(['scheduled_at' => now()->subDays(2)]);
+        $partlyDoneBar = 'rounded-tag bg-indigo-light-bar " style="height: 40px"';
+
+        $todayHtml = Livewire::actingAs($user)->test(Home::class)->html();
+        $historyHtml = Livewire::actingAs($user)->test(EventList::class)->html();
+
+        $this->assertSame(2, substr_count($todayHtml, $partlyDoneBar), 'Mobile and desktop Today charts must use the same scale.');
+        $this->assertSame(1, substr_count($historyHtml, $partlyDoneBar), 'History must use the same scale as Today.');
     }
 
     public function test_week_chart_legend_is_shown_on_both_mobile_and_desktop(): void
@@ -522,6 +537,62 @@ class HomeDashboardTest extends TestCase
             ->test(Home::class)
             ->assertNoRedirect()
             ->assertSet('highlightEventId', $event->id);
+    }
+
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function markActions(): array
+    {
+        return [
+            'done' => ['markDone'],
+            'snooze' => ['markPostponed'],
+            'skip' => ['markCancelled'],
+        ];
+    }
+
+    #[DataProvider('markActions')]
+    public function test_marking_the_highlighted_event_removes_the_highlight(string $action): void
+    {
+        $user = User::factory()->create(['timezone' => 'UTC']);
+        $notification = $this->activeNotificationWithoutGeneratedEvents($user);
+        $event = NotificationEvent::factory()->for($user)->for($notification)->create([
+            'scheduled_at' => now(),
+            'status' => EventStatus::Pending,
+        ]);
+
+        Livewire::withQueryParams(['event' => $event->id])
+            ->actingAs($user)
+            ->test(Home::class)
+            ->call($action, $event->id)
+            ->assertSet('highlightEventId', null)
+            ->assertDontSeeHtml('border-brand ring-2 ring-brand/20');
+    }
+
+    public function test_marking_another_event_keeps_the_push_highlight(): void
+    {
+        $this->travelTo(Carbon::parse('2026-10-23 12:00:00', 'UTC'));
+        $user = User::factory()->create(['timezone' => 'UTC']);
+        $notification = $this->activeNotificationWithoutGeneratedEvents($user);
+        $highlighted = NotificationEvent::factory()->for($user)->for($notification)->create([
+            'scheduled_at' => now()->addHours(2),
+            'status' => EventStatus::Pending,
+        ]);
+        NotificationEvent::factory()->for($user)->for($notification)->create([
+            'scheduled_at' => now()->addHour(),
+            'status' => EventStatus::Pending,
+        ]);
+        $other = NotificationEvent::factory()->for($user)->for($notification)->create([
+            'scheduled_at' => now(),
+            'status' => EventStatus::Pending,
+        ]);
+
+        Livewire::withQueryParams(['event' => $highlighted->id])
+            ->actingAs($user)
+            ->test(Home::class)
+            ->call('markDone', $other->id)
+            ->assertSet('highlightEventId', $highlighted->id)
+            ->assertSeeHtml('border-brand ring-2 ring-brand/20');
     }
 
     public function test_opening_a_push_for_an_already_marked_old_event_stays_on_home(): void

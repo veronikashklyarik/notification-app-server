@@ -9,6 +9,7 @@ use App\Models\NotificationEvent;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class CatchUpTest extends TestCase
@@ -259,6 +260,67 @@ class CatchUpTest extends TestCase
             ->test(CatchUp::class)
             ->assertSet('highlightEventId', $event->id)
             ->assertSeeHtml('x-ref="highlight-'.$event->id.'" class="rounded-row border bg-white px-4 py-3.5 flex items-center gap-3 border-brand');
+    }
+
+    /**
+     * @return array<string, array{string, array<int, string>}>
+     */
+    public static function markActions(): array
+    {
+        return [
+            'done' => ['markDone', ['event']],
+            'skip' => ['markCancelled', ['event']],
+            'mark day done' => ['markDayDone', ['day']],
+            'skip all' => ['skipAllMissed', []],
+        ];
+    }
+
+    /**
+     * @param  array<int, string>  $arguments
+     */
+    #[DataProvider('markActions')]
+    public function test_marking_the_highlighted_event_removes_the_highlight_even_after_undo(string $action, array $arguments): void
+    {
+        $user = User::factory()->create(['timezone' => 'UTC']);
+        $notification = Notification::factory()->for($user)->create();
+        $notification->events()->delete();
+        $event = NotificationEvent::factory()->for($user)->for($notification)->create([
+            'scheduled_at' => now()->subDays(2),
+            'status' => EventStatus::Pending,
+        ]);
+        $values = ['event' => $event->id, 'day' => $event->scheduled_at->format('Y-m-d')];
+
+        $component = Livewire::withQueryParams(['event' => $event->id])
+            ->actingAs($user)
+            ->test(CatchUp::class)
+            ->call($action, ...array_map(fn (string $argument): string => $values[$argument], $arguments))
+            ->assertSet('highlightEventId', null);
+
+        $component->call('restoreBulk', [$event->id], EventStatus::Pending->value)
+            ->assertSee($notification->name)
+            ->assertDontSeeHtml('border-brand ring-2 ring-brand/20');
+    }
+
+    public function test_marking_another_event_keeps_the_push_highlight(): void
+    {
+        $user = User::factory()->create(['timezone' => 'UTC']);
+        $notification = Notification::factory()->for($user)->create();
+        $notification->events()->delete();
+        $highlighted = NotificationEvent::factory()->for($user)->for($notification)->create([
+            'scheduled_at' => now()->subDays(2),
+            'status' => EventStatus::Pending,
+        ]);
+        $other = NotificationEvent::factory()->for($user)->for($notification)->create([
+            'scheduled_at' => now()->subDays(3),
+            'status' => EventStatus::Pending,
+        ]);
+
+        Livewire::withQueryParams(['event' => $highlighted->id])
+            ->actingAs($user)
+            ->test(CatchUp::class)
+            ->call('markDone', $other->id)
+            ->assertSet('highlightEventId', $highlighted->id)
+            ->assertSeeHtml('border-brand ring-2 ring-brand/20');
     }
 
     public function test_it_loads_enough_missed_events_to_include_the_one_opened_from_a_push(): void

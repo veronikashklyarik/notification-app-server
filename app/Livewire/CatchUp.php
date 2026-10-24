@@ -85,6 +85,7 @@ class CatchUp extends Component
         ]);
 
         $this->dispatch('dismiss-push-notification', eventId: $event->id);
+        $this->forgetHighlight([$event->id]);
         $this->undoState = [
             'eventId' => $event->id,
             'previousStatus' => $previousStatus->value,
@@ -105,6 +106,7 @@ class CatchUp extends Component
         ]);
 
         $this->dispatch('dismiss-push-notification', eventId: $event->id);
+        $this->forgetHighlight([$event->id]);
         $this->undoState = [
             'eventId' => $event->id,
             'previousStatus' => $previousStatus->value,
@@ -187,6 +189,7 @@ class CatchUp extends Component
             'status' => EventStatus::Cancelled,
             'completed_at' => now(),
         ]);
+        $this->forgetHighlight($eventIds->all());
 
         $this->confirmingSkipAll = false;
         $this->undoState = [
@@ -215,6 +218,7 @@ class CatchUp extends Component
             'status' => EventStatus::Done,
             'completed_at' => now(),
         ]);
+        $this->forgetHighlight($eventIds->all());
 
         $this->undoState = [
             'eventIds' => $eventIds->all(),
@@ -223,6 +227,19 @@ class CatchUp extends Component
         ];
         $this->missedPerPage = 10;
         $this->loadEvents();
+    }
+
+    /**
+     * The push highlight points at the event the push was about; once that event is marked
+     * the highlight has done its job, so an undo must not bring the row back highlighted.
+     *
+     * @param  array<int, string>  $markedEventIds
+     */
+    private function forgetHighlight(array $markedEventIds): void
+    {
+        if (in_array($this->highlightEventId, $markedEventIds, true)) {
+            $this->highlightEventId = null;
+        }
     }
 
     public function render(): View

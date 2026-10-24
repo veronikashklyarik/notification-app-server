@@ -133,6 +133,7 @@ class Home extends Component
         ]);
 
         $this->dispatch('dismiss-push-notification', eventId: $event->id);
+        $this->forgetHighlight($event->id);
         $this->undoState = [
             'eventId' => $event->id,
             'previousStatus' => $previousStatus->value,
@@ -162,6 +163,7 @@ class Home extends Component
         ]);
 
         $this->dispatch('dismiss-push-notification', eventId: $event->id);
+        $this->forgetHighlight($event->id);
         $this->undoState = [
             'eventId' => $event->id,
             'previousStatus' => $previousStatus->value,
@@ -182,6 +184,7 @@ class Home extends Component
         ]);
 
         $this->dispatch('dismiss-push-notification', eventId: $event->id);
+        $this->forgetHighlight($event->id);
         $this->undoState = [
             'eventId' => $event->id,
             'previousStatus' => $previousStatus->value,
@@ -222,6 +225,17 @@ class Home extends Component
 
         $this->undoState = null;
         $this->loadEvents();
+    }
+
+    /**
+     * The push highlight points at the event the push was about; once that event is marked
+     * the highlight has done its job, so it must not follow the row into the list.
+     */
+    private function forgetHighlight(string $eventId): void
+    {
+        if ($this->highlightEventId === $eventId) {
+            $this->highlightEventId = null;
+        }
     }
 
     public function render(): View

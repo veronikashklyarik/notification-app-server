@@ -54,36 +54,7 @@
                     </div>
                 </div>
 
-                <div class="mt-4 flex items-end gap-2" style="height: 84px">
-                    @foreach($weekBars as $bar)
-                        @php
-                            $isSelected = $selectedDay === $bar['date'];
-                            $dimmed = $selectedDay && ! $isSelected;
-                            if ($bar['marks'] === 0) {
-                                $barHeight = 4;
-                                $barColor = 'bg-avatar-bg';
-                            } elseif ($bar['ratio'] >= 1.0) {
-                                $barHeight = 84;
-                                $barColor = 'bg-brand';
-                            } elseif ($bar['ratio'] == 0.0) {
-                                $barHeight = 22;
-                                $barColor = 'bg-warning-bar';
-                            } else {
-                                $barHeight = (int) round(22 + $bar['ratio'] * (84 - 22));
-                                $barColor = 'bg-indigo-light-bar';
-                            }
-                        @endphp
-                        <button type="button" wire:click="selectDay('{{ $bar['date'] }}')" wire:key="week-bar-{{ $bar['date'] }}"
-                                class="flex-1 h-full flex items-end {{ $dimmed ? 'opacity-40' : '' }}">
-                            <span class="w-full rounded-tag {{ $barColor }} {{ ($isSelected || ($bar['isToday'] && ! $selectedDay)) ? 'ring-2 ring-ink ring-offset-1' : '' }}" style="height: {{ $barHeight }}px"></span>
-                        </button>
-                    @endforeach
-                </div>
-                <div class="mt-1.5 flex gap-2">
-                    @foreach($weekBars as $bar)
-                        <p class="flex-1 text-center text-[11px] {{ $bar['isToday'] ? 'font-semibold text-ink' : 'text-text-tertiary' }}">{{ $bar['initial'] }}</p>
-                    @endforeach
-                </div>
+                <x-week-bars :bars="$weekBars" key-prefix="week-bar" :selected-day="$selectedDay" selectable />
                 </div>
             @else
                 <div wire:key="history-period-month">

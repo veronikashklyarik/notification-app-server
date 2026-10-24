@@ -235,7 +235,7 @@ class EventListTest extends TestCase
 
         Livewire::actingAs($user)
             ->test(EventList::class)
-            ->assertSeeHtml('rounded-tag bg-warning-bar " style="height: 22px"')
+            ->assertSeeHtml('rounded-tag bg-warning-bar " style="height: 16px"')
             ->assertSeeHtml('rounded-tag bg-avatar-bg " style="height: 4px"')
             ->assertSee(__('Missed'))
             ->assertDontSee(__('No reminders'));
