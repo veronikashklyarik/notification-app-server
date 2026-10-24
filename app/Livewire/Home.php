@@ -4,22 +4,20 @@ namespace App\Livewire;
 
 use App\Enums\EventStatus;
 use App\Livewire\Concerns\FormatsDuration;
+use App\Livewire\Concerns\HighlightsPushedEvent;
 use App\Models\NotificationEvent;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use Livewire\Attributes\Layout;
-use Livewire\Attributes\Url;
 use Livewire\Component;
 
 #[Layout('components.layouts.app')]
 class Home extends Component
 {
     use FormatsDuration;
-
-    #[Url(as: 'event')]
-    public ?string $highlightEventId = null;
+    use HighlightsPushedEvent;
 
     public Collection $todayEvents;
 
@@ -133,7 +131,7 @@ class Home extends Component
         ]);
 
         $this->dispatch('dismiss-push-notification', eventId: $event->id);
-        $this->forgetHighlight($event->id);
+        $this->forgetHighlight([$event->id]);
         $this->undoState = [
             'eventId' => $event->id,
             'previousStatus' => $previousStatus->value,
@@ -163,7 +161,7 @@ class Home extends Component
         ]);
 
         $this->dispatch('dismiss-push-notification', eventId: $event->id);
-        $this->forgetHighlight($event->id);
+        $this->forgetHighlight([$event->id]);
         $this->undoState = [
             'eventId' => $event->id,
             'previousStatus' => $previousStatus->value,
@@ -184,7 +182,7 @@ class Home extends Component
         ]);
 
         $this->dispatch('dismiss-push-notification', eventId: $event->id);
-        $this->forgetHighlight($event->id);
+        $this->forgetHighlight([$event->id]);
         $this->undoState = [
             'eventId' => $event->id,
             'previousStatus' => $previousStatus->value,
@@ -225,17 +223,6 @@ class Home extends Component
 
         $this->undoState = null;
         $this->loadEvents();
-    }
-
-    /**
-     * The push highlight points at the event the push was about; once that event is marked
-     * the highlight has done its job, so it must not follow the row into the list.
-     */
-    private function forgetHighlight(string $eventId): void
-    {
-        if ($this->highlightEventId === $eventId) {
-            $this->highlightEventId = null;
-        }
     }
 
     public function render(): View

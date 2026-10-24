@@ -3,20 +3,19 @@
 namespace App\Livewire;
 
 use App\Enums\EventStatus;
+use App\Livewire\Concerns\HighlightsPushedEvent;
 use App\Models\NotificationEvent;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use Livewire\Attributes\Layout;
-use Livewire\Attributes\Url;
 use Livewire\Component;
 
 #[Layout('components.layouts.app')]
 class CatchUp extends Component
 {
-    #[Url(as: 'event')]
-    public ?string $highlightEventId = null;
+    use HighlightsPushedEvent;
 
     public Collection $missedEvents;
 
@@ -227,19 +226,6 @@ class CatchUp extends Component
         ];
         $this->missedPerPage = 10;
         $this->loadEvents();
-    }
-
-    /**
-     * The push highlight points at the event the push was about; once that event is marked
-     * the highlight has done its job, so an undo must not bring the row back highlighted.
-     *
-     * @param  array<int, string>  $markedEventIds
-     */
-    private function forgetHighlight(array $markedEventIds): void
-    {
-        if (in_array($this->highlightEventId, $markedEventIds, true)) {
-            $this->highlightEventId = null;
-        }
     }
 
     public function render(): View
