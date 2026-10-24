@@ -153,7 +153,7 @@
                 <p class="text-[13px] font-medium text-text-tertiary">{{ __(':count of :total done', ['count' => $todayDoneCount, 'total' => $todayTotalCount]) }}</p>
             </div>
 
-            <div class="mt-2 space-y-2" x-data="{ openEventId: @js($highlightEventId) }" x-init="if (openEventId) { $nextTick(() => $refs['highlight-' + openEventId]?.scrollIntoView({ behavior: 'smooth', block: 'center' })) }">
+            <div wire:key="later-today-list-{{ $highlightEventId ?? 'none' }}" class="mt-2 space-y-2" x-data="{ openEventId: @js($highlightEventId) }" x-init="if (openEventId) { $nextTick(() => $refs['highlight-' + openEventId]?.scrollIntoView({ behavior: 'smooth', block: 'center' })) }">
                 @foreach($laterToday as $event)
                     @php
                         $isDone = $event->status === EventStatus::Done;
@@ -248,34 +248,7 @@
                         <p class="text-[13px] text-text-tertiary">{{ __('Nothing was due') }}</p>
                     @endif
                 </div>
-                <div class="mt-4 flex items-end gap-2" style="height: 36px">
-                    @foreach($weekBars as $bar)
-                        @php
-                            if ($bar['marks'] === 0) {
-                                $mobileBarHeight = 4;
-                                $mobileBarColor = 'bg-avatar-bg';
-                            } elseif ($bar['ratio'] >= 1.0) {
-                                $mobileBarHeight = 36;
-                                $mobileBarColor = 'bg-brand';
-                            } elseif ($bar['ratio'] == 0.0) {
-                                $mobileBarHeight = 10;
-                                $mobileBarColor = 'bg-warning-bar';
-                            } else {
-                                $mobileBarHeight = (int) round(10 + $bar['ratio'] * (36 - 15));
-                                $mobileBarColor = 'bg-indigo-light-bar';
-                            }
-                        @endphp
-                        <a href="{{ route('events.index', ['day' => $bar['date']]) }}" wire:key="home-mobile-bar-{{ $bar['date'] }}"
-                           class="flex-1 h-full flex items-end">
-                            <span class="w-full rounded-tag {{ $mobileBarColor }} {{ $bar['isToday'] ? 'ring-2 ring-ink ring-offset-1' : '' }}" style="height: {{ $mobileBarHeight }}px"></span>
-                        </a>
-                    @endforeach
-                </div>
-                <div class="mt-1.5 flex items-center gap-2">
-                    @foreach($weekBars as $bar)
-                        <div class="flex-1 text-center text-[11px] {{ $bar['isToday'] ? 'font-semibold text-ink' : 'text-text-tertiary' }}">{{ $bar['initial'] }}</div>
-                    @endforeach
-                </div>
+                <x-week-bars :bars="$weekBars" key-prefix="home-mobile-bar" />
                 <div class="mt-3 pt-3 border-t border-border-light flex items-center gap-4">
                     <span class="flex items-center gap-1.5 text-[12px] text-text-tertiary"><span class="w-2.5 h-2.5 rounded-[3px] bg-brand"></span>{{ __('All done') }}</span>
                     <span class="flex items-center gap-1.5 text-[12px] text-text-tertiary"><span class="w-2.5 h-2.5 rounded-[3px] bg-indigo-light-bar"></span>{{ __('Partly done') }}</span>
@@ -311,34 +284,7 @@
                     </div>
                 </div>
 
-                <div class="mt-4 flex items-end gap-2" style="height: 64px">
-                    @foreach($weekBars as $bar)
-                        @php
-                            if ($bar['marks'] === 0) {
-                                $barHeight = 4;
-                                $barColor = 'bg-avatar-bg';
-                            } elseif ($bar['ratio'] >= 1.0) {
-                                $barHeight = 64;
-                                $barColor = 'bg-brand';
-                            } elseif ($bar['ratio'] == 0.0) {
-                                $barHeight = 16;
-                                $barColor = 'bg-warning-bar';
-                            } else {
-                                $barHeight = (int) round(16 + $bar['ratio'] * (64 - 16));
-                                $barColor = 'bg-indigo-light-bar';
-                            }
-                        @endphp
-                        <a href="{{ route('events.index', ['day' => $bar['date']]) }}" wire:key="home-desktop-bar-{{ $bar['date'] }}"
-                           class="flex-1 h-full flex items-end">
-                            <span class="w-full rounded-tag {{ $barColor }} {{ $bar['isToday'] ? 'ring-2 ring-ink ring-offset-1' : '' }}" style="height: {{ $barHeight }}px"></span>
-                        </a>
-                    @endforeach
-                </div>
-                <div class="mt-1.5 flex gap-2">
-                    @foreach($weekBars as $bar)
-                        <p class="flex-1 text-center text-[11px] {{ $bar['isToday'] ? 'font-semibold text-ink' : 'text-text-tertiary' }}">{{ $bar['initial'] }}</p>
-                    @endforeach
-                </div>
+                <x-week-bars :bars="$weekBars" key-prefix="home-desktop-bar" />
                 <div class="mt-3 pt-3 border-t border-border-light flex flex-wrap items-center gap-x-4 gap-y-1">
                     <span class="flex items-center gap-1.5 text-[12px] text-text-tertiary"><span class="w-2.5 h-2.5 rounded-[3px] bg-brand"></span>{{ __('All done') }}</span>
                     <span class="flex items-center gap-1.5 text-[12px] text-text-tertiary"><span class="w-2.5 h-2.5 rounded-[3px] bg-indigo-light-bar"></span>{{ __('Partly done') }}</span>

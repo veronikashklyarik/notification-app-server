@@ -3,20 +3,19 @@
 namespace App\Livewire;
 
 use App\Enums\EventStatus;
+use App\Livewire\Concerns\HighlightsPushedEvent;
 use App\Models\NotificationEvent;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use Livewire\Attributes\Layout;
-use Livewire\Attributes\Url;
 use Livewire\Component;
 
 #[Layout('components.layouts.app')]
 class CatchUp extends Component
 {
-    #[Url(as: 'event')]
-    public ?string $highlightEventId = null;
+    use HighlightsPushedEvent;
 
     public Collection $missedEvents;
 
@@ -85,6 +84,7 @@ class CatchUp extends Component
         ]);
 
         $this->dispatch('dismiss-push-notification', eventId: $event->id);
+        $this->forgetHighlight([$event->id]);
         $this->undoState = [
             'eventId' => $event->id,
             'previousStatus' => $previousStatus->value,
@@ -105,6 +105,7 @@ class CatchUp extends Component
         ]);
 
         $this->dispatch('dismiss-push-notification', eventId: $event->id);
+        $this->forgetHighlight([$event->id]);
         $this->undoState = [
             'eventId' => $event->id,
             'previousStatus' => $previousStatus->value,
@@ -187,6 +188,7 @@ class CatchUp extends Component
             'status' => EventStatus::Cancelled,
             'completed_at' => now(),
         ]);
+        $this->forgetHighlight($eventIds->all());
 
         $this->confirmingSkipAll = false;
         $this->undoState = [
@@ -215,6 +217,7 @@ class CatchUp extends Component
             'status' => EventStatus::Done,
             'completed_at' => now(),
         ]);
+        $this->forgetHighlight($eventIds->all());
 
         $this->undoState = [
             'eventIds' => $eventIds->all(),
