@@ -4,7 +4,7 @@ return [
 
     // Privacy Policy
     'privacy_title' => 'Privacy Policy',
-    'privacy_updated' => 'Last updated: July 2, 2026',
+    'privacy_updated' => 'Last updated: October 27, 2026',
 
     'privacy_intro_heading' => 'Introduction',
     'privacy_intro' => 'Notifyr ("we", "us", or "our") operates this web application. This Privacy Policy explains what information we collect, how we use it, and the choices you have.',
@@ -40,7 +40,7 @@ return [
 
     // Terms of Service
     'terms_title' => 'Terms of Service',
-    'terms_updated' => 'Last updated: July 2, 2026',
+    'terms_updated' => 'Last updated: October 27, 2026',
 
     'terms_acceptance_heading' => 'Acceptance of Terms',
     'terms_acceptance' => 'By accessing or using Notifyr, you agree to be bound by these Terms of Service. If you do not agree, please do not use the service.',
@@ -69,5 +69,39 @@ return [
 
     'terms_contact_heading' => 'Contact',
     'terms_contact' => 'For any questions about these Terms, please contact us at:',
+
+    // Section chips
+    'chip_contact' => 'Contact',
+    'privacy_chip_intro' => 'Introduction',
+    'privacy_chip_collect' => 'What is collected',
+    'privacy_chip_google' => 'Google user data',
+    'privacy_chip_rights' => 'Your rights',
+    'terms_chip_acceptance' => 'Acceptance',
+    'terms_chip_service' => 'The service',
+    'terms_chip_reminders' => 'Reminders',
+    'terms_chip_accounts' => 'Accounts',
+    'terms_chip_prohibited' => 'Prohibited uses',
+    'terms_chip_liability' => 'Liability',
+
+    // Privacy Policy — Google user data
+    'privacy_google_heading' => 'Google user data',
+    'privacy_google_intro' => 'This section applies if you choose “Continue with Google”. Notifyr\'s use of information received from Google APIs adheres to the Google API Services User Data Policy.',
+    'privacy_google_receives_heading' => 'What Notifyr receives',
+    'privacy_google_receives_id' => 'Your Google account ID',
+    'privacy_google_receives_name' => 'Your name and email address',
+    'privacy_google_receives_photo' => 'Your profile photo, if you have one',
+    'privacy_google_scopes' => 'Only the basic sign-in permissions are requested (openid, email, profile). Notifyr does not request and cannot read your Gmail, Calendar, Drive, Contacts or any other Google data.',
+    'privacy_google_use_heading' => 'How it is used',
+    'privacy_google_use' => 'Only to create your Notifyr account, sign you in and show your name inside the app. It is not used for advertising, profiling or training any models.',
+    'privacy_google_storage_heading' => 'How it is stored and protected',
+    'privacy_google_storage' => 'On Notifyr\'s servers hosted by DigitalOcean, over encrypted connections (HTTPS). Access is limited to what is needed to run the service.',
+    'privacy_google_sharing_heading' => 'Sharing',
+    'privacy_google_sharing' => 'Google user data is not sold and is not shared with third parties, except where the law requires it.',
+    'privacy_google_retention_heading' => 'Keeping and deleting it',
+    'privacy_google_retention' => 'It is kept while your account exists. Delete your account in Profile at any time — your data, including Google user data, is removed permanently after 30 days. You can also remove Notifyr\'s access in your Google Account under Security › Third-party apps.',
+
+    // Terms of Service — reminders
+    'terms_reminders_heading' => 'Reminders and notifications',
+    'terms_reminders' => 'Notifyr helps you remember, but push delivery depends on your device, browser, operating system and network, and can be delayed or missed. Don\'t rely on Notifyr as the only reminder for medication or anything else where a missed reminder could cause harm.',
 
 ];

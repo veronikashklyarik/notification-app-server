@@ -10,6 +10,7 @@ use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ResendVerificationEmailController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\SwitchLocaleController;
 use App\Livewire\CatchUp;
 use App\Livewire\EventList;
 use App\Livewire\Home;
@@ -21,7 +22,8 @@ use App\Livewire\Profile;
 use App\Livewire\Settings;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', fn () => redirect()->route('home'));
+Route::get('/', fn () => auth()->check() ? redirect()->route('home') : view('landing'))->name('landing');
+Route::get('locale/{locale}', SwitchLocaleController::class)->name('locale.switch');
 Route::get('offline', fn () => view('pwa.offline'))->name('offline');
 Route::get('privacy-policy', fn () => view('legal.privacy'))->name('legal.privacy');
 Route::get('terms', fn () => view('legal.terms'))->name('legal.terms');

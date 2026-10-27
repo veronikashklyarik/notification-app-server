@@ -2,18 +2,17 @@
 
 namespace Tests\Feature;
 
-// use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class ExampleTest extends TestCase
 {
     /**
-     * A basic test example.
+     * Guests get the public landing page so Google can verify the OAuth app.
      */
-    public function test_the_application_redirects_guests_to_login(): void
+    public function test_the_application_shows_the_landing_page_to_guests(): void
     {
         $response = $this->get('/');
 
-        $response->assertRedirect(route('home'));
+        $response->assertOk();
     }
 }

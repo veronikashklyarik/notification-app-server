@@ -4,7 +4,7 @@ return [
 
     // Privacy Policy
     'privacy_title' => 'Политика конфиденциальности',
-    'privacy_updated' => 'Последнее обновление: 2 июля 2026 г.',
+    'privacy_updated' => 'Последнее обновление: 27 октября 2026 г.',
 
     'privacy_intro_heading' => 'Введение',
     'privacy_intro' => 'Notifyr («мы» или «нас») управляет этим веб-приложением. Настоящая Политика конфиденциальности объясняет, какую информацию мы собираем, как используем её и какие у вас есть возможности.',
@@ -40,7 +40,7 @@ return [
 
     // Terms of Service
     'terms_title' => 'Условия использования',
-    'terms_updated' => 'Последнее обновление: 2 июля 2026 г.',
+    'terms_updated' => 'Последнее обновление: 27 октября 2026 г.',
 
     'terms_acceptance_heading' => 'Принятие условий',
     'terms_acceptance' => 'Используя Notifyr, вы соглашаетесь с настоящими Условиями использования. Если вы не согласны, пожалуйста, не используйте сервис.',
@@ -69,5 +69,39 @@ return [
 
     'terms_contact_heading' => 'Контакты',
     'terms_contact' => 'По вопросам, связанным с настоящими Условиями, свяжитесь с нами:',
+
+    // Section chips
+    'chip_contact' => 'Контакты',
+    'privacy_chip_intro' => 'Введение',
+    'privacy_chip_collect' => 'Что собирается',
+    'privacy_chip_google' => 'Данные Google',
+    'privacy_chip_rights' => 'Ваши права',
+    'terms_chip_acceptance' => 'Принятие',
+    'terms_chip_service' => 'Сервис',
+    'terms_chip_reminders' => 'Напоминания',
+    'terms_chip_accounts' => 'Аккаунты',
+    'terms_chip_prohibited' => 'Запреты',
+    'terms_chip_liability' => 'Ответственность',
+
+    // Privacy Policy — Google user data
+    'privacy_google_heading' => 'Данные пользователя Google',
+    'privacy_google_intro' => 'Этот раздел применяется, если вы выбираете «Продолжить с Google». Использование Notifyr информации, полученной через Google API, соответствует Политике в отношении пользовательских данных сервисов Google API (Google API Services User Data Policy).',
+    'privacy_google_receives_heading' => 'Что получает Notifyr',
+    'privacy_google_receives_id' => 'Идентификатор вашего аккаунта Google',
+    'privacy_google_receives_name' => 'Ваше имя и адрес электронной почты',
+    'privacy_google_receives_photo' => 'Фото профиля, если оно есть',
+    'privacy_google_scopes' => 'Запрашиваются только базовые разрешения для входа (openid, email, profile). Notifyr не запрашивает и не может читать ваш Gmail, Календарь, Диск, Контакты или любые другие данные Google.',
+    'privacy_google_use_heading' => 'Как они используются',
+    'privacy_google_use' => 'Только чтобы создать ваш аккаунт Notifyr, выполнить вход и показать ваше имя в приложении. Они не используются для рекламы, профилирования или обучения каких-либо моделей.',
+    'privacy_google_storage_heading' => 'Как они хранятся и защищаются',
+    'privacy_google_storage' => 'На серверах Notifyr у хостинг-провайдера DigitalOcean, с передачей по зашифрованному соединению (HTTPS). Доступ ограничен тем, что нужно для работы сервиса.',
+    'privacy_google_sharing_heading' => 'Передача третьим лицам',
+    'privacy_google_sharing' => 'Данные пользователя Google не продаются и не передаются третьим лицам, кроме случаев, когда этого требует закон.',
+    'privacy_google_retention_heading' => 'Хранение и удаление',
+    'privacy_google_retention' => 'Данные хранятся, пока существует ваш аккаунт. Удалите аккаунт в Профиле в любой момент — ваши данные, включая данные Google, будут безвозвратно удалены через 30 дней. Также вы можете отозвать доступ Notifyr в аккаунте Google в разделе «Безопасность › Сторонние приложения».',
+
+    // Terms of Service — reminders
+    'terms_reminders_heading' => 'Напоминания и уведомления',
+    'terms_reminders' => 'Notifyr помогает не забывать, но доставка push-уведомлений зависит от вашего устройства, браузера, операционной системы и сети и может задерживаться или не происходить. Не полагайтесь на Notifyr как на единственное напоминание о приёме лекарств или о чём-либо ещё, где пропущенное напоминание может причинить вред.',
 
 ];

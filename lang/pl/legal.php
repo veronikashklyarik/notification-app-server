@@ -4,7 +4,7 @@ return [
 
     // Privacy Policy
     'privacy_title' => 'Polityka prywatności',
-    'privacy_updated' => 'Ostatnia aktualizacja: 2 lipca 2026 r.',
+    'privacy_updated' => 'Ostatnia aktualizacja: 27 października 2026 r.',
 
     'privacy_intro_heading' => 'Wprowadzenie',
     'privacy_intro' => 'Notifyr („my") obsługuje tę aplikację internetową. Niniejsza Polityka prywatności wyjaśnia, jakie informacje zbieramy, jak je wykorzystujemy i jakie masz możliwości wyboru.',
@@ -40,7 +40,7 @@ return [
 
     // Terms of Service
     'terms_title' => 'Warunki korzystania',
-    'terms_updated' => 'Ostatnia aktualizacja: 2 lipca 2026 r.',
+    'terms_updated' => 'Ostatnia aktualizacja: 27 października 2026 r.',
 
     'terms_acceptance_heading' => 'Akceptacja warunków',
     'terms_acceptance' => 'Korzystając z Notifyr, zgadzasz się na niniejsze Warunki korzystania. Jeśli się nie zgadzasz, prosimy o nieużywanie usługi.',
@@ -69,5 +69,39 @@ return [
 
     'terms_contact_heading' => 'Kontakt',
     'terms_contact' => 'W przypadku pytań dotyczących niniejszych Warunków skontaktuj się z nami:',
+
+    // Section chips
+    'chip_contact' => 'Kontakt',
+    'privacy_chip_intro' => 'Wprowadzenie',
+    'privacy_chip_collect' => 'Co zbieramy',
+    'privacy_chip_google' => 'Dane Google',
+    'privacy_chip_rights' => 'Twoje prawa',
+    'terms_chip_acceptance' => 'Akceptacja',
+    'terms_chip_service' => 'Usługa',
+    'terms_chip_reminders' => 'Przypomnienia',
+    'terms_chip_accounts' => 'Konta',
+    'terms_chip_prohibited' => 'Zakazy',
+    'terms_chip_liability' => 'Odpowiedzialność',
+
+    // Privacy Policy — Google user data
+    'privacy_google_heading' => 'Dane użytkownika Google',
+    'privacy_google_intro' => 'Ta sekcja dotyczy Cię, jeśli wybierzesz „Kontynuuj z Google”. Korzystanie przez Notifyr z informacji otrzymanych z interfejsów API Google jest zgodne z Zasadami dotyczącymi danych użytkownika usług Google API (Google API Services User Data Policy).',
+    'privacy_google_receives_heading' => 'Co otrzymuje Notifyr',
+    'privacy_google_receives_id' => 'Identyfikator Twojego konta Google',
+    'privacy_google_receives_name' => 'Twoje imię i adres e-mail',
+    'privacy_google_receives_photo' => 'Twoje zdjęcie profilowe, jeśli je masz',
+    'privacy_google_scopes' => 'Prosimy tylko o podstawowe uprawnienia do logowania (openid, email, profile). Notifyr nie prosi o dostęp i nie może czytać Twojego Gmaila, Kalendarza, Dysku, Kontaktów ani żadnych innych danych Google.',
+    'privacy_google_use_heading' => 'Jak są wykorzystywane',
+    'privacy_google_use' => 'Wyłącznie do utworzenia konta Notifyr, zalogowania Cię i wyświetlenia Twojego imienia w aplikacji. Nie są wykorzystywane do reklam, profilowania ani trenowania żadnych modeli.',
+    'privacy_google_storage_heading' => 'Jak są przechowywane i chronione',
+    'privacy_google_storage' => 'Na serwerach Notifyr hostowanych przez DigitalOcean, przy szyfrowanych połączeniach (HTTPS). Dostęp jest ograniczony do tego, co niezbędne do działania usługi.',
+    'privacy_google_sharing_heading' => 'Udostępnianie',
+    'privacy_google_sharing' => 'Dane użytkownika Google nie są sprzedawane ani udostępniane osobom trzecim, chyba że wymaga tego prawo.',
+    'privacy_google_retention_heading' => 'Przechowywanie i usuwanie',
+    'privacy_google_retention' => 'Dane są przechowywane, dopóki istnieje Twoje konto. Usuń konto w Profilu w dowolnym momencie — Twoje dane, w tym dane Google, zostaną trwale usunięte po 30 dniach. Możesz też odebrać Notifyr dostęp na swoim koncie Google w sekcji Bezpieczeństwo › Aplikacje innych firm.',
+
+    // Terms of Service — reminders
+    'terms_reminders_heading' => 'Przypomnienia i powiadomienia',
+    'terms_reminders' => 'Notifyr pomaga pamiętać, ale dostarczanie powiadomień push zależy od Twojego urządzenia, przeglądarki, systemu operacyjnego i sieci i może być opóźnione lub nie nastąpić. Nie polegaj na Notifyr jako jedynym przypomnieniu o lekach ani o niczym innym, gdzie pominięte przypomnienie mogłoby wyrządzić szkodę.',
 
 ];

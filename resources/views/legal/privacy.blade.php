@@ -1,90 +1,88 @@
-<x-layouts.legal :title="__('legal.privacy_title')">
-
-    <div class="mt-3 mb-5">
-        <h1 class="text-[26px] font-bold tracking-title text-ink">{{ __('legal.privacy_title') }}</h1>
-        <p class="mt-1 text-[13px] text-text-tertiary">{{ __('legal.privacy_updated') }}</p>
-    </div>
-
-    <div class="rounded-card bg-white border border-border p-5 md:p-6 space-y-5">
-
-        <div>
-            <h2 class="text-[15px] font-semibold text-ink mb-1.5">{{ __('legal.privacy_intro_heading') }}</h2>
-            <p class="text-[14px] leading-relaxed text-text-secondary">{{ __('legal.privacy_intro') }}</p>
-        </div>
-
-        <div>
-            <h2 class="text-[15px] font-semibold text-ink mb-1.5">{{ __('legal.privacy_collect_heading') }}</h2>
-            <p class="text-[14px] leading-relaxed text-text-secondary mb-2.5">{{ __('legal.privacy_collect') }}</p>
-            <ul class="space-y-2">
-                @foreach([
-                    'legal.privacy_collect_name',
-                    'legal.privacy_collect_push',
-                    'legal.privacy_collect_timezone',
-                    'legal.privacy_collect_google',
-                    'legal.privacy_collect_usage',
-                ] as $key)
-                    <li class="flex items-start gap-2.5 text-[14px] text-text-secondary">
-                        <span class="mt-1.5 shrink-0 w-1.5 h-1.5 rounded-full bg-neutral-dot"></span>
-                        {{ __($key) }}
-                    </li>
-                @endforeach
-            </ul>
-        </div>
-
-        <div>
-            <h2 class="text-[15px] font-semibold text-ink mb-1.5">{{ __('legal.privacy_use_heading') }}</h2>
-            <p class="text-[14px] leading-relaxed text-text-secondary mb-2.5">{{ __('legal.privacy_use') }}</p>
-            <ul class="space-y-2">
-                @foreach([
-                    'legal.privacy_use_1',
-                    'legal.privacy_use_2',
-                    'legal.privacy_use_3',
-                    'legal.privacy_use_4',
-                ] as $key)
-                    <li class="flex items-start gap-2.5 text-[14px] text-text-secondary">
-                        <svg class="mt-0.5 shrink-0 w-4 h-4 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-                        </svg>
-                        {{ __($key) }}
-                    </li>
-                @endforeach
-            </ul>
-        </div>
-
-        <div>
-            <h2 class="text-[15px] font-semibold text-ink mb-1.5">{{ __('legal.privacy_storage_heading') }}</h2>
-            <p class="text-[14px] leading-relaxed text-text-secondary">{{ __('legal.privacy_storage') }}</p>
-        </div>
-
-        <div>
-            <h2 class="text-[15px] font-semibold text-ink mb-1.5">{{ __('legal.privacy_third_party_heading') }}</h2>
-            <p class="text-[14px] leading-relaxed text-text-secondary mb-2.5">{{ __('legal.privacy_third_party') }}</p>
-            <ul class="space-y-2">
-                @foreach([
-                    'legal.privacy_third_party_google',
-                    'legal.privacy_third_party_push',
-                ] as $key)
-                    <li class="flex items-start gap-2.5 text-[14px] text-text-secondary">
-                        <span class="mt-1.5 shrink-0 w-1.5 h-1.5 rounded-full bg-neutral-dot"></span>
-                        {{ __($key) }}
-                    </li>
-                @endforeach
-            </ul>
-        </div>
-
-        <div>
-            <h2 class="text-[15px] font-semibold text-ink mb-1.5">{{ __('legal.privacy_rights_heading') }}</h2>
-            <p class="text-[14px] leading-relaxed text-text-secondary">{{ __('legal.privacy_rights') }}</p>
-        </div>
-
-        <div class="pt-4 border-t border-border-light">
-            <h2 class="text-[15px] font-semibold text-ink mb-1.5">{{ __('legal.privacy_contact_heading') }}</h2>
-            <p class="text-[14px] leading-relaxed text-text-secondary mb-2">{{ __('legal.privacy_contact') }}</p>
-            <a href="mailto:{{ config('mail.from.address') }}" class="text-[14px] font-semibold text-brand">
-                {{ config('mail.from.address') }}
-            </a>
-        </div>
-
-    </div>
-
-</x-layouts.legal>
+<x-layouts.legal
+    :title="__('legal.privacy_title')"
+    :updated="__('legal.privacy_updated')"
+    :contact="__('legal.privacy_contact')"
+    :otherPage="['url' => route('legal.terms'), 'label' => __('Terms of Service')]"
+    :sections="[
+        [
+            'id' => 'intro',
+            'chip' => __('legal.privacy_chip_intro'),
+            'heading' => __('legal.privacy_intro_heading'),
+            'blocks' => [['text' => __('legal.privacy_intro')]],
+        ],
+        [
+            'id' => 'collect',
+            'chip' => __('legal.privacy_chip_collect'),
+            'heading' => __('legal.privacy_collect_heading'),
+            'blocks' => [
+                ['text' => __('legal.privacy_collect')],
+                ['list' => [
+                    __('legal.privacy_collect_name'),
+                    __('legal.privacy_collect_push'),
+                    __('legal.privacy_collect_timezone'),
+                    __('legal.privacy_collect_google'),
+                    __('legal.privacy_collect_usage'),
+                ]],
+            ],
+        ],
+        [
+            'id' => 'use',
+            'heading' => __('legal.privacy_use_heading'),
+            'blocks' => [
+                ['text' => __('legal.privacy_use')],
+                ['list' => [
+                    __('legal.privacy_use_1'),
+                    __('legal.privacy_use_2'),
+                    __('legal.privacy_use_3'),
+                    __('legal.privacy_use_4'),
+                ]],
+            ],
+        ],
+        [
+            'id' => 'google',
+            'chip' => __('legal.privacy_chip_google'),
+            'heading' => __('legal.privacy_google_heading'),
+            'highlight' => true,
+            'blocks' => [
+                ['text' => __('legal.privacy_google_intro')],
+                ['subheading' => __('legal.privacy_google_receives_heading')],
+                ['list' => [
+                    __('legal.privacy_google_receives_id'),
+                    __('legal.privacy_google_receives_name'),
+                    __('legal.privacy_google_receives_photo'),
+                ]],
+                ['text' => __('legal.privacy_google_scopes')],
+                ['subheading' => __('legal.privacy_google_use_heading')],
+                ['text' => __('legal.privacy_google_use')],
+                ['subheading' => __('legal.privacy_google_storage_heading')],
+                ['text' => __('legal.privacy_google_storage')],
+                ['subheading' => __('legal.privacy_google_sharing_heading')],
+                ['text' => __('legal.privacy_google_sharing')],
+                ['subheading' => __('legal.privacy_google_retention_heading')],
+                ['text' => __('legal.privacy_google_retention')],
+            ],
+        ],
+        [
+            'id' => 'storage',
+            'heading' => __('legal.privacy_storage_heading'),
+            'blocks' => [['text' => __('legal.privacy_storage')]],
+        ],
+        [
+            'id' => 'third-party',
+            'heading' => __('legal.privacy_third_party_heading'),
+            'blocks' => [
+                ['text' => __('legal.privacy_third_party')],
+                ['list' => [
+                    __('legal.privacy_third_party_google'),
+                    __('legal.privacy_third_party_push'),
+                ]],
+            ],
+        ],
+        [
+            'id' => 'rights',
+            'chip' => __('legal.privacy_chip_rights'),
+            'heading' => __('legal.privacy_rights_heading'),
+            'blocks' => [['text' => __('legal.privacy_rights')]],
+        ],
+    ]"
+/>
