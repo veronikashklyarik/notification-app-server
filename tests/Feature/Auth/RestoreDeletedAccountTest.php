@@ -212,6 +212,23 @@ class RestoreDeletedAccountTest extends TestCase
         NotificationFacade::assertNothingSentTo(User::first(), AccountRestoredNotification::class);
     }
 
+    public function test_resetting_the_password_of_an_active_account_sends_no_restore_email(): void
+    {
+        NotificationFacade::fake();
+        $user = User::factory()->create(['email' => 'jane@example.com']);
+
+        $this->post(route('password.email'), ['email' => 'jane@example.com']);
+        NotificationFacade::assertSentTo($user, ResetPassword::class);
+
+        $this->post(route('password.store'), [
+            'token' => Password::createToken($user),
+            'email' => 'jane@example.com',
+            'password' => 'new-password-123',
+        ])->assertRedirect(route('login'))->assertSessionHas('status', 'Your password has been reset. Please sign in.');
+
+        NotificationFacade::assertNotSentTo($user, AccountRestoredNotification::class);
+    }
+
     public function test_restore_email_says_how_and_where_to_get_help(): void
     {
         $user = User::factory()->create(['timezone' => 'Europe/Warsaw']);
