@@ -224,7 +224,6 @@
     <footer class="md:hidden mt-12 px-5 pt-6 border-t border-border bg-white flex flex-col gap-1" style="padding-bottom: calc(env(safe-area-inset-bottom) + 36px);">
         <a href="{{ route('legal.privacy') }}" class="h-10 flex items-center text-[15px] font-semibold text-ink">{{ __('Privacy Policy') }}</a>
         <a href="{{ route('legal.terms') }}" class="h-10 flex items-center text-[15px] font-semibold text-ink">{{ __('Terms of Service') }}</a>
-        <a href="mailto:{{ $supportEmail }}" class="h-10 flex items-center text-[15px] text-text-secondary">{{ $supportEmail }}</a>
         <p class="mt-3 text-[13px] text-text-tertiary">
             @foreach ($locales as $locale)
                 @if ($locale->value === app()->getLocale())
@@ -235,7 +234,7 @@
                 @unless ($loop->last) · @endunless
             @endforeach
         </p>
-        <p class="mt-1.5 text-[13px] text-text-tertiary">&copy; {{ date('Y') }} {{ config('app.name') }}</p>
+        <p class="mt-1.5 text-[13px] text-text-tertiary">&copy; {{ date('Y') }} {{ config('app.name') }} · <a href="mailto:{{ $supportEmail }}" class="text-text-secondary">{{ $supportEmail }}</a></p>
     </footer>
     <footer class="hidden md:block mt-[clamp(48px,7vw,88px)] border-t border-border bg-white">
         <div class="{{ $wrap }} pt-6 pb-8 flex flex-wrap items-center justify-between gap-4">
