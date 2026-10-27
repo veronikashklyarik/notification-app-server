@@ -49,6 +49,11 @@ class GoogleAuthController extends Controller
             if (! $user->google_id) {
                 $user->update(['google_id' => $googleUser->getId()]);
             }
+
+            // Google only returns verified addresses, so signing in with it proves this one belongs to the user.
+            if (! $user->hasVerifiedEmail()) {
+                $user->markEmailAsVerified();
+            }
         } else {
             $timezone = $request->session()->pull('google_timezone', 'UTC');
             $locale = $request->cookie('app_locale')
