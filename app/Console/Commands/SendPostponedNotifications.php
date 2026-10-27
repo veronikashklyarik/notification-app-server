@@ -21,6 +21,8 @@ class SendPostponedNotifications extends Command
     {
         $events = NotificationEvent::query()
             ->with('notification', 'user.pushSubscriptions')
+            // A deleted (soft-deleted) account has no user here; its events must never reach the push loop
+            ->whereHas('user')
             ->where('status', EventStatus::Postponed)
             ->whereNotNull('postponed_until')
             ->where('postponed_until', '<=', now())

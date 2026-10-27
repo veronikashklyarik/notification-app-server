@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\RestoreMethod;
 use App\Http\Controllers\Controller;
+use App\Services\DeletedAccountService;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -27,7 +29,7 @@ class ResetPasswordController extends Controller
     /**
      * Handle an incoming new password request.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, DeletedAccountService $deletedAccounts): RedirectResponse
     {
         $request->validate([
             'token' => ['required'],
@@ -49,6 +51,25 @@ class ResetPasswordController extends Controller
 
         if ($status === Password::PasswordReset) {
             return redirect()->route('login')->with('status', __('Your password has been reset. Please sign in.'));
+        }
+
+        if ($status === Password::InvalidUser) {
+            $deletedUser = $deletedAccounts->findRestorable('email', $request->string('email')->toString());
+
+            if ($deletedUser && Password::tokenExists($deletedUser, $request->string('token')->toString())) {
+                $deletedUser->forceFill([
+                    'password' => Hash::make($request->string('password')->toString()),
+                    'remember_token' => Str::random(60),
+                ])->save();
+                Password::deleteToken($deletedUser);
+                $deletedAccounts->restore($deletedUser, RestoreMethod::PasswordReset);
+
+                event(new PasswordReset($deletedUser));
+
+                return redirect()->route('login')->with('status', __('Your password has been reset and your account restored. Please sign in.'));
+            }
+
+            $status = Password::InvalidToken;
         }
 
         return back()->withErrors(['email' => __($status)])->withInput($request->only('email'));

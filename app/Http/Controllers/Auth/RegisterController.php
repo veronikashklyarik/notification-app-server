@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\User;
+use App\Services\DeletedAccountService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -23,8 +24,11 @@ class RegisterController extends Controller
     /**
      * Handle an incoming registration request.
      */
-    public function store(RegisterRequest $request): RedirectResponse
+    public function store(RegisterRequest $request, DeletedAccountService $deletedAccounts): RedirectResponse
     {
+        // Validation already turned away restorable accounts; this erases an expired one holding the email.
+        $deletedAccounts->findRestorable('email', $request->validated('email'));
+
         $user = User::query()->create(array_merge(
             $request->validated(),
             [

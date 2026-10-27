@@ -21,6 +21,8 @@ class SendPendingNotifications extends Command
     {
         $events = NotificationEvent::query()
             ->with('notification', 'user.pushSubscriptions')
+            // A deleted (soft-deleted) account has no user here; its events must never reach the push loop
+            ->whereHas('user')
             ->where('status', EventStatus::Pending)
             ->where('scheduled_at', '<=', now())
             ->whereNull('notified_at')

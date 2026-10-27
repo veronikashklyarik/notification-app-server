@@ -732,5 +732,16 @@
     "Reminders stop right away. Sign in within 30 days to restore everything — after that it’s deleted for good.": "Напоминания остановятся сразу. Войдите в течение 30 дней, чтобы всё восстановить — после этого всё будет удалено безвозвратно.",
     ":count reminder|:count reminders": "{1} :count напоминание|[2,4] :count напоминания|[5,*] :count напоминаний",
     ":count mark|:count marks": "{1} :count отметка|[2,4] :count отметки|[5,*] :count отметок",
-    ":reminders and :marks stop right away. Sign in within 30 days to restore them — after that they're deleted for good.": ":reminders и :marks будут удалены сразу. Войдите в течение 30 дней, чтобы их восстановить — после этого они будут удалены безвозвратно."
+    ":reminders and :marks stop right away. Sign in within 30 days to restore them — after that they're deleted for good.": ":reminders и :marks будут удалены сразу. Войдите в течение 30 дней, чтобы их восстановить — после этого они будут удалены безвозвратно.",
+    "What is Notifyr?": "Что такое Notifyr?",
+    "This account was deleted recently. Sign in to restore it.": "Этот аккаунт недавно удалён. Войдите, чтобы восстановить его.",
+    "signing in with your password": "вход по паролю",
+    "signing in with Google": "вход через Google",
+    "resetting your password": "сброс пароля",
+    "Your Notifyr account was restored": "Ваш аккаунт Notifyr восстановлен",
+    "Your deleted Notifyr account was restored on :date by :method. Your reminders are back.": "Ваш удалённый аккаунт Notifyr восстановлен :date, способ: :method. Ваши напоминания вернулись.",
+    "Turn notifications back on in Settings on each device where you want them.": "Снова включите уведомления в Настройках на каждом устройстве, где они нужны.",
+    "Open Notifyr": "Открыть Notifyr",
+    "If this wasn't you, reset your password right away and contact us at :email.": "Если это были не вы, сразу смените пароль и напишите нам: :email.",
+    "Your password has been reset and your account restored. Please sign in.": "Пароль изменён, аккаунт восстановлен. Войдите, пожалуйста."
 }

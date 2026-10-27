@@ -79,4 +79,8 @@
         <a href="{{ route('register') }}" class="font-semibold text-brand">{{ __('Create one') }}</a>
     </p>
 
+    <p class="mt-3 text-center">
+        <a href="{{ route('landing') }}" class="text-[13px] font-semibold text-text-tertiary">{{ __('What is Notifyr?') }}</a>
+    </p>
+
 </x-layouts.guest>

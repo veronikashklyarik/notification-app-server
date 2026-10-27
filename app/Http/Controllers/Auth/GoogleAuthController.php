@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\RestoreMethod;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\DeletedAccountService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,7 +24,7 @@ class GoogleAuthController extends Controller
         return Socialite::driver('google')->redirect();
     }
 
-    public function callback(Request $request): RedirectResponse
+    public function callback(Request $request, DeletedAccountService $deletedAccounts): RedirectResponse
     {
         try {
             $googleUser = Socialite::driver('google')->user();
@@ -35,9 +37,23 @@ class GoogleAuthController extends Controller
         $user = User::query()->where('google_id', $googleUser->getId())->first()
             ?? User::query()->where('email', $googleUser->getEmail())->first();
 
+        if (! $user) {
+            $user = $deletedAccounts->findRestorable('google_id', $googleUser->getId())
+                ?? $deletedAccounts->findRestorable('email', $googleUser->getEmail());
+
+            if ($user) {
+                $deletedAccounts->restore($user, RestoreMethod::Google);
+            }
+        }
+
         if ($user) {
             if (! $user->google_id) {
                 $user->update(['google_id' => $googleUser->getId()]);
+            }
+
+            // Google only returns verified addresses, so signing in with it proves this one belongs to the user.
+            if (! $user->hasVerifiedEmail()) {
+                $user->markEmailAsVerified();
             }
         } else {
             $timezone = $request->session()->pull('google_timezone', 'UTC');

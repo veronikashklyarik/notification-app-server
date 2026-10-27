@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Livewire\Profile;
+use App\Models\Notification as Reminder;
+use App\Models\PushSubscription;
 use App\Models\User;
 use App\Notifications\WebEmailVerificationNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -197,6 +199,21 @@ class ProfileTest extends TestCase
             ->assertRedirect(route('login'));
 
         $this->assertSoftDeleted('users', ['id' => $user->id]);
+    }
+
+    public function test_deleting_account_stops_reminders_and_push_right_away(): void
+    {
+        $user = User::factory()->create();
+        $reminder = Reminder::factory()->create(['user_id' => $user->id]);
+        $subscription = PushSubscription::factory()->create(['user_id' => $user->id]);
+
+        Livewire::actingAs($user)
+            ->test(Profile::class)
+            ->set('deletePassword', 'password')
+            ->call('deleteAccount');
+
+        $this->assertSoftDeleted('notifications', ['id' => $reminder->id]);
+        $this->assertDatabaseMissing('push_subscriptions', ['id' => $subscription->id]);
     }
 
     public function test_regular_user_cannot_delete_account_without_password(): void

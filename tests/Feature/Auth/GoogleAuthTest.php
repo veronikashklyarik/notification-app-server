@@ -83,6 +83,16 @@ class GoogleAuthTest extends TestCase
         $this->assertDatabaseCount('users', 1);
     }
 
+    public function test_google_sign_in_verifies_an_unverified_email_account(): void
+    {
+        $user = User::factory()->unverified()->create(['email' => 'jane@example.com']);
+        $this->mockSocialiteUser(id: '456', name: $user->name, email: 'jane@example.com');
+
+        $this->get(route('auth.google.callback'))->assertRedirect(route('home'));
+
+        $this->assertTrue($user->fresh()->hasVerifiedEmail());
+    }
+
     public function test_google_auth_failure_redirects_to_login_with_error(): void
     {
         Socialite::shouldReceive('driver->user')->andThrow(new \Exception('OAuth error'));
