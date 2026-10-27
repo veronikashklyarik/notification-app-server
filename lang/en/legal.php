@@ -107,7 +107,6 @@ return [
     'privacy_rights_delete' => 'Delete your account in Profile',
     'privacy_rights_google' => 'Remove Notifyr\'s access to your Google account at myaccount.google.com/connections',
     'privacy_rights_gdpr' => 'Under the GDPR you also have the right to access your data and get a copy of it, to correct it, to have it erased, to restrict or object to its processing, and to lodge a complaint with a data protection authority. To use any of these rights, email us at the address in Contact — we reply within one month.',
-    'privacy_rights_children' => 'Notifyr is not intended for children under 16.',
 
     // Terms of Service
     'terms_title' => 'Terms of Service',

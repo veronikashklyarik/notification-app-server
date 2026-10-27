@@ -1,7 +1,7 @@
 {{--
     Shared template for Privacy Policy and Terms of Service: one chip per tab, one card per tab.
 
-    Each tab: ['id' => string, 'label' => string, 'heading' => string, 'highlight' => bool,
+    Each tab: ['id' => string, 'label' => string, 'heading' => string,
     'blocks' => list<array{subheading?: string, text?: string, list?: list<string>}>].
     A Contact tab with the support email is always added last. The first tab is open until a chip or #hash picks another.
 --}}
@@ -67,11 +67,7 @@
 
         @foreach ($tabs as $tab)
             <section id="{{ $tab['id'] }}" x-show="tab === @js($tab['id'])" @unless ($loop->first) x-cloak @endunless
-                @class([
-                    'mt-4 scroll-mt-4 rounded-card bg-white px-5 pt-1 pb-6',
-                    'border-[1.5px] border-brand' => $tab['highlight'] ?? false,
-                    'border border-border' => ! ($tab['highlight'] ?? false),
-                ])>
+                class="mt-4 scroll-mt-4 rounded-card bg-white border border-border px-5 pt-1 pb-6">
                 <h2 class="mt-6 text-[17px] font-semibold text-ink">{{ $tab['heading'] }}</h2>
 
                 @foreach ($tab['blocks'] as $block)

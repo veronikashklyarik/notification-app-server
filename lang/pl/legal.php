@@ -107,7 +107,6 @@ return [
     'privacy_rights_delete' => 'Usunąć konto w Profilu',
     'privacy_rights_google' => 'Odebrać Notifyr dostęp do konta Google: myaccount.google.com/connections',
     'privacy_rights_gdpr' => 'Zgodnie z RODO masz też prawo dostępu do swoich danych i otrzymania ich kopii, ich sprostowania, usunięcia, ograniczenia przetwarzania lub wniesienia sprzeciwu oraz złożenia skargi do organu ochrony danych (w Polsce — Prezesa UODO). Aby skorzystać z tych praw, napisz do nas na adres z sekcji „Kontakt” — odpowiemy w ciągu miesiąca.',
-    'privacy_rights_children' => 'Notifyr nie jest przeznaczony dla dzieci poniżej 16 lat.',
 
     // Terms of Service
     'terms_title' => 'Warunki korzystania',

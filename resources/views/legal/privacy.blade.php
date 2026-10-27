@@ -70,7 +70,6 @@
             'id' => 'google',
             'label' => __('legal.privacy_tab_google'),
             'heading' => __('legal.privacy_google_heading'),
-            'highlight' => true,
             'blocks' => [
                 ['text' => __('legal.privacy_google_intro')],
                 ['subheading' => __('legal.privacy_google_receives_heading')],
@@ -155,7 +154,6 @@
                     __('legal.privacy_rights_google'),
                 ]],
                 ['text' => __('legal.privacy_rights_gdpr')],
-                ['text' => __('legal.privacy_rights_children')],
             ],
         ],
     ]"
