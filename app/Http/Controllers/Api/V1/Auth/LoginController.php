@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1\Auth;
 
+use App\Enums\RestoreMethod;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\LoginRequest;
 use App\Http\Resources\Api\V1\UserResource;
@@ -37,7 +38,7 @@ class LoginController extends Controller
         }
 
         if ($user->trashed()) {
-            $deletedAccounts->restore($user);
+            $deletedAccounts->restore($user, RestoreMethod::Password);
         }
 
         $accessToken = $user->createToken(

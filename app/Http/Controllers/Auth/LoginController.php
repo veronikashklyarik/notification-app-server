@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\RestoreMethod;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Services\DeletedAccountService;
@@ -35,7 +36,7 @@ class LoginController extends Controller
                 ])->onlyInput('email');
             }
 
-            $deletedAccounts->restore($deletedUser);
+            $deletedAccounts->restore($deletedUser, RestoreMethod::Password);
             Auth::login($deletedUser, $request->has('remember'));
         }
 

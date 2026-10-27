@@ -3,11 +3,16 @@
 namespace Tests\Feature\Auth;
 
 use App\Enums\EventStatus;
+use App\Enums\RestoreMethod;
 use App\Livewire\Profile;
 use App\Models\Notification;
 use App\Models\NotificationEvent;
 use App\Models\User;
+use App\Notifications\AccountRestoredNotification;
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification as NotificationFacade;
+use Illuminate\Support\Facades\Password;
 use Laravel\Socialite\Contracts\User as SocialiteUser;
 use Laravel\Socialite\Facades\Socialite;
 use Livewire\Livewire;
@@ -172,6 +177,112 @@ class RestoreDeletedAccountTest extends TestCase
         ])->assertOk()->assertJsonStructure(['token', 'refresh_token']);
 
         $this->assertNotSoftDeleted('users', ['id' => $user->id]);
+    }
+
+    public function test_restoring_by_password_emails_the_owner(): void
+    {
+        NotificationFacade::fake();
+        $user = User::factory()->create(['email' => 'jane@example.com']);
+        $this->deleteAccount($user);
+
+        $this->post(route('login'), ['email' => 'jane@example.com', 'password' => 'password']);
+
+        NotificationFacade::assertSentTo($user, AccountRestoredNotification::class, fn ($notification) => $notification->method === RestoreMethod::Password);
+    }
+
+    public function test_restoring_with_google_emails_the_owner(): void
+    {
+        NotificationFacade::fake();
+        $user = User::factory()->create(['email' => 'jane@example.com', 'google_id' => '123']);
+        $this->deleteAccount($user);
+        $this->mockSocialiteUser(id: '123', email: 'jane@example.com');
+
+        $this->get(route('auth.google.callback'));
+
+        NotificationFacade::assertSentTo($user, AccountRestoredNotification::class, fn ($notification) => $notification->method === RestoreMethod::Google);
+    }
+
+    public function test_signing_in_to_an_active_account_sends_no_restore_email(): void
+    {
+        NotificationFacade::fake();
+        User::factory()->create(['email' => 'jane@example.com']);
+
+        $this->post(route('login'), ['email' => 'jane@example.com', 'password' => 'password']);
+
+        NotificationFacade::assertNothingSentTo(User::first(), AccountRestoredNotification::class);
+    }
+
+    public function test_restore_email_says_how_and_where_to_get_help(): void
+    {
+        $user = User::factory()->create(['timezone' => 'Europe/Warsaw']);
+
+        $mail = (new AccountRestoredNotification(RestoreMethod::Google, now()))->toMail($user);
+
+        $this->assertSame('Your Notifyr account was restored', $mail->subject);
+        $this->assertStringContainsString('signing in with Google', implode(' ', $mail->introLines));
+        $this->assertStringContainsString(config('mail.from.address'), implode(' ', $mail->outroLines));
+    }
+
+    public function test_forgot_password_sends_a_link_for_a_recently_deleted_account(): void
+    {
+        NotificationFacade::fake();
+        $user = User::factory()->create(['email' => 'jane@example.com']);
+        $this->deleteAccount($user);
+
+        $this->post(route('password.email'), ['email' => 'jane@example.com'])
+            ->assertSessionHas('status', 'If an account with that email exists, a password reset link has been sent.');
+
+        NotificationFacade::assertSentTo($user, ResetPassword::class);
+    }
+
+    public function test_forgot_password_sends_nothing_after_30_days(): void
+    {
+        NotificationFacade::fake();
+        $user = User::factory()->create(['email' => 'jane@example.com']);
+        $this->deleteAccount($user);
+        $this->travel(31)->days();
+
+        $this->post(route('password.email'), ['email' => 'jane@example.com'])
+            ->assertSessionHas('status', 'If an account with that email exists, a password reset link has been sent.');
+
+        NotificationFacade::assertNothingSent();
+        $this->assertDatabaseMissing('users', ['id' => $user->id]);
+    }
+
+    public function test_resetting_the_password_restores_a_recently_deleted_account(): void
+    {
+        NotificationFacade::fake();
+        $user = User::factory()->create(['email' => 'jane@example.com']);
+        $reminder = Notification::factory()->daily()->create(['user_id' => $user->id]);
+        $this->deleteAccount($user);
+        $token = Password::createToken($user->fresh());
+
+        $this->post(route('password.store'), [
+            'token' => $token,
+            'email' => 'jane@example.com',
+            'password' => 'new-password-123',
+        ])->assertRedirect(route('login'));
+
+        $this->assertNotSoftDeleted('users', ['id' => $user->id]);
+        $this->assertNotSoftDeleted('notifications', ['id' => $reminder->id]);
+        NotificationFacade::assertSentTo($user, AccountRestoredNotification::class, fn ($notification) => $notification->method === RestoreMethod::PasswordReset);
+
+        $this->post(route('login'), ['email' => 'jane@example.com', 'password' => 'new-password-123']);
+        $this->assertAuthenticatedAs($user->fresh());
+    }
+
+    public function test_reset_with_a_wrong_token_does_not_restore(): void
+    {
+        $user = User::factory()->create(['email' => 'jane@example.com']);
+        $this->deleteAccount($user);
+
+        $this->post(route('password.store'), [
+            'token' => 'not-a-real-token',
+            'email' => 'jane@example.com',
+            'password' => 'new-password-123',
+        ])->assertSessionHasErrors('email');
+
+        $this->assertSoftDeleted('users', ['id' => $user->id]);
     }
 
     public function test_sign_in_page_links_to_the_landing_page(): void

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\RestoreMethod;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\DeletedAccountService;
@@ -41,7 +42,7 @@ class GoogleAuthController extends Controller
                 ?? $deletedAccounts->findRestorable('email', $googleUser->getEmail());
 
             if ($user) {
-                $deletedAccounts->restore($user);
+                $deletedAccounts->restore($user, RestoreMethod::Google);
             }
         }
 

@@ -90,7 +90,7 @@ return [
     'privacy_retention_push' => 'Push subscriptions — until you turn notifications off on that device, the browser reports them as expired, or you delete your account',
     'privacy_retention_logs' => 'Server logs — only as long as needed for security and troubleshooting',
     'privacy_deletion_heading' => 'Deleting your account',
-    'privacy_deletion' => 'You can delete your account in Profile at any time. Your reminders and push notifications stop immediately and you are signed out everywhere. The account and everything linked to it — reminders, history, push subscriptions and your profile photo — is then permanently erased in a monthly clean-up, 30 to 60 days after deletion.',
+    'privacy_deletion' => 'You can delete your account in Profile at any time. Your reminders and push notifications stop immediately and you are signed out everywhere. The account and everything linked to it — reminders, history, push subscriptions and your profile photo — is then permanently erased in a monthly clean-up, 30 to 60 days after deletion. Within the first 30 days you can restore it by signing in again or resetting your password; we email you whenever an account is restored.',
 
     'privacy_cookies_heading' => 'Cookies',
     'privacy_cookies' => 'Notifyr uses only the cookies it needs to work:',

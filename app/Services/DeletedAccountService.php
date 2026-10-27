@@ -3,7 +3,9 @@
 namespace App\Services;
 
 use App\Enums\EventStatus;
+use App\Enums\RestoreMethod;
 use App\Models\User;
+use App\Notifications\AccountRestoredNotification;
 use Illuminate\Support\Facades\DB;
 
 class DeletedAccountService
@@ -34,9 +36,10 @@ class DeletedAccountService
     }
 
     /**
-     * Bring the account back with the reminders that were deleted together with it.
+     * Bring the account back with the reminders that were deleted together with it, and tell the
+     * owner by email so a restore they didn't make doesn't go unnoticed.
      */
-    public function restore(User $user): void
+    public function restore(User $user, RestoreMethod $method): void
     {
         $deletedAt = $user->deleted_at;
 
@@ -55,5 +58,7 @@ class DeletedAccountService
         foreach ($user->reminders()->get() as $reminder) {
             $this->eventService->topUpEvents($reminder);
         }
+
+        $user->notify(new AccountRestoredNotification($method, now()));
     }
 }

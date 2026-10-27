@@ -90,7 +90,7 @@ return [
     'privacy_retention_push' => 'Subskrypcje push — dopóki nie wyłączysz powiadomień na danym urządzeniu, przeglądarka nie zgłosi, że wygasły, albo nie usuniesz konta',
     'privacy_retention_logs' => 'Logi serwera — tylko tak długo, jak to potrzebne dla bezpieczeństwa i rozwiązywania problemów',
     'privacy_deletion_heading' => 'Usuwanie konta',
-    'privacy_deletion' => 'Możesz w każdej chwili usunąć konto w Profilu. Przypomnienia i powiadomienia push zatrzymują się natychmiast, a Ty zostajesz wylogowany wszędzie. Następnie konto i wszystko, co jest z nim powiązane — przypomnienia, historia, subskrypcje push i zdjęcie profilowe — jest trwale usuwane podczas comiesięcznego czyszczenia, 30–60 dni po usunięciu.',
+    'privacy_deletion' => 'Możesz w każdej chwili usunąć konto w Profilu. Przypomnienia i powiadomienia push zatrzymują się natychmiast, a Ty zostajesz wylogowany wszędzie. Następnie konto i wszystko, co jest z nim powiązane — przypomnienia, historia, subskrypcje push i zdjęcie profilowe — jest trwale usuwane podczas comiesięcznego czyszczenia, 30–60 dni po usunięciu. Przez pierwsze 30 dni możesz je przywrócić, logując się ponownie lub resetując hasło; o każdym przywróceniu informujemy e-mailem.',
 
     'privacy_cookies_heading' => 'Cookies',
     'privacy_cookies' => 'Notifyr używa tylko plików cookie niezbędnych do działania:',
