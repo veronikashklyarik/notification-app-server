@@ -280,11 +280,11 @@ class Profile extends Component
         }
 
         Auth::logout();
+        $user->delete();
         $user->tokens()->delete();
         $user->pushSubscriptions()->delete();
         $user->deviceTokens()->delete();
         $user->reminders()->delete();
-        $user->delete();
 
         session()->flash('success', __('Account deleted.'));
         $this->redirect(route('login'));

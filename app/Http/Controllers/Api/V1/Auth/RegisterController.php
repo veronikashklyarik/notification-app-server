@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\RegisterRequest;
 use App\Http\Resources\Api\V1\UserResource;
 use App\Models\User;
+use App\Services\DeletedAccountService;
 use Illuminate\Http\JsonResponse;
 
 class RegisterController extends Controller
@@ -20,8 +21,11 @@ class RegisterController extends Controller
      *
      * @unauthenticated
      */
-    public function store(RegisterRequest $request): JsonResponse
+    public function store(RegisterRequest $request, DeletedAccountService $deletedAccounts): JsonResponse
     {
+        // Validation already turned away restorable accounts; this erases an expired one holding the email.
+        $deletedAccounts->findRestorable('email', $request->validated('email'));
+
         $user = User::query()->create($request->safe()->except('device_name'));
 
         $accessToken = $user->createToken(

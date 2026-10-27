@@ -26,14 +26,19 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
     use HasApiTokens, HasFactory, Notifiable, Prunable, SoftDeletes;
 
     /**
-     * Accounts deleted more than 30 days ago are erased for good; reminders, history,
+     * Days a deleted account can still be restored by signing in, before it is erased.
+     */
+    public const int RESTORE_DAYS = 30;
+
+    /**
+     * Accounts deleted more than RESTORE_DAYS ago are erased for good; reminders, history,
      * push subscriptions and device tokens go with them via cascading foreign keys.
      *
-     * @return Builder<static>
+     * @return Builder<self>
      */
     public function prunable(): Builder
     {
-        return static::onlyTrashed()->where('deleted_at', '<=', now()->subDays(30));
+        return self::onlyTrashed()->where('deleted_at', '<=', now()->subDays(self::RESTORE_DAYS));
     }
 
     /**

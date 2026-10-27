@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\DeletedAccountService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,7 +23,7 @@ class GoogleAuthController extends Controller
         return Socialite::driver('google')->redirect();
     }
 
-    public function callback(Request $request): RedirectResponse
+    public function callback(Request $request, DeletedAccountService $deletedAccounts): RedirectResponse
     {
         try {
             $googleUser = Socialite::driver('google')->user();
@@ -34,6 +35,15 @@ class GoogleAuthController extends Controller
 
         $user = User::query()->where('google_id', $googleUser->getId())->first()
             ?? User::query()->where('email', $googleUser->getEmail())->first();
+
+        if (! $user) {
+            $user = $deletedAccounts->findRestorable('google_id', $googleUser->getId())
+                ?? $deletedAccounts->findRestorable('email', $googleUser->getEmail());
+
+            if ($user) {
+                $deletedAccounts->restore($user);
+            }
+        }
 
         if ($user) {
             if (! $user->google_id) {

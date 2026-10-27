@@ -732,5 +732,7 @@
     "Reminders stop right away. Sign in within 30 days to restore everything — after that it’s deleted for good.": "Przypomnienia zatrzymają się od razu. Zaloguj się w ciągu 30 dni, aby wszystko przywrócić — po tym czasie zostanie to usunięte na stałe.",
     ":count reminder|:count reminders": "{1} :count przypomnienie|[2,4] :count przypomnienia|[5,*] :count przypomnień",
     ":count mark|:count marks": "{1} :count oznaczenie|[2,4] :count oznaczenia|[5,*] :count oznaczeń",
-    ":reminders and :marks stop right away. Sign in within 30 days to restore them — after that they're deleted for good.": ":reminders i :marks zostaną usunięte od razu. Zaloguj się w ciągu 30 dni, aby je przywrócić — po tym czasie zostaną usunięte na stałe."
+    ":reminders and :marks stop right away. Sign in within 30 days to restore them — after that they're deleted for good.": ":reminders i :marks zostaną usunięte od razu. Zaloguj się w ciągu 30 dni, aby je przywrócić — po tym czasie zostaną usunięte na stałe.",
+    "What is Notifyr?": "Czym jest Notifyr?",
+    "This account was deleted recently. Sign in to restore it.": "To konto zostało niedawno usunięte. Zaloguj się, aby je przywrócić."
 }
