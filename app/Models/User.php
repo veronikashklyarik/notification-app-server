@@ -7,11 +7,14 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Prunable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 
@@ -20,7 +23,31 @@ use Laravel\Sanctum\HasApiTokens;
 class User extends Authenticatable implements HasLocalePreference, MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
+    use HasApiTokens, HasFactory, Notifiable, Prunable, SoftDeletes;
+
+    /**
+     * Accounts deleted more than 30 days ago are erased for good; reminders, history,
+     * push subscriptions and device tokens go with them via cascading foreign keys.
+     *
+     * @return Builder<static>
+     */
+    public function prunable(): Builder
+    {
+        return static::onlyTrashed()->where('deleted_at', '<=', now()->subDays(30));
+    }
+
+    /**
+     * Remove what the database does not cascade: the avatar file, API tokens and reset tokens.
+     */
+    protected function pruning(): void
+    {
+        if ($this->avatar) {
+            Storage::disk('public')->delete($this->avatar);
+        }
+
+        $this->tokens()->delete();
+        DB::table('password_reset_tokens')->where('email', $this->email)->delete();
+    }
 
     public function preferredLocale(): string
     {

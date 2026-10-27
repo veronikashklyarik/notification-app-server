@@ -3,34 +3,41 @@
     :updated="__('legal.terms_updated')"
     :contact="__('legal.terms_contact')"
     :otherPage="['url' => route('legal.privacy'), 'label' => __('Privacy Policy')]"
-    :sections="[
+    :tabs="[
         [
             'id' => 'acceptance',
-            'chip' => __('legal.terms_chip_acceptance'),
+            'label' => __('legal.terms_tab_acceptance'),
             'heading' => __('legal.terms_acceptance_heading'),
             'blocks' => [['text' => __('legal.terms_acceptance')]],
         ],
         [
             'id' => 'service',
-            'chip' => __('legal.terms_chip_service'),
+            'label' => __('legal.terms_tab_service'),
             'heading' => __('legal.terms_service_heading'),
-            'blocks' => [['text' => __('legal.terms_service')]],
+            'blocks' => [
+                ['text' => __('legal.terms_service')],
+                ['text' => __('legal.terms_service_changes')],
+            ],
         ],
         [
             'id' => 'reminders',
-            'chip' => __('legal.terms_chip_reminders'),
+            'label' => __('legal.terms_tab_reminders'),
             'heading' => __('legal.terms_reminders_heading'),
             'blocks' => [['text' => __('legal.terms_reminders')]],
         ],
         [
             'id' => 'accounts',
-            'chip' => __('legal.terms_chip_accounts'),
+            'label' => __('legal.terms_tab_accounts'),
             'heading' => __('legal.terms_accounts_heading'),
-            'blocks' => [['text' => __('legal.terms_accounts')]],
+            'blocks' => [
+                ['text' => __('legal.terms_accounts')],
+                ['text' => __('legal.terms_accounts_google')],
+                ['text' => __('legal.terms_accounts_ending')],
+            ],
         ],
         [
             'id' => 'prohibited',
-            'chip' => __('legal.terms_chip_prohibited'),
+            'label' => __('legal.terms_tab_prohibited'),
             'heading' => __('legal.terms_prohibited_heading'),
             'blocks' => [
                 ['text' => __('legal.terms_prohibited')],
@@ -43,18 +50,26 @@
             ],
         ],
         [
+            'id' => 'content',
+            'label' => __('legal.terms_tab_content'),
+            'heading' => __('legal.terms_content_heading'),
+            'blocks' => [['text' => __('legal.terms_content')]],
+        ],
+        [
             'id' => 'ip',
+            'label' => __('legal.terms_tab_ip'),
             'heading' => __('legal.terms_ip_heading'),
             'blocks' => [['text' => __('legal.terms_ip')]],
         ],
         [
             'id' => 'liability',
-            'chip' => __('legal.terms_chip_liability'),
+            'label' => __('legal.terms_tab_liability'),
             'heading' => __('legal.terms_liability_heading'),
             'blocks' => [['text' => __('legal.terms_liability')]],
         ],
         [
             'id' => 'changes',
+            'label' => __('legal.terms_tab_changes'),
             'heading' => __('legal.terms_changes_heading'),
             'blocks' => [['text' => __('legal.terms_changes')]],
         ],

@@ -15,6 +15,33 @@ class SendPendingNotificationsTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_due_event_of_a_deleted_account_is_skipped_without_breaking_other_pushes(): void
+    {
+        Queue::fake();
+
+        $deletedUser = User::factory()->create();
+        PushSubscription::factory()->create(['user_id' => $deletedUser->id]);
+        NotificationEvent::factory()->create([
+            'user_id' => $deletedUser->id,
+            'scheduled_at' => now()->subMinutes(2),
+            'status' => EventStatus::Pending,
+        ]);
+        $deletedUser->delete();
+
+        $user = User::factory()->create();
+        $subscription = PushSubscription::factory()->create(['user_id' => $user->id]);
+        NotificationEvent::factory()->create([
+            'user_id' => $user->id,
+            'scheduled_at' => now()->subMinute(),
+            'status' => EventStatus::Pending,
+        ]);
+
+        $this->artisan('app:send-pending-notifications')->assertSuccessful();
+
+        Queue::assertPushed(SendPushNotificationJob::class, 1);
+        Queue::assertPushed(SendPushNotificationJob::class, fn ($job) => $job->subscription->id === $subscription->id);
+    }
+
     public function test_due_events_set_notified_at_and_stay_pending(): void
     {
         Queue::fake();

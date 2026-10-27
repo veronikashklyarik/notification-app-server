@@ -1,26 +1,16 @@
 {{--
-    Shared template for Privacy Policy and Terms of Service.
+    Shared template for Privacy Policy and Terms of Service: one chip per tab, one card per tab.
 
-    Each section: ['id' => string, 'chip' => ?string, 'heading' => string, 'highlight' => bool,
+    Each tab: ['id' => string, 'label' => string, 'heading' => string, 'highlight' => bool,
     'blocks' => list<array{subheading?: string, text?: string, list?: list<string>}>].
-    Consecutive plain sections share one white card; a highlighted section gets its own indigo-bordered card.
+    A Contact tab with the support email is always added last. The first tab is open until a chip or #hash picks another.
 --}}
-@props(['title', 'updated', 'sections', 'contact', 'otherPage'])
+@props(['title', 'updated', 'tabs', 'contact', 'otherPage'])
 
 @php
     $supportEmail = config('mail.from.address');
-
-    $cards = [];
-    foreach ($sections as $section) {
-        $highlight = $section['highlight'] ?? false;
-        $lastCard = array_key_last($cards);
-
-        if ($highlight || $lastCard === null || $cards[$lastCard]['highlight']) {
-            $cards[] = ['highlight' => $highlight, 'sections' => [$section]];
-        } else {
-            $cards[$lastCard]['sections'][] = $section;
-        }
-    }
+    $tabIds = [...array_column($tabs, 'id'), 'contact'];
+    $chips = [...array_map(fn (array $tab): array => ['id' => $tab['id'], 'label' => $tab['label']], $tabs), ['id' => 'contact', 'label' => __('legal.contact_tab')]];
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -36,10 +26,25 @@
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet" />
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @livewireStyles
 </head>
 <body class="bg-canvas text-ink antialiased min-h-screen" style="padding-top: env(safe-area-inset-top);">
 
-    <main class="max-w-2xl mx-auto px-5 pt-5" style="padding-bottom: calc(env(safe-area-inset-bottom) + 32px);">
+    <main class="max-w-2xl mx-auto px-5 pt-5" style="padding-bottom: calc(env(safe-area-inset-bottom) + 32px);"
+          x-data="{
+              ids: @js($tabIds),
+              tab: @js($tabIds[0]),
+              init() { this.openFromHash(); },
+              openFromHash() {
+                  const id = window.location.hash.slice(1);
+                  if (this.ids.includes(id)) { this.tab = id; }
+              },
+              open(id) {
+                  this.tab = id;
+                  history.replaceState(null, '', '#' + id);
+              },
+          }"
+          x-on:hashchange.window="openFromHash()">
         @auth
             <a href="{{ route('settings') }}" class="text-[15px] font-semibold text-text-secondary">‹ {{ __('Settings') }}</a>
         @else
@@ -50,55 +55,54 @@
         <p class="mt-1 text-[13px] text-text-tertiary">{{ $updated }}</p>
 
         <nav class="mt-3.5 flex flex-wrap gap-1.5">
-            @foreach ($sections as $section)
-                @isset($section['chip'])
-                    <a href="#{{ $section['id'] }}" class="px-2.5 py-1.5 rounded-pill bg-white border border-border text-[13px] font-semibold text-text-secondary">{{ $section['chip'] }}</a>
-                @endisset
+            @foreach ($chips as $chip)
+                <a href="#{{ $chip['id'] }}"
+                   x-on:click.prevent="open(@js($chip['id']))"
+                   class="px-2.5 py-1.5 rounded-pill border bg-white border-border text-[13px] font-semibold text-text-secondary data-active:bg-ink data-active:border-ink data-active:text-white"
+                   @if ($loop->first) data-active aria-current="true" @endif
+                   x-bind:data-active="tab === @js($chip['id'])"
+                   x-bind:aria-current="tab === @js($chip['id']) ? 'true' : 'false'">{{ $chip['label'] }}</a>
             @endforeach
-            <a href="#contact" class="px-2.5 py-1.5 rounded-pill bg-white border border-border text-[13px] font-semibold text-text-secondary">{{ __('legal.chip_contact') }}</a>
         </nav>
 
-        @foreach ($cards as $card)
-            <div @class([
-                'rounded-card bg-white px-5 pt-1 pb-6',
-                'mt-4' => $loop->first,
-                'mt-3.5' => ! $loop->first,
-                'border-[1.5px] border-brand' => $card['highlight'],
-                'border border-border' => ! $card['highlight'],
-            ])>
-                @foreach ($card['sections'] as $section)
-                    <h2 id="{{ $section['id'] }}" class="mt-6 scroll-mt-4 text-[17px] font-semibold text-ink">{{ $section['heading'] }}</h2>
+        @foreach ($tabs as $tab)
+            <section id="{{ $tab['id'] }}" x-show="tab === @js($tab['id'])" @unless ($loop->first) x-cloak @endunless
+                @class([
+                    'mt-4 scroll-mt-4 rounded-card bg-white px-5 pt-1 pb-6',
+                    'border-[1.5px] border-brand' => $tab['highlight'] ?? false,
+                    'border border-border' => ! ($tab['highlight'] ?? false),
+                ])>
+                <h2 class="mt-6 text-[17px] font-semibold text-ink">{{ $tab['heading'] }}</h2>
 
-                    @foreach ($section['blocks'] as $block)
-                        @isset($block['subheading'])
-                            <h3 class="mt-4 text-[15px] font-semibold text-ink">{{ $block['subheading'] }}</h3>
-                        @endisset
-                        @isset($block['text'])
-                            <p class="mt-1.5 text-[15px] leading-[1.6] text-text-secondary">{{ $block['text'] }}</p>
-                        @endisset
-                        @isset($block['list'])
-                            <ul @class([
-                                'pl-[18px] list-disc text-[15px] leading-[1.6] text-text-secondary',
-                                'mt-2' => isset($section['blocks'][$loop->index - 1]['text']),
-                                'mt-1.5' => ! isset($section['blocks'][$loop->index - 1]['text']),
-                            ])>
-                                @foreach ($block['list'] as $item)
-                                    <li class="mt-1">{{ $item }}</li>
-                                @endforeach
-                            </ul>
-                        @endisset
-                    @endforeach
+                @foreach ($tab['blocks'] as $block)
+                    @isset($block['subheading'])
+                        <h3 class="mt-4 text-[15px] font-semibold text-ink">{{ $block['subheading'] }}</h3>
+                    @endisset
+                    @isset($block['text'])
+                        <p class="mt-1.5 text-[15px] leading-[1.6] text-text-secondary">{{ $block['text'] }}</p>
+                    @endisset
+                    @isset($block['list'])
+                        <ul @class([
+                            'pl-[18px] list-disc text-[15px] leading-[1.6] text-text-secondary',
+                            'mt-2' => isset($tab['blocks'][$loop->index - 1]['text']),
+                            'mt-1.5' => ! isset($tab['blocks'][$loop->index - 1]['text']),
+                        ])>
+                            @foreach ($block['list'] as $item)
+                                <li class="mt-1">{{ $item }}</li>
+                            @endforeach
+                        </ul>
+                    @endisset
                 @endforeach
-            </div>
+            </section>
         @endforeach
 
-        <div class="mt-3.5 rounded-card bg-white border border-border px-5 pt-1 pb-6">
-            <h2 id="contact" class="mt-6 scroll-mt-4 text-[17px] font-semibold text-ink">{{ __('legal.chip_contact') }}</h2>
+        <section id="contact" x-show="tab === 'contact'" x-cloak class="mt-4 scroll-mt-4 rounded-card bg-white border border-border px-5 pt-1 pb-6">
+            <h2 class="mt-6 text-[17px] font-semibold text-ink">{{ __('legal.contact_tab') }}</h2>
             <p class="mt-1.5 text-[15px] leading-[1.6] text-text-secondary">
                 {{ $contact }}
                 <a href="mailto:{{ $supportEmail }}" class="font-semibold text-brand">{{ $supportEmail }}</a>
             </p>
-        </div>
+        </section>
 
         <p class="mt-4 text-center text-[12px] leading-[1.5] text-text-quaternary">
             <a href="{{ route('landing') }}" class="text-text-tertiary">{{ __('Home') }}</a>
@@ -107,5 +111,6 @@
         </p>
     </main>
 
+    @livewireScripts
 </body>
 </html>

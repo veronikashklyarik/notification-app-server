@@ -27,6 +27,8 @@ class SendReminderNotifications extends Command
 
         $candidates = NotificationEvent::query()
             ->with('notification', 'user.pushSubscriptions')
+            // A deleted (soft-deleted) account has no user here; its events must never reach the push loop
+            ->whereHas('user')
             ->where('status', EventStatus::Pending)
             ->whereNotNull('notified_at')
             ->whereHas('notification', fn ($q) => $q->whereNotNull('reminder_interval')->where('is_active', true))
