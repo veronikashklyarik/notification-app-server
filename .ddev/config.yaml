@@ -1,0 +1,34 @@
+# Local environment, mirrors production: PHP 8.4, MySQL 8.0, Redis 7.0 (.ddev/.env.redis), Node 22.
+# Vite runs on the host (npm run dev): node_modules holds macOS-native binaries that don't run in the container.
+# Full option reference: https://docs.ddev.com/en/stable/users/configuration/config/
+name: notifyr
+type: laravel
+docroot: public
+php_version: "8.4"
+webserver_type: nginx-fpm
+xdebug_enabled: false
+additional_hostnames: []
+additional_fqdns: []
+database:
+    type: mysql
+    version: "8.0"
+# Fixed port so TablePlus/PhpStorm can keep a saved connection: 127.0.0.1:33061, user db / db
+host_db_port: "33061"
+use_dns_when_possible: true
+composer_version: "2"
+web_environment: []
+nodejs_version: "22"
+corepack_enable: false
+
+# public/storage must be a relative link: an absolute one (artisan storage:link on the Mac) points to a
+# /Users/... path that doesn't exist in the container, and every uploaded image 404s
+hooks:
+    post-start:
+        - exec: ln -sfn ../storage/app/public public/storage
+
+# No queue worker or scheduler locally: the queue is sync (.env) and the push commands are run by hand
+# (ddev artisan app:send-pending-notifications etc.) so a local DB never sends notifications on its own.
+
+# "ddev share" opens the site on the reserved ngrok domain, which is also the Google OAuth redirect URI
+share_default_provider: ngrok
+share_provider_args: --url=kourtney-nonpracticed-insistently.ngrok-free.dev
