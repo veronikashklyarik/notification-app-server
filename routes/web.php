@@ -11,6 +11,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ResendVerificationEmailController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\SwitchLocaleController;
+use App\Http\Middleware\EnsureRegistrationIsEnabled;
 use App\Livewire\CatchUp;
 use App\Livewire\EventList;
 use App\Livewire\Home;
@@ -36,8 +37,10 @@ Route::middleware('guest')->group(function (): void {
     Route::get('login', [LoginController::class, 'create'])->name('login');
     Route::post('login', [LoginController::class, 'store']);
 
-    Route::get('register', [RegisterController::class, 'create'])->name('register');
-    Route::post('register', [RegisterController::class, 'store']);
+    Route::middleware(EnsureRegistrationIsEnabled::class)->group(function (): void {
+        Route::get('register', [RegisterController::class, 'create'])->name('register');
+        Route::post('register', [RegisterController::class, 'store']);
+    });
 
     Route::get('forgot-password', [ForgotPasswordController::class, 'create'])->name('password.request');
     Route::post('forgot-password', [ForgotPasswordController::class, 'store'])->name('password.email');

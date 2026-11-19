@@ -114,6 +114,31 @@ class GoogleAuthTest extends TestCase
         $this->assertTrue($user->hasVerifiedEmail());
     }
 
+    public function test_unknown_google_user_is_rejected_when_registration_is_disabled(): void
+    {
+        config(['auth.registration_enabled' => false]);
+        $this->mockSocialiteUser(id: '123', name: 'Jane Doe', email: 'jane@example.com');
+
+        $response = $this->get(route('auth.google.callback'));
+
+        $response->assertRedirect(route('login'));
+        $response->assertSessionHasErrors('email');
+        $this->assertGuest();
+        $this->assertDatabaseMissing('users', ['email' => 'jane@example.com']);
+    }
+
+    public function test_existing_google_user_can_log_in_when_registration_is_disabled(): void
+    {
+        config(['auth.registration_enabled' => false]);
+        $user = User::factory()->create(['google_id' => '456', 'email' => 'existing@example.com']);
+        $this->mockSocialiteUser(id: '456', name: $user->name, email: 'existing@example.com');
+
+        $response = $this->get(route('auth.google.callback'));
+
+        $response->assertRedirect(route('home'));
+        $this->assertAuthenticatedAs($user);
+    }
+
     /**
      * @param  non-empty-string  $id
      * @param  non-empty-string  $name

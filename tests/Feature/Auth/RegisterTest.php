@@ -54,4 +54,38 @@ class RegisterTest extends TestCase
             'password' => 'password123',
         ])->assertInvalid(['email']);
     }
+
+    public function test_registration_form_is_hidden_when_registration_is_disabled(): void
+    {
+        config(['auth.registration_enabled' => false]);
+
+        $this->get(route('register'))->assertNotFound();
+    }
+
+    public function test_guests_cannot_register_when_registration_is_disabled(): void
+    {
+        config(['auth.registration_enabled' => false]);
+
+        $this->post(route('register'), [
+            'name' => 'Jane Doe',
+            'email' => 'jane@example.com',
+            'password' => 'password123',
+        ])->assertNotFound();
+
+        $this->assertDatabaseMissing('users', ['email' => 'jane@example.com']);
+    }
+
+    public function test_sign_up_links_are_hidden_when_registration_is_disabled(): void
+    {
+        config(['auth.registration_enabled' => false]);
+
+        $this->get(route('login'))->assertOk()->assertDontSee(route('register'));
+        $this->get(route('landing'))->assertOk()->assertDontSee(route('register'));
+    }
+
+    public function test_sign_up_links_are_shown_when_registration_is_enabled(): void
+    {
+        $this->get(route('login'))->assertOk()->assertSee(route('register'));
+        $this->get(route('landing'))->assertOk()->assertSee(route('register'));
+    }
 }

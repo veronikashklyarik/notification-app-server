@@ -88,7 +88,9 @@
                 <h1 class="mt-2 md:mt-2.5 text-[34px] md:text-[clamp(36px,5.4vw,60px)] font-bold tracking-[-0.03em] leading-[1.1] md:leading-[1.05] text-balance">{{ __('landing.hero_title') }}</h1>
                 <p class="mt-3.5 md:mt-[18px] md:max-w-[560px] text-[16px] md:text-[clamp(16px,1.6vw,19px)] leading-[1.55] text-text-secondary text-pretty">{{ __('landing.hero_text') }}</p>
                 <div class="mt-6 md:mt-7 flex flex-col md:flex-row md:flex-wrap gap-2.5">
-                    <a href="{{ route('register') }}" class="{{ $cta }} bg-brand text-white">{{ __('landing.cta_create') }}</a>
+                    @if (config('auth.registration_enabled'))
+                        <a href="{{ route('register') }}" class="{{ $cta }} bg-brand text-white">{{ __('landing.cta_create') }}</a>
+                    @endif
                     <a href="{{ route('auth.google') }}" data-google-auth class="{{ $cta }} bg-white border border-border text-ink">
                         <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
                             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -204,7 +206,9 @@
                 <h2 class="text-[24px] font-bold tracking-title text-white">{{ __('landing.final_title') }}</h2>
                 <p class="mt-1.5 text-[15px] text-[#a9b0bc]">{{ __('landing.final_text') }}</p>
                 <div class="mt-5 flex flex-col gap-2.5">
-                    <a href="{{ route('register') }}" class="{{ $cta }} bg-white text-ink">{{ __('landing.cta_create') }}</a>
+                    @if (config('auth.registration_enabled'))
+                        <a href="{{ route('register') }}" class="{{ $cta }} bg-white text-ink">{{ __('landing.cta_create') }}</a>
+                    @endif
                     <a href="{{ route('login') }}" class="{{ $cta }} bg-ink-muted text-[#d5d9e0]">{{ __('Sign in') }}</a>
                 </div>
             </div>
@@ -213,7 +217,9 @@
             <h2 class="text-[clamp(26px,3.4vw,36px)] font-bold tracking-title leading-[1.15]">{{ __('landing.final_title') }}</h2>
             <p class="mt-2.5 text-[16px] text-text-secondary">{{ __('landing.final_text') }}</p>
             <div class="mt-[22px] flex flex-wrap justify-center gap-2.5">
-                <a href="{{ route('register') }}" class="{{ $cta }} bg-brand text-white">{{ __('landing.cta_create') }}</a>
+                @if (config('auth.registration_enabled'))
+                    <a href="{{ route('register') }}" class="{{ $cta }} bg-brand text-white">{{ __('landing.cta_create') }}</a>
+                @endif
                 <a href="{{ route('login') }}" class="{{ $cta }} bg-white border border-border text-ink">{{ __('Sign in') }}</a>
             </div>
         </section>
