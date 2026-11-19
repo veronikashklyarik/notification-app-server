@@ -116,6 +116,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Registration
+    |--------------------------------------------------------------------------
+    |
+    | When disabled, the sign-up form and API endpoint return 404 and Google
+    | sign-in only admits users who already have an account.
+    |
+    */
+
+    'registration_enabled' => (bool) env('REGISTRATION_ENABLED', true),
+
+    /*
+    |--------------------------------------------------------------------------
     | API Token Expiration
     |--------------------------------------------------------------------------
     |

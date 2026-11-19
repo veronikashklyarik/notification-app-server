@@ -74,10 +74,12 @@
         </button>
     </form>
 
-    <p class="mt-5 text-[14px] text-center text-text-secondary">
-        {{ __("Don't have an account?") }}
-        <a href="{{ route('register') }}" class="font-semibold text-brand">{{ __('Create one') }}</a>
-    </p>
+    @if (config('auth.registration_enabled'))
+        <p class="mt-5 text-[14px] text-center text-text-secondary">
+            {{ __("Don't have an account?") }}
+            <a href="{{ route('register') }}" class="font-semibold text-brand">{{ __('Create one') }}</a>
+        </p>
+    @endif
 
     <p class="mt-3 text-center">
         <a href="{{ route('landing') }}" class="text-[13px] font-semibold text-text-tertiary">{{ __('What is Notifyr?') }}</a>

@@ -53,4 +53,19 @@ class RegisterTest extends TestCase
         $response->assertUnprocessable()
             ->assertJsonValidationErrors(['name', 'email', 'password', 'device_name']);
     }
+
+    public function test_register_is_not_found_when_registration_is_disabled(): void
+    {
+        config(['auth.registration_enabled' => false]);
+
+        $this->postJson('/api/v1/auth/register', [
+            'name' => 'John Doe',
+            'email' => 'john@example.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+            'device_name' => 'Test iPhone',
+        ])->assertNotFound();
+
+        $this->assertDatabaseMissing('users', ['email' => 'john@example.com']);
+    }
 }

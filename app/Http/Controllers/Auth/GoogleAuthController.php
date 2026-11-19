@@ -55,6 +55,10 @@ class GoogleAuthController extends Controller
             if (! $user->hasVerifiedEmail()) {
                 $user->markEmailAsVerified();
             }
+        } elseif (! config('auth.registration_enabled')) {
+            return redirect()->route('login')->withErrors([
+                'email' => __('Registration is closed. Only existing accounts can sign in.'),
+            ]);
         } else {
             $timezone = $request->session()->pull('google_timezone', 'UTC');
             $locale = $request->cookie('app_locale')
