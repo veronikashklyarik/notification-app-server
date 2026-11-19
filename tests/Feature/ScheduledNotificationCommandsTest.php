@@ -43,15 +43,16 @@ class ScheduledNotificationCommandsTest extends TestCase
     {
         $event = $this->scheduledEvent($command);
 
-        // A run killed mid-way (OOM, reboot) never releases its lock
-        $event->mutex->create($event);
-        $this->assertTrue($event->mutex->exists($event));
+        // A run killed mid-way (OOM, reboot) never releases its lock. The next run is checked through
+        // create() rather than exists(): exists() relies on isLocked(), which the array lock used in
+        // tests answers without looking at the expiry
+        $this->assertTrue($event->mutex->create($event));
 
         $this->travel(9)->minutes();
-        $this->assertTrue($event->mutex->exists($event), 'A live lock must still prevent overlapping runs.');
+        $this->assertFalse($event->mutex->create($event), 'A live lock must still prevent overlapping runs.');
 
         $this->travel(2)->minutes();
-        $this->assertFalse($event->mutex->exists($event), 'A stale lock must not block the command for long.');
+        $this->assertTrue($event->mutex->create($event), 'A stale lock must not block the command for long.');
     }
 
     private function scheduledEvent(string $command): Event
